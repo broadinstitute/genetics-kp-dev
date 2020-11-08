@@ -17,13 +17,18 @@ def query(request_body):  # noqa: E501
 
     :rtype: Message
     """
-    cnx = mysql.connector.connect(database='Translator')
+    cnx = mysql.connector.connect(database='Translator', user='mvon')
     cursor = cnx.cursor()
 
     if connexion.request.is_json:
         body = connexion.request.get_json()
         takenNodes = {}
         takenEdges = {}
+
+        body['results'] = []
+        body['knowledge_graph'] = {}
+        body['knowledge_graph']['nodes'] = []
+        body['knowledge_graph']['edges'] = []
  
         for edge in body['message']['query_graph']['edges']:
             if 'type' not in edge or edge['type'] != 'associated' or 'source_id' not in edge or 'target_id' not in edge:
@@ -58,29 +63,29 @@ def query(request_body):  # noqa: E501
             info    = []
             queries = []
 
-            if (sourceType == 'disease' or sourceType == 'phenotype') and targetType == 'gene':
+            if (sourceType == 'disease' or sourceType == 'phenotypic_feature') and targetType == 'gene':
                 N = 2
                 info = [["MAGMA-pvalue", "smaller_is_better"],\
                         ["Genetics-quantile", "higher_is_better"]]
-                queries = ["select GENE,ID,PVALUE from MAGMA_GENES where DISEASE='{}' and PVALUE<2.5e-6 ORDER by PVALUE  ASC".format(sourceID),\
-                           "select GENE,ID,SCORE  from SCORE_GENES where DISEASE='{}' and SCORE >0.95   ORDER by SCORE  DESC".format(sourceID)]
+                queries = ["select GENE,ID,PVALUE from MAGMA_GENES where DISEASE='{}' and CATEGOTY='{}' and PVALUE<2.5e-6 ORDER by PVALUE  ASC".format(sourceID,sourceType),\
+                           "select GENE,ID,SCORE  from SCORE_GENES where DISEASE='{}' and CATEGOTY='{}' and SCORE >0.95   ORDER by SCORE  DESC".format(sourceID,sourceType)]
 
-            elif (sourceType == 'disease' or sourceType == 'phenotype') and targetType == 'pathway':
+            elif (sourceType == 'disease' or sourceType == 'phenotypic_feature') and targetType == 'pathway':
                 N = 1
                 info = [["MAGMA-pvalue", "smaller_is_better"]]
-                queries = ["select PATHWAY,ID,PVALUE from MAGMA_PATHWAYS where DISEASE='{}' and PVALUE<2.0e-6 ORDER by PVALUE ASC".format(sourceID)]
+                queries = ["select PATHWAY,ID,PVALUE from MAGMA_PATHWAYS where DISEASE='{}' and CATEGOTY='{}' and PVALUE<2.0e-6 ORDER by PVALUE ASC".format(sourceID,sourceType)]
 
-            elif sourceType == 'gene' and (targetType == 'disease' or sourceType == 'phenotype'):
+            elif sourceType == 'gene' and (targetType == 'disease' or targetType == 'phenotypic_feature'):
                 N = 2
                 info = [["MAGMA-pvalue", "smaller_is_better"],\
                         ["Genetics-quantile", "higher_is_better"]]
-                queries = ["select DISEASE,ID,PVALUE from MAGMA_GENES where GENE='{}' and PVALUE<0.05 ORDER by PVALUE ASC".format(sourceID),\
-                           "select DISEASE,ID,SCORE  from SCORE_GENES where GENE='{}' and SCORE >0.80 ORDER by SCORE DESC".format(sourceID)]
+                queries = ["select DISEASE,ID,PVALUE from MAGMA_GENES where GENE='{}' and CATEGORY='{}' and PVALUE<0.05 ORDER by PVALUE ASC".format(sourceID,targetType),\
+                           "select DISEASE,ID,SCORE  from SCORE_GENES where GENE='{}' and CATEGORY='{}' and SCORE >0.80 ORDER by SCORE DESC".format(sourceID,targetType)]
 
-            elif sourceType == 'pathway' and (targetType == 'disease' or sourceType == 'phenotype'):
+            elif sourceType == 'pathway' and (targetType == 'disease' or targetType == 'phenotypic_feature'):
                 N = 1
                 info = [["MAGMA-pvalue", "smaller_is_better"]]
-                queries = ["select DISEASE,ID,PVALUE from MAGMA_PATHWAY where PATHWAY='{}' and PVALUE<0.05 ORDER by PVALUE ASC".format(sourceID)]
+                queries = ["select DISEASE,ID,PVALUE from MAGMA_PATHWAY where PATHWAY='{}' and CATEGORY='{}' and PVALUE<0.05 ORDER by PVALUE ASC".format(sourceID,targetType)]
 
             if N > 0:
                 for i in range(0, N):
@@ -91,12 +96,6 @@ def query(request_body):  # noqa: E501
                             targetID  = record[0]
                             edgeID    = record[1]
                             score     = record[2]
-
-                            if 'results' not in body:
-                                body['results'] = []
-                                body['knowledge_graph'] = {}
-                                body['knowledge_graph']['nodes'] = []
-                                body['knowledge_graph']['edges'] = []
 
                             if sourceID not in takenNodes:
                                 body['knowledge_graph']['nodes'].append({"id" : sourceID, "type" : sourceType})
@@ -112,6 +111,8 @@ def query(request_body):  # noqa: E501
 
                             body['results'].append({"edge_bindings": [ {"kg_id": edgeID, "qg_id": qeID} ], "node_bindings": [ { "kg_id": sourceID, "qg_id": qn0ID }, { "kg_id": targetID, 'qg_id': qn1ID } ] })
 
+        body['query_graph'] = body['message']['query_graph']
+        del body['message']
         return body
 
     cnx.close() 
