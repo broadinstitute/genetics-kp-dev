@@ -67,13 +67,13 @@ def query(request_body):  # noqa: E501
                 N = 2
                 info = [["MAGMA-pvalue", "smaller_is_better"],\
                         ["Genetics-quantile", "higher_is_better"]]
-                queries = ["select GENE,ID,PVALUE from MAGMA_GENES where DISEASE='{}' and CATEGOTY='{}' and PVALUE<2.5e-6 ORDER by PVALUE  ASC".format(sourceID,sourceType),\
-                           "select GENE,ID,SCORE  from SCORE_GENES where DISEASE='{}' and CATEGOTY='{}' and SCORE >0.95   ORDER by SCORE  DESC".format(sourceID,sourceType)]
+                queries = ["select GENE,ID,PVALUE from MAGMA_GENES where DISEASE='{}' and CATEGORY='{}' and PVALUE<2.5e-6 ORDER by PVALUE  ASC".format(sourceID,sourceType),\
+                           "select GENE,ID,SCORE  from SCORE_GENES where DISEASE='{}' and CATEGORY='{}' and SCORE >0.95   ORDER by SCORE  DESC".format(sourceID,sourceType)]
 
             elif (sourceType == 'disease' or sourceType == 'phenotypic_feature') and targetType == 'pathway':
                 N = 1
                 info = [["MAGMA-pvalue", "smaller_is_better"]]
-                queries = ["select PATHWAY,ID,PVALUE from MAGMA_PATHWAYS where DISEASE='{}' and CATEGOTY='{}' and PVALUE<2.0e-6 ORDER by PVALUE ASC".format(sourceID,sourceType)]
+                queries = ["select PATHWAY,ID,PVALUE from MAGMA_PATHWAYS where DISEASE='{}' and CATEGORY='{}' and PVALUE<2.0e-6 ORDER by PVALUE ASC".format(sourceID,sourceType)]
 
             elif sourceType == 'gene' and (targetType == 'disease' or targetType == 'phenotypic_feature'):
                 N = 2
@@ -85,7 +85,7 @@ def query(request_body):  # noqa: E501
             elif sourceType == 'pathway' and (targetType == 'disease' or targetType == 'phenotypic_feature'):
                 N = 1
                 info = [["MAGMA-pvalue", "smaller_is_better"]]
-                queries = ["select DISEASE,ID,PVALUE from MAGMA_PATHWAY where PATHWAY='{}' and CATEGORY='{}' and PVALUE<0.05 ORDER by PVALUE ASC".format(sourceID,targetType)]
+                queries = ["select DISEASE,ID,PVALUE from MAGMA_PATHWAYS where PATHWAY='{}' and CATEGORY='{}' and PVALUE<0.05 ORDER by PVALUE ASC".format(sourceID,targetType)]
 
             if N > 0:
                 for i in range(0, N):
