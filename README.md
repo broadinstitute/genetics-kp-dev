@@ -25,6 +25,7 @@ The Genetics KP provides the following data
 ## The available phenotypes currently available for searching are listed below
 
 # Phenotypes available for the Richards method gene associations (currently 10)
+```
 +----------------+--------------------------------+
 | phenotype_code | phenotype                      |
 +----------------+--------------------------------+
@@ -39,9 +40,10 @@ The Genetics KP provides the following data
 | TG             | Triglycerides                  |
 | Thyroid        | Hypothyroidism                 |
 +----------------+--------------------------------+
-
+```
 
 # Phenotypes available for the Magma gene associations (currently 145)
+```
 +---------------------+-------------------------------------------------------+
 | phenotype_code      | phenotype                                             |
 +---------------------+-------------------------------------------------------+
@@ -191,8 +193,10 @@ The Genetics KP provides the following data
 | WMH                 | Cerebral white matter hyperintensity volume           |
 | XXLVLDLpart         | Chylomicrons and XXL-VLDL cholesterol                 |
 +---------------------+-------------------------------------------------------+
+```
 
 # Phenotypes available for the Magma pathway associations (currently 82)
+```
 +---------------------+-------------------------------------------------------+
 | phenotype_code      | phenotype                                             |
 +---------------------+-------------------------------------------------------+
@@ -279,8 +283,10 @@ The Genetics KP provides the following data
 | WHRadjBMI           | Waist-hip ratio adj BMI                               |
 | WMH                 | Cerebral white matter hyperintensity volume           |
 +---------------------+-------------------------------------------------------+
+```
 
 # Phenotypes available for the Integrated Genetics method gene associations (currently 10)
+```
 +----------------+-------------------------------------------------------+
 | phenotype_code | phenotype                                             |
 +----------------+-------------------------------------------------------+
@@ -295,5 +301,7 @@ The Genetics KP provides the following data
 | LDL            | LDL cholesterol                                       |
 | T2D            | Type 2 diabetes                                       |
 +----------------+-------------------------------------------------------+
+```
+
 
 
