@@ -23,7 +23,7 @@ The Genetics KP provides the following data
     doi: 10.1038/s41588-019-0538-0.
     PMID: 31784727
 
-## Available by 12/16/2020
+## Available by 01/16/2021
   * An extra 15 phenotypes added to the magma gene associations (from 145 to 160)
   * An extra 15 phenotypes added to the magma pathway associations (from 82 to 95)
 
