@@ -290,6 +290,79 @@ The Genetics KP provides the following data
 +-------------------------------------------------------+-------------+
 ```
 
+## Phenotypes available for the ABC method gene associations (currently 65)
+```
++-------------------------------------------------------+-------------+
+| phenotype                                             | efo_id      |
++-------------------------------------------------------+-------------+
+| Acute insulin response                                | EFO:0006831 |
+| Adiponectin                                           | EFO:0004502 |
+| Albuminuria                                           | EFO:0004285 |
+| Alzheimer's disease                                   | EFO:0000249 |
+| Atrial fibrillation                                   | EFO:0000275 |
+| Bipolar disorder                                      | EFO:0000289 |
+| Blood urea nitrogen                                   | EFO:0004741 |
+| BMI                                                   | EFO:0004340 |
+| Chronic kidney disease                                | EFO:0003884 |
+| Chylomicrons and XXL-VLDL cholesterol                 | EFO:0008596 |
+| Coronary artery disease                               | EFO:0000378 |
+| Creatine kinase                                       | EFO:0004534 |
+| Creatinine                                            | EFO:0004518 |
+| Crohn's disease                                       | EFO:0000384 |
+| Diastolic blood pressure                              | EFO:0006336 |
+| Dihomo-gamma-linoleic acid                            | EFO:0008356 |
+| Fasting glucose                                       | EFO:0004465 |
+| Fasting glucose adj BMI                               | EFO:0008036 |
+| Fasting insulin                                       | EFO:0004466 |
+| Fasting plasma glucose in diabetics and non-diabetics | EFO:0004465 |
+| Gamma-linolenic acid                                  | EFO:0007762 |
+| HbA1c                                                 | EFO:0004541 |
+| HDL cholesterol                                       | EFO:0004612 |
+| Heart failure                                         | EFO:0003144 |
+| Heart rate                                            | EFO:0004326 |
+| Height                                                | EFO:0004339 |
+| Hip circumference                                     | EFO:0005093 |
+| Hip circumference adj BMI                             | EFO:0008039 |
+| HOMA-B                                                | EFO:0004469 |
+| Hypertension                                          | EFO:0000537 |
+| IDL cholesterol                                       | EFO:0008595 |
+| Inflammatory bowel disease                            | EFO:0003767 |
+| LDL cholesterol                                       | EFO:0004611 |
+| Left ventricular ejection fraction                    | EFO:0008373 |
+| Leptin                                                | EFO:0005000 |
+| Linoleic acid                                         | EFO:0006807 |
+| Mean arterial pressure                                | EFO:0006340 |
+| Non-HDL cholesterol                                   | EFO:0005689 |
+| Nonischemic cardiomyopathy                            | EFO:0009881 |
+| Oleic acid                                            | EFO:0006810 |
+| Omega-3 fatty acids                                   | EFO:0010119 |
+| Palmitoleic acid                                      | EFO:0007973 |
+| Peak insulin response                                 | EFO:0008000 |
+| Plasma C-reactive protein                             | EFO:0004458 |
+| Proinsulin levels                                     | EFO:0010814 |
+| Pulse pressure                                        | EFO:0005763 |
+| Remnant cholesterol                                   | EFO:0010815 |
+| Schizophrenia                                         | EFO:0000692 |
+| Serum ApoA1                                           | EFO:0004614 |
+| Serum ApoB                                            | EFO:0004615 |
+| Stroke volume                                         | EFO:0010555 |
+| Systolic blood pressure                               | EFO:0006335 |
+| Total cholesterol                                     | EFO:0004574 |
+| Triglyceride-to-HDL ratio                             | EFO:0007929 |
+| Triglycerides                                         | EFO:0004530 |
+| Type 1 diabetes                                       | EFO:0001359 |
+| Type 2 diabetes                                       | EFO:0001360 |
+| UACR in non-diabetics                                 | EFO:0007778 |
+| Ulcerative colitis                                    | EFO:0000729 |
+| Uric acid                                             | EFO:0004761 |
+| Urinary albumin-to-creatinine ratio                   | EFO:0007778 |
+| Waist circumference                                   | EFO:0004342 |
+| Waist circumference adj BMI                           | EFO:0007789 |
+| Waist-hip ratio                                       | EFO:0004343 |
+| Waist-hip ratio adj BMI                               | EFO:0007788 |
++-------------------------------------------------------+-------------+
+```
+
 ## Phenotypes available for the Integrated Genetics method gene associations (currently 10)
 ```
 +-------------------------------------------------------+-------------+
