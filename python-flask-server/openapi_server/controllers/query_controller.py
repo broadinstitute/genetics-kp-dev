@@ -1,7 +1,7 @@
 import connexion
 import six
-import mysql.connector
-
+import pymysql
+# import mysql.connector
 
 from openapi_server.models.message import Message  # noqa: E501
 from openapi_server import util
@@ -17,11 +17,13 @@ def query(request_body):  # noqa: E501
 
     :rtype: Message
     """
-    cnx = mysql.connector.connect(database='Translator', user='mvon')
+    # cnx = mysql.connector.connect(database='Translator', user='mvon')
+    cnx = pymysql.connect(host='localhost', port=3306, database='tran_genepro', user='root', password='yoyoma')
     cursor = cnx.cursor()
 
     if connexion.request.is_json:
         body = connexion.request.get_json()
+        print("got {}".format(body))
         takenNodes = {}
         takenEdges = {}
 
@@ -59,36 +61,49 @@ def query(request_body):  # noqa: E501
             sourceType = sourceNode['type']
             targetType = targetNode['type']
 
-            N = 0
+            # N = 0
             info    = []
             queries = []
 
+            # log
+            print("running query for source type: {} and source_id: {} and target type: {}".format(sourceType, sourceID, targetType))
+
+            # queries
             if (sourceType == 'disease' or sourceType == 'phenotypic_feature') and targetType == 'gene':
-                N = 2
+                # N = 2
                 info = [["MAGMA-pvalue", "smaller_is_better"],\
+                        ["Richards-effector-genes", "higher_is_better"],\
+                        ["ABC-genes", "not_displayed"],\
                         ["Genetics-quantile", "higher_is_better"]]
                 queries = ["select GENE,ID,PVALUE from MAGMA_GENES where DISEASE='{}' and CATEGORY='{}' and PVALUE<2.5e-6 ORDER by PVALUE  ASC".format(sourceID,sourceType),\
+                           "select gene, id, probability from richards_gene where phenotype='{}' and category='{}' ORDER by probability desc".format(sourceID,sourceType),\
+                           "select gene_ncbi_id, edge_id, null from abc_gene_phenotype where phenotype_efo_id='{}' and category='{}' and gene_ncbi_id is not null order by edge_id".format(sourceID,sourceType),\
                            "select GENE,ID,SCORE  from SCORE_GENES where DISEASE='{}' and CATEGORY='{}' and SCORE >0.95   ORDER by SCORE  DESC".format(sourceID,sourceType)]
 
             elif (sourceType == 'disease' or sourceType == 'phenotypic_feature') and targetType == 'pathway':
-                N = 1
+                # N = 1
                 info = [["MAGMA-pvalue", "smaller_is_better"]]
                 queries = ["select PATHWAY,ID,PVALUE from MAGMA_PATHWAYS where DISEASE='{}' and CATEGORY='{}' and PVALUE<2.0e-6 ORDER by PVALUE ASC".format(sourceID,sourceType)]
 
             elif sourceType == 'gene' and (targetType == 'disease' or targetType == 'phenotypic_feature'):
-                N = 2
+                # N = 2
                 info = [["MAGMA-pvalue", "smaller_is_better"],\
+                        ["Richards-effector-genes", "higher_is_better"],\
+                        ["ABC-genes", "not_displayed"],\
                         ["Genetics-quantile", "higher_is_better"]]
                 queries = ["select DISEASE,ID,PVALUE from MAGMA_GENES where GENE='{}' and CATEGORY='{}' and PVALUE<0.05 ORDER by PVALUE ASC".format(sourceID,targetType),\
+                           "select phenotype, id, probability from richards_gene where gene='{}' and category='{}' ORDER by probability desc".format(sourceID,targetType),\
+                           "select phenotype_efo_id, edge_id, null from abc_gene_phenotype where gene_ncbi_id='{}' and category='{}' and phenotype_efo_id is not null order by edge_id".format(sourceID,targetType),\
                            "select DISEASE,ID,SCORE  from SCORE_GENES where GENE='{}' and CATEGORY='{}' and SCORE >0.80 ORDER by SCORE DESC".format(sourceID,targetType)]
 
             elif sourceType == 'pathway' and (targetType == 'disease' or targetType == 'phenotypic_feature'):
-                N = 1
+                # N = 1
                 info = [["MAGMA-pvalue", "smaller_is_better"]]
                 queries = ["select DISEASE,ID,PVALUE from MAGMA_PATHWAYS where PATHWAY='{}' and CATEGORY='{}' and PVALUE<0.05 ORDER by PVALUE ASC".format(sourceID,targetType)]
 
-            if N > 0:
-                for i in range(0, N):
+            if len(queries) > 0:
+                for i in range(0, len(queries)):
+                    print("running query: {}".format(queries[i]))
                     cursor.execute(queries[i])
                     results = cursor.fetchall()
                     if results:
@@ -106,7 +121,10 @@ def query(request_body):  # noqa: E501
                                 takenNodes[targetID] = 1
 
                             if edgeID not in takenEdges: 
-                                body['knowledge_graph']['edges'].append({"id" : edgeID, "source_id": sourceID, "target_id" : targetID, "score_name" : info[i][0], "score" : score, "score_direction" : info[i][1], "type" : "associated"})
+                                if score is not None:
+                                    body['knowledge_graph']['edges'].append({"id" : edgeID, "source_id": sourceID, "target_id" : targetID, "score_name" : info[i][0], "score" : score, "score_direction" : info[i][1], "type" : "associated"})
+                                else:
+                                    body['knowledge_graph']['edges'].append({"id" : edgeID, "source_id": sourceID, "target_id" : targetID, "score_name" : info[i][0], "type" : "associated"})
                                 takenEdges[edgeID] = 1
 
                             body['results'].append({"edge_bindings": [ {"kg_id": edgeID, "qg_id": qeID} ], "node_bindings": [ { "kg_id": sourceID, "qg_id": qn0ID }, { "kg_id": targetID, 'qg_id': qn1ID } ] })
