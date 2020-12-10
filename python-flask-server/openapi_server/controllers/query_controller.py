@@ -17,7 +17,8 @@ def query(request_body):  # noqa: E501
 
     :rtype: Message
     """
-    cnx = mysql.connector.connect(database='Translator', user='mvon')
+    # cnx = mysql.connector.connect(database='Translator', user='mvon')
+    cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
     # cnx = pymysql.connect(host='localhost', port=3306, database='tran_genepro', user='root', password='this aint no password')
     cursor = cnx.cursor()
 
