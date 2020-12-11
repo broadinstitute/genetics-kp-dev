@@ -12,7 +12,6 @@ The Genetics KP provides the following data
 
 * Experimental Integrated Genetics method (Flannick Lab); under development
 
-## Available by 12/16/2020
 * Richards method gene/phenotype associations
   * Forgetta V, Jiang L, Vulpescu NA, et al. An Effector Index to Predict Causal Genes at GWAS Loci. Submitted for publication, 2020.
         [BioRxiv](https://www.biorxiv.org/content/10.1101/2020.06.28.171561v1)
