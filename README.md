@@ -5,22 +5,22 @@ Code repository for the maintenance of the Translator API for the Broad Institut
 The Genetics KP provides the following data
 
 ## Currently Available
+* Richards method gene/phenotype associations
+  * Forgetta V, Jiang L, Vulpescu NA, et al. An Effector Index to Predict Causal Genes at GWAS Loci. Submitted for publication, 2020.
+        [BioRxiv](https://www.biorxiv.org/content/10.1101/2020.06.28.171561v1)
+
 * Magma gene/phenotype associations and Magma pathway/phenotype associations
   * de Leeuw CA, et al. MAGMA: generalized gene-set analysis of GWAS data. PLoS Comput Biol. 2015 Apr 17;11(4):e1004219. doi: 10.1371/journal.pcbi.1004219.
         PMID: 25885710
         [paper](https://ctg.cncr.nl/software/magma)
-
-* Experimental Integrated Genetics method (Flannick Lab); under development
-
-* Richards method gene/phenotype associations
-  * Forgetta V, Jiang L, Vulpescu NA, et al. An Effector Index to Predict Causal Genes at GWAS Loci. Submitted for publication, 2020.
-        [BioRxiv](https://www.biorxiv.org/content/10.1101/2020.06.28.171561v1)
 
 * ABC method gene to phenotype associations
   * Fulco JP, Nasser J., et al. Activity-by-contact model of enhancer-promoter regulation from thousands of CRISPR perturbations. 
     Nat Genet. 2019 Dec;51(12):1664-1669.     
     doi: 10.1038/s41588-019-0538-0.
     PMID: 31784727
+
+* Experimental Integrated Genetics method (Flannick Lab); under development
 
 ## Available by 01/16/2021
   * An extra 15 phenotypes added to the magma gene associations (from 145 to 160)
