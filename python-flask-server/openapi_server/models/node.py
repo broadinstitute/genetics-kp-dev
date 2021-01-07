@@ -31,7 +31,7 @@ class Node(Model):
         """
         self.openapi_types = {
             'name': str,
-            'category': OneOfstringarray,
+            'category': str,
             'attributes': List[Attribute]
         }
 
