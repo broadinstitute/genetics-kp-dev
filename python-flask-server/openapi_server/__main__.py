@@ -12,7 +12,7 @@ def main():
                 arguments={'title': 'OpenAPI for NCATS Biomedical Translator Reasoners'},
                 pythonic_params=True)
     # app.run(port=8080)
-    app.run(port=7000)
+    app.run(port=7001)
 
 
 if __name__ == '__main__':
