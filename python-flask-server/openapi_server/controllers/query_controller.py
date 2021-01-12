@@ -1,6 +1,7 @@
 import connexion
 import six
 import pymysql
+import copy
 # import mysql.connector
 
 from openapi_server.models.message import Message
@@ -173,21 +174,21 @@ def get_request_elements(body):
     for edge_key, edge in edge_map.items():
 
         if 'predicate' not in edge or translate_type(edge['predicate']) != 'associated' or 'subject' not in edge or 'object' not in edge:
-            print("invalid edge format: {}".format(edge))
+            print("========== invalid edge format: {}".format(edge))
             continue
         else:
             edge['edge_key'] = edge_key
         
         sourceNode = node_map.get(edge.get('subject'))
         if sourceNode is None or 'category' not in sourceNode or 'id' not in sourceNode:
-            print("invalid source node format: {}".format(sourceNode))
+            print("=========== invalid source node format: {}".format(sourceNode))
             continue
         else:
             sourceNode['node_key'] = edge.get('subject')
 
         targetNode = node_map.get(edge.get('object'))
         if targetNode is None or 'category' not in targetNode:
-            print("invalid target node format: {}".format(targetNode))
+            print("============= invalid target node format: {}".format(targetNode))
             continue
         else:
             targetNode['node_key'] = edge.get('object')
@@ -231,7 +232,7 @@ def build_results(results_list, query_graph):
         nodes[source.node_key] = node           
         knowledge_graph.nodes[source.curie] = node
 
-        # add the subject node
+        # add the target node
         node = Node(name=target.name, category=translate_type(target.category, False), attributes=None)
         nodes[target.node_key] = node           
         knowledge_graph.nodes[target.curie] = node
@@ -274,7 +275,7 @@ def query(request_body):  # noqa: E501
         # verify the json
         body = connexion.request.get_json()
         print("got {}".format(body))
-        query_graph = body['message']['query_graph']
+        query_graph = copy.deepcopy(body['message']['query_graph'])
         takenNodes = {}
         takenEdges = {}
 
@@ -311,15 +312,28 @@ def query(request_body):  # noqa: E501
                         ["Richards-effector-genes", "higher_is_better"],\
                         ["ABC-genes", "not_displayed"],\
                         ["Genetics-quantile", "higher_is_better"]]
-                queries = ["select GENE,ID,PVALUE from MAGMA_GENES where DISEASE='{}' and CATEGORY='{}' and PVALUE<2.5e-6 ORDER by PVALUE  ASC".format(sourceID,sourceType),\
-                           "select gene, id, probability from richards_gene where phenotype='{}' and category='{}' ORDER by probability desc".format(sourceID,sourceType),\
-                           "select gene_ncbi_id, edge_id, null from abc_gene_phenotype where phenotype_efo_id='{}' and category='{}' and gene_ncbi_id is not null order by edge_id".format(sourceID,sourceType),\
-                           "select GENE,ID,SCORE  from SCORE_GENES where DISEASE='{}' and CATEGORY='{}' and SCORE >0.95   ORDER by SCORE  DESC".format(sourceID,sourceType)]
+                queries = ["""select mg.GENE, mg.ID, mg.PVALUE, pl.efo_name, gl.gene from MAGMA_GENES mg, gene_lookup gl, phenotype_lookup pl
+                                where mg.GENE = gl.ncbi_id and mg.DISEASE = pl.tran_efo_id and 
+                                mg.DISEASE='{}' and mg.CATEGORY='{}' and mg.PVALUE<2.5e-6 ORDER by mg.PVALUE  ASC""".format(sourceID,sourceType),\
+
+                           """select rg.gene, rg.id, rg.probability, pl.efo_name, gl.gene from richards_gene rg, gene_lookup gl, phenotype_lookup pl  
+                                where rg.gene = gl.ncbi_id and rg.phenotype = pl.tran_efo_id and 
+                                rg.phenotype='{}' and rg.category='{}' ORDER by rg.probability desc""".format(sourceID,sourceType),\
+
+                           """select abc.gene_ncbi_id, abc.edge_id, null, pl.efo_name, gl.gene from abc_gene_phenotype abc, gene_lookup gl, phenotype_lookup pl  
+                                where abc.gene_ncbi_id = gl.ncbi_id and abc.phenotype_efo_id = pl.tran_efo_id and 
+                                abc.phenotype_efo_id='{}' and abc.category='{}' and abc.gene_ncbi_id is not null order by abc.edge_id""".format(sourceID,sourceType),\
+
+                           """select mg.GENE, mg.ID, mg.SCORE, gl.gene, pl.efo_name from SCORE_GENES  mg, gene_lookup gl, phenotype_lookup pl 
+                                where mg.GENE = gl.ncbi_id and mg.DISEASE = pl.tran_efo_id and 
+                                mg.DISEASE='{}' and mg.CATEGORY='{}' and mg.SCORE >0.95   ORDER by mg.SCORE  DESC""".format(sourceID,sourceType)]
 
             elif (sourceType == 'disease' or sourceType == 'phenotypic_feature') and targetType == 'pathway':
                 # N = 1
                 info = [["MAGMA-pvalue", "smaller_is_better"]]
-                queries = ["select PATHWAY,ID,PVALUE from MAGMA_PATHWAYS where DISEASE='{}' and CATEGORY='{}' and PVALUE<2.0e-6 ORDER by PVALUE ASC".format(sourceID,sourceType)]
+                queries = ["""select mp.PATHWAY, mp.ID, mp.PVALUE, pl.efo_name, null from MAGMA_PATHWAYS mp, phenotype_lookup pl 
+                        where mp.DISEASE = pl.tran_efo_id and 
+                        mp.DISEASE='{}' and mp.CATEGORY='{}' and mp.PVALUE<2.0e-6 ORDER by mp.PVALUE ASC""".format(sourceID,sourceType)]
 
             elif sourceType == 'gene' and (targetType == 'disease' or targetType == 'phenotypic_feature'):
                 # N = 2
@@ -327,15 +341,28 @@ def query(request_body):  # noqa: E501
                         ["Richards-effector-genes", "higher_is_better"],\
                         ["ABC-genes", "not_displayed"],\
                         ["Genetics-quantile", "higher_is_better"]]
-                queries = ["select DISEASE,ID,PVALUE from MAGMA_GENES where GENE='{}' and CATEGORY='{}' and PVALUE<0.05 ORDER by PVALUE ASC".format(sourceID,targetType),\
-                           "select phenotype, id, probability from richards_gene where gene='{}' and category='{}' ORDER by probability desc".format(sourceID,targetType),\
-                           "select phenotype_efo_id, edge_id, null from abc_gene_phenotype where gene_ncbi_id='{}' and category='{}' and phenotype_efo_id is not null order by edge_id".format(sourceID,targetType),\
-                           "select DISEASE,ID,SCORE  from SCORE_GENES where GENE='{}' and CATEGORY='{}' and SCORE >0.80 ORDER by SCORE DESC".format(sourceID,targetType)]
+                queries = ["""select mg.DISEASE, mg.ID, mg.PVALUE, gl.gene, pl.efo_name from MAGMA_GENES mg, gene_lookup gl, phenotype_lookup pl 
+                                where mg.GENE = gl.ncbi_id and mg.DISEASE = pl.tran_efo_id and 
+                                mg.GENE='{}' and mg.CATEGORY='{}' and mg.PVALUE<0.05 ORDER by mg.PVALUE ASC""".format(sourceID,targetType),\
+
+                           """select rg.phenotype, rg.id, rg.probability, gl.gene, pl.efo_name from richards_gene rg, gene_lookup gl, phenotype_lookup pl 
+                                where rg.gene = gl.ncbi_id and rg.phenotype = pl.tran_efo_id and 
+                                rg.gene='{}' and rg.category='{}' ORDER by rg.probability desc""".format(sourceID,targetType),\
+
+                           """select abc.phenotype_efo_id, abc.edge_id, null, gl.gene, pl.efo_name from abc_gene_phenotype abc, gene_lookup gl, phenotype_lookup pl  
+                                where abc.gene_ncbi_id = gl.ncbi_id and abc.phenotype_efo_id = pl.tran_efo_id and 
+                                abc.gene_ncbi_id='{}' and abc.category='{}' and abc.phenotype_efo_id is not null order by abc.edge_id""".format(sourceID,targetType),\
+
+                           """select mg.DISEASE, mg.ID, mg.SCORE, gl.gene, pl.efo_name from SCORE_GENES mg, gene_lookup gl, phenotype_lookup pl 
+                                where mg.GENE = gl.ncbi_id and mg.DISEASE = pl.tran_efo_id and 
+                                mg.GENE='{}' and mg.CATEGORY='{}' and mg.SCORE >0.80 ORDER by SCORE DESC""".format(sourceID,targetType)]
 
             elif sourceType == 'pathway' and (targetType == 'disease' or targetType == 'phenotypic_feature'):
                 # N = 1
                 info = [["MAGMA-pvalue", "smaller_is_better"]]
-                queries = ["select DISEASE,ID,PVALUE from MAGMA_PATHWAYS where PATHWAY='{}' and CATEGORY='{}' and PVALUE<0.05 ORDER by PVALUE ASC".format(sourceID,targetType)]
+                queries = ["""select mp.DISEASE, mp.ID, mp.PVALUE, null, pl.efo_name from MAGMA_PATHWAYS  mp, phenotype_lookup pl 
+                        where mp.DISEASE = pl.tran_efo_id and 
+                        mp.PATHWAY='{}' and mp.CATEGORY='{}' and mp.PVALUE<0.05 ORDER by mp.PVALUE ASC""".format(sourceID,targetType)]
 
             if len(queries) > 0:
                 for i in range(0, len(queries)):
@@ -348,10 +375,12 @@ def query(request_body):  # noqa: E501
                             targetID  = record[0]
                             edgeID    = record[1]
                             score     = record[2]
+                            sourceName = record[3]
+                            targetName = record[4]
 
                             # build the result objects
-                            source_node = NodeOuput(sourceID, None, sourceType, qn0ID)
-                            target_node = NodeOuput(targetID, None, targetType, qn1ID)
+                            source_node = NodeOuput(curie=sourceID, name=sourceName, category=sourceType, node_key=qn0ID)
+                            target_node = NodeOuput(curie=targetID, name=targetName, category=targetType, node_key=qn1ID)
                             output_edge = EdgeOuput(id=edgeID,source_node=source_node,target_node=target_node,predicate=edge_type,score=score,edge_key=qeID)
 
                             # add to the results list
@@ -380,7 +409,7 @@ def query(request_body):  # noqa: E501
         cnx.close()
 
         # build the response
-        query_response = build_results(genetics_results, query_graph)
+        query_response = build_results(results_list=genetics_results, query_graph=query_graph)
         return query_response
 
     else :
