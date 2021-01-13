@@ -173,7 +173,8 @@ def get_request_elements(body):
     # build the 
     for edge_key, edge in edge_map.items():
 
-        if 'predicate' not in edge or translate_type(edge['predicate']) != 'associated' or 'subject' not in edge or 'object' not in edge:
+        # if 'predicate' not in edge or translate_type(edge['predicate']) != 'associated' or 'subject' not in edge or 'object' not in edge:
+        if 'predicate' not in edge or 'subject' not in edge or 'object' not in edge:
             print("========== invalid edge format: {}".format(edge))
             continue
         else:
@@ -262,12 +263,24 @@ def query(request_body):  # noqa: E501
 
     :rtype: Response
     """
+    # node types
+    node_gene ='biolink:Gene'
+    node_disease = 'biolink:Disease'
+    node_phenotype = 'biolink:PhenotypicFeature'
+    node_pathway = 'biolink:Pathway'
+
+    # edge types
+    edge_gene_disease = 'biolink:gene_associated_with_condition'
+    edge_disease_gene = 'biolink:condition_associated_with_gene'
+    edge_pathway_disease = 'biolink:genetic_association'
+    edge_disease_pathway = 'biolink:genetic_association'
 
     if connexion.request.is_json:
         # initialize
         # cnx = mysql.connector.connect(database='Translator', user='mvon')
-        cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
+        # cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
         # cnx = pymysql.connect(host='localhost', port=3306, database='tran_genepro', user='root', password='this is no password')
+        cnx = pymysql.connect(host='localhost', port=3306, database='tran_genepro', user='root', password='yoyoma')
         cursor = cnx.cursor()
         genetics_results = []
         query_response = {}
@@ -294,8 +307,10 @@ def query(request_body):  # noqa: E501
             sourceID   = temp_edge.source['id']
             qn0ID      = temp_edge.source['node_key']
             qn1ID      = temp_edge.target['node_key']
-            sourceType = translate_type(temp_edge.source['category'])
-            targetType = translate_type(temp_edge.target['category'])
+            # sourceType = translate_type(temp_edge.source['category'])
+            # targetType = translate_type(temp_edge.target['category'])
+            sourceType = temp_edge.source['category']
+            targetType = temp_edge.target['category']
             edge_type = temp_edge.edge['predicate']
 
             # N = 0
@@ -303,62 +318,62 @@ def query(request_body):  # noqa: E501
             queries = []
 
             # log
-            print("running query for source type: {} and source_id: {} and target type: {}".format(sourceType, sourceID, targetType))
+            print("running query for source type: {} and source_id: {} and target type: {} and edge type: {}".format(sourceType, sourceID, targetType, edge_type))
 
             # queries
-            if (sourceType == 'disease' or sourceType == 'phenotypic_feature') and targetType == 'gene':
+            if (sourceType == node_disease or sourceType == node_phenotype) and targetType == node_gene and edge_type == edge_disease_gene:
                 info = [["MAGMA-pvalue", "smaller_is_better"],\
                         ["Richards-effector-genes", "higher_is_better"],\
                         ["ABC-genes", "not_displayed"],\
                         ["Genetics-quantile", "higher_is_better"]]
                 queries = ["""select mg.GENE, mg.ID, mg.PVALUE, pl.efo_name, gl.gene from MAGMA_GENES mg, gene_lookup gl, phenotype_lookup pl
                                 where mg.GENE = gl.ncbi_id and mg.DISEASE = pl.tran_efo_id and 
-                                mg.DISEASE='{}' and mg.CATEGORY='{}' and mg.PVALUE<2.5e-6 ORDER by mg.PVALUE  ASC""".format(sourceID,sourceType),\
+                                mg.DISEASE='{}' and mg.CATEGORY='{}' and mg.PVALUE<2.5e-6 ORDER by mg.PVALUE  ASC""".format(sourceID, translate_type(sourceType)),\
 
                            """select rg.gene, rg.id, rg.probability, pl.efo_name, gl.gene from richards_gene rg, gene_lookup gl, phenotype_lookup pl  
                                 where rg.gene = gl.ncbi_id and rg.phenotype = pl.tran_efo_id and 
-                                rg.phenotype='{}' and rg.category='{}' ORDER by rg.probability desc""".format(sourceID,sourceType),\
+                                rg.phenotype='{}' and rg.category='{}' ORDER by rg.probability desc""".format(sourceID, translate_type(sourceType)),\
 
                            """select abc.gene_ncbi_id, abc.edge_id, null, pl.efo_name, gl.gene from abc_gene_phenotype abc, gene_lookup gl, phenotype_lookup pl  
                                 where abc.gene_ncbi_id = gl.ncbi_id and abc.phenotype_efo_id = pl.tran_efo_id and 
-                                abc.phenotype_efo_id='{}' and abc.category='{}' and abc.gene_ncbi_id is not null order by abc.edge_id""".format(sourceID,sourceType),\
+                                abc.phenotype_efo_id='{}' and abc.category='{}' and abc.gene_ncbi_id is not null order by abc.edge_id""".format(sourceID, translate_type(sourceType)),\
 
                            """select mg.GENE, mg.ID, mg.SCORE, gl.gene, pl.efo_name from SCORE_GENES  mg, gene_lookup gl, phenotype_lookup pl 
                                 where mg.GENE = gl.ncbi_id and mg.DISEASE = pl.tran_efo_id and 
-                                mg.DISEASE='{}' and mg.CATEGORY='{}' and mg.SCORE >0.95   ORDER by mg.SCORE  DESC""".format(sourceID,sourceType)]
+                                mg.DISEASE='{}' and mg.CATEGORY='{}' and mg.SCORE >0.95   ORDER by mg.SCORE  DESC""".format(sourceID, translate_type(sourceType))]
 
-            elif (sourceType == 'disease' or sourceType == 'phenotypic_feature') and targetType == 'pathway':
+            elif (sourceType == node_disease or sourceType == node_phenotype) and targetType == node_pathway and edge_type == edge_disease_pathway:
                 info = [["MAGMA-pvalue", "smaller_is_better"]]
                 queries = ["""select mp.PATHWAY, mp.ID, mp.PVALUE, pl.efo_name, null from MAGMA_PATHWAYS mp, phenotype_lookup pl 
                         where mp.DISEASE = pl.tran_efo_id and 
-                        mp.DISEASE='{}' and mp.CATEGORY='{}' and mp.PVALUE<2.0e-6 ORDER by mp.PVALUE ASC""".format(sourceID,sourceType)]
+                        mp.DISEASE='{}' and mp.CATEGORY='{}' and mp.PVALUE<2.0e-6 ORDER by mp.PVALUE ASC""".format(sourceID, translate_type(sourceType))]
 
-            elif sourceType == 'gene' and (targetType == 'disease' or targetType == 'phenotypic_feature'):
+            elif sourceType == node_gene and (targetType == node_disease or targetType == node_phenotype) and edge_type == edge_gene_disease:
                 info = [["MAGMA-pvalue", "smaller_is_better"],\
                         ["Richards-effector-genes", "higher_is_better"],\
                         ["ABC-genes", "not_displayed"],\
                         ["Genetics-quantile", "higher_is_better"]]
                 queries = ["""select mg.DISEASE, mg.ID, mg.PVALUE, gl.gene, pl.efo_name from MAGMA_GENES mg, gene_lookup gl, phenotype_lookup pl 
                                 where mg.GENE = gl.ncbi_id and mg.DISEASE = pl.tran_efo_id and 
-                                mg.GENE='{}' and mg.CATEGORY='{}' and mg.PVALUE<0.05 ORDER by mg.PVALUE ASC""".format(sourceID,targetType),\
+                                mg.GENE='{}' and mg.CATEGORY='{}' and mg.PVALUE<0.05 ORDER by mg.PVALUE ASC""".format(sourceID, translate_type(targetType)),\
 
                            """select rg.phenotype, rg.id, rg.probability, gl.gene, pl.efo_name from richards_gene rg, gene_lookup gl, phenotype_lookup pl 
                                 where rg.gene = gl.ncbi_id and rg.phenotype = pl.tran_efo_id and 
-                                rg.gene='{}' and rg.category='{}' ORDER by rg.probability desc""".format(sourceID,targetType),\
+                                rg.gene='{}' and rg.category='{}' ORDER by rg.probability desc""".format(sourceID, translate_type(targetType)),\
 
                            """select abc.phenotype_efo_id, abc.edge_id, null, gl.gene, pl.efo_name from abc_gene_phenotype abc, gene_lookup gl, phenotype_lookup pl  
                                 where abc.gene_ncbi_id = gl.ncbi_id and abc.phenotype_efo_id = pl.tran_efo_id and 
-                                abc.gene_ncbi_id='{}' and abc.category='{}' and abc.phenotype_efo_id is not null order by abc.edge_id""".format(sourceID,targetType),\
+                                abc.gene_ncbi_id='{}' and abc.category='{}' and abc.phenotype_efo_id is not null order by abc.edge_id""".format(sourceID, translate_type(targetType)),\
 
                            """select mg.DISEASE, mg.ID, mg.SCORE, gl.gene, pl.efo_name from SCORE_GENES mg, gene_lookup gl, phenotype_lookup pl 
                                 where mg.GENE = gl.ncbi_id and mg.DISEASE = pl.tran_efo_id and 
-                                mg.GENE='{}' and mg.CATEGORY='{}' and mg.SCORE >0.80 ORDER by SCORE DESC""".format(sourceID,targetType)]
+                                mg.GENE='{}' and mg.CATEGORY='{}' and mg.SCORE >0.80 ORDER by SCORE DESC""".format(sourceID, translate_type(targetType))]
 
-            elif sourceType == 'pathway' and (targetType == 'disease' or targetType == 'phenotypic_feature'):
+            elif sourceType == node_pathway and (targetType == node_disease or targetType == node_phenotype) and edge_type == edge_pathway_disease:
                 info = [["MAGMA-pvalue", "smaller_is_better"]]
                 queries = ["""select mp.DISEASE, mp.ID, mp.PVALUE, null, pl.efo_name from MAGMA_PATHWAYS  mp, phenotype_lookup pl 
                         where mp.DISEASE = pl.tran_efo_id and 
-                        mp.PATHWAY='{}' and mp.CATEGORY='{}' and mp.PVALUE<0.05 ORDER by mp.PVALUE ASC""".format(sourceID,targetType)]
+                        mp.PATHWAY='{}' and mp.CATEGORY='{}' and mp.PVALUE<0.05 ORDER by mp.PVALUE ASC""".format(sourceID, translate_type(targetType))]
 
             if len(queries) > 0:
                 for i in range(0, len(queries)):
@@ -377,7 +392,7 @@ def query(request_body):  # noqa: E501
                             # build the result objects
                             source_node = NodeOuput(curie=sourceID, name=sourceName, category=sourceType, node_key=qn0ID)
                             target_node = NodeOuput(curie=targetID, name=targetName, category=targetType, node_key=qn1ID)
-                            output_edge = EdgeOuput(id=edgeID,source_node=source_node,target_node=target_node,predicate=edge_type,score=score,edge_key=qeID)
+                            output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edge_type, score=score, edge_key=qeID)
 
                             # add to the results list
                             genetics_results.append(output_edge)

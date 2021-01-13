@@ -46,19 +46,19 @@ def predicates_get():  # noqa: E501
     predicates = {}
     predicates['biolink:Disease'] = {}
     predicates['biolink:Disease']['biolink:Gene'] = []
-    predicates['biolink:Disease']['biolink:Gene'].append('biolink:genetic_association')
+    predicates['biolink:Disease']['biolink:Gene'].append('biolink:condition_associated_with_gene')
     predicates['biolink:Disease']['biolink:Pathway'] = []
     predicates['biolink:Disease']['biolink:Pathway'].append('biolink:genetic_association')
     predicates['biolink:PhenotypicFeature'] = {}
     predicates['biolink:PhenotypicFeature']['biolink:Gene'] = []
-    predicates['biolink:PhenotypicFeature']['biolink:Gene'].append('biolink:genetic_association')
+    predicates['biolink:PhenotypicFeature']['biolink:Gene'].append('biolink:condition_associated_with_gene')
     predicates['biolink:PhenotypicFeature']['biolink:Pathway'] = []
     predicates['biolink:PhenotypicFeature']['biolink:Pathway'].append('biolink:genetic_association')
     predicates['biolink:Gene'] = {}
     predicates['biolink:Gene']['biolink:Disease'] = []
-    predicates['biolink:Gene']['biolink:Disease'].append('biolink:genetic_association')
+    predicates['biolink:Gene']['biolink:Disease'].append('biolink:gene_associated_with_condition')
     predicates['biolink:Gene']['biolink:PhenotypicFeature'] = []
-    predicates['biolink:Gene']['biolink:PhenotypicFeature'].append('biolink:genetic_association')
+    predicates['biolink:Gene']['biolink:PhenotypicFeature'].append('biolink:gene_associated_with_condition')
     predicates['biolink:Pathway'] = {}
     predicates['biolink:Pathway']['biolink:Disease'] = []
     predicates['biolink:Pathway']['biolink:Disease'].append('biolink:genetic_association')
