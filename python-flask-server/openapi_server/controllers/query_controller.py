@@ -341,7 +341,7 @@ def query(request_body):  # noqa: E501
                                 where abc.gene_ncbi_id = gl.ncbi_id and abc.phenotype_efo_id = pl.tran_efo_id and 
                                 abc.phenotype_efo_id='{}' and abc.category='{}' and abc.gene_ncbi_id is not null order by abc.edge_id""".format(sourceID, translate_type(sourceType)),\
 
-                           """select mg.GENE, mg.ID, mg.SCORE, gl.gene, pl.efo_name from SCORE_GENES  mg, gene_lookup gl, phenotype_lookup pl 
+                           """select mg.GENE, mg.ID, mg.SCORE, pl.efo_name, gl.gene from SCORE_GENES  mg, gene_lookup gl, phenotype_lookup pl 
                                 where mg.GENE = gl.ncbi_id and mg.DISEASE = pl.tran_efo_id and 
                                 mg.DISEASE='{}' and mg.CATEGORY='{}' and mg.SCORE >0.95   ORDER by mg.SCORE  DESC""".format(sourceID, translate_type(sourceType))]
 
