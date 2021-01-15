@@ -325,9 +325,13 @@ def query(request_body):  # noqa: E501
                         ["Richards-effector-genes", "higher_is_better"],\
                         ["ABC-genes", "not_displayed"],\
                         ["Genetics-quantile", "higher_is_better"]]
-                queries = ["""select mg.GENE, mg.ID, mg.PVALUE, pl.efo_name, gl.gene from MAGMA_GENES mg, gene_lookup gl, phenotype_lookup pl
-                                where mg.GENE = gl.ncbi_id and mg.DISEASE = pl.tran_efo_id and 
-                                mg.DISEASE='{}' and mg.CATEGORY='{}' and mg.PVALUE<2.5e-6 ORDER by mg.PVALUE  ASC""".format(sourceID, translate_type(sourceType)),\
+                queries = [
+                            """select mg.ncbi_id, concat('magma_gene_', mg.id) as id, mg.p_value, mg.phenotype, mg.gene from magma_gene_phenotype mg
+                                where mg.phenotype_ontology_id='{}' and mg.biolink_category='{}' and mg.p_value < 0.05 ORDER by mg.p_value ASC""".format(sourceID, sourceType),\
+
+                            # """select mg.GENE, mg.ID, mg.PVALUE, pl.efo_name, gl.gene from MAGMA_GENES mg, gene_lookup gl, phenotype_lookup pl
+                            #     where mg.GENE = gl.ncbi_id and mg.DISEASE = pl.tran_efo_id and 
+                            #     mg.DISEASE='{}' and mg.CATEGORY='{}' and mg.PVALUE<2.5e-6 ORDER by mg.PVALUE  ASC""".format(sourceID, translate_type(sourceType)),\
 
                            """select rg.gene, rg.id, rg.probability, pl.efo_name, gl.gene from richards_gene rg, gene_lookup gl, phenotype_lookup pl  
                                 where rg.gene = gl.ncbi_id and rg.phenotype = pl.tran_efo_id and 
@@ -352,9 +356,13 @@ def query(request_body):  # noqa: E501
                         ["Richards-effector-genes", "higher_is_better"],\
                         ["ABC-genes", "not_displayed"],\
                         ["Genetics-quantile", "higher_is_better"]]
-                queries = ["""select mg.DISEASE, mg.ID, mg.PVALUE, gl.gene, pl.efo_name from MAGMA_GENES mg, gene_lookup gl, phenotype_lookup pl 
-                                where mg.GENE = gl.ncbi_id and mg.DISEASE = pl.tran_efo_id and 
-                                mg.GENE='{}' and mg.CATEGORY='{}' and mg.PVALUE<0.05 ORDER by mg.PVALUE ASC""".format(sourceID, translate_type(targetType)),\
+                queries = [
+                            """select mg.phenotype_ontology_id, concat('magma_gene_', mg.id) as id, mg.p_value, mg.gene, mg.phenotype from magma_gene_phenotype mg
+                                where mg.ncbi_id='{}' and mg.biolink_category='{}' and mg.p_value < 0.05 ORDER by mg.p_value ASC""".format(sourceID, targetType),\
+
+                            # """select mg.DISEASE, mg.ID, mg.PVALUE, gl.gene, pl.efo_name from MAGMA_GENES mg, gene_lookup gl, phenotype_lookup pl 
+                            #     where mg.GENE = gl.ncbi_id and mg.DISEASE = pl.tran_efo_id and 
+                            #     mg.GENE='{}' and mg.CATEGORY='{}' and mg.PVALUE<0.05 ORDER by mg.PVALUE ASC""".format(sourceID, translate_type(targetType)),\
 
                            """select rg.phenotype, rg.id, rg.probability, gl.gene, pl.efo_name from richards_gene rg, gene_lookup gl, phenotype_lookup pl 
                                 where rg.gene = gl.ncbi_id and rg.phenotype = pl.tran_efo_id and 
