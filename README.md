@@ -22,9 +22,8 @@ The Genetics KP provides the following data
 
 * Experimental Integrated Genetics method (Flannick Lab); under development
 
-## Available by 01/16/2021
-  * An extra 15 phenotypes added to the magma gene associations (from 145 to 160)
-  * An extra 15 phenotypes added to the magma pathway associations (from 82 to 95)
+## Added on 01/16/2021
+  * An extra 41 phenotypes added to the magma gene associations (from 145 to 186)
 
 # Phenotypes currently available for each method
 
