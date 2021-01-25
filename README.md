@@ -12,7 +12,7 @@ The Genetics KP provides the following data
 * Magma gene/phenotype associations and Magma pathway/phenotype associations
   * de Leeuw CA, et al. MAGMA: generalized gene-set analysis of GWAS data. PLoS Comput Biol. 2015 Apr 17;11(4):e1004219. doi: 10.1371/journal.pcbi.1004219.
         PMID: 25885710
-        [software](https://ctg.cncr.nl/software/magma)
+        [software](https://ctg.cncr.nl/software/magma),
         [paper](https://journals.plos.org/ploscompbiol/article?id=10.1371%2Fjournal.pcbi.1004219)
 
 * ABC method gene to phenotype associations
