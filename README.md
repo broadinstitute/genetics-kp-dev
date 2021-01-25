@@ -24,6 +24,7 @@ The Genetics KP provides the following data
 
 ## Added on 01/16/2021
   * An extra 41 phenotypes added to the magma gene associations (from 145 to 186)
+  * Upgraded the API to be trapi v1.0 compatible
 
 # Phenotypes currently available for each method
 
