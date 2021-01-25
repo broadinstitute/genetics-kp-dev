@@ -17,9 +17,10 @@ The Genetics KP provides the following data
 
 * ABC method gene to phenotype associations
   * Fulco JP, Nasser J., et al. Activity-by-contact model of enhancer-promoter regulation from thousands of CRISPR perturbations. 
-    Nat Genet. 2019 Dec;51(12):1664-1669.     
-    doi: 10.1038/s41588-019-0538-0.
-    PMID: 31784727
+      Nat Genet. 2019 Dec;51(12):1664-1669.     
+      doi: 10.1038/s41588-019-0538-0.
+      PMID: 31784727
+      [paper](https://www.nature.com/articles/s41588-019-0538-0?proof=t)
 
 * Experimental Integrated Genetics method (Flannick Lab); under development
 
