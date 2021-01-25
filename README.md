@@ -46,7 +46,7 @@ The Genetics KP provides the following data
 +--------------------------------+-------------+
 ```
 
-## Phenotypes available for the Magma gene associations (currently 194)
+## Phenotypes available for the Magma gene associations (currently 186)
 ```
 +--------------------------------------------------+-----------------------+
 | phenotype                                        | phenotype_ontology_id |
@@ -92,23 +92,20 @@ The Genetics KP provides the following data
 | calcium measurement                              | EFO:0004838           |
 | cardiovascular disease                           | EFO:0000319           |
 | cerebrovascular disorder                         | EFO:0003763           |
-| cerebrovascular disorder                         | MONDO:0011057         |
 | chloride measurement                             | EFO:0009284           |
 | chronic kidney disease                           | EFO:0003884           |
-| chronic kidney disease                           | MONDO:0005300         |
 | chronic obstructive pulmonary disease            | EFO:0000341           |
 | chronotype measurement                           | EFO:0008328           |
 | chylomicron measurement                          | EFO:0008596           |
 | citrate measurement                              | EFO:0010114           |
 | coronary artery disease                          | EFO:0000378           |
-| coronary artery disease                          | MONDO:0005010         |
 | COVID-19                                         | MONDO:0100096         |
 | creatine kinase measurement                      | EFO:0004534           |
 | Crohn's disease                                  | EFO:0000384           |
 | daytime rest measurement                         | EFO:0007828           |
 | diabetic nephropathy                             | EFO:0000401           |
-| diabetic nephropathy                             | MONDO:0005016         |
 | diabetic neuropathy                              | EFO:1000783           |
+| diabetic peripheral angiopathy                   | MONDO:0000960         |
 | diabetic retinopathy                             | MONDO:0005266         |
 | diastolic blood pressure                         | EFO:0006336           |
 | diet measurement                                 | EFO:0008111           |
@@ -156,11 +153,9 @@ The Genetics KP provides the following data
 | insulin sensitivity measurement                  | EFO:0004471           |
 | Insulinogenic index measurement                  | EFO:0009961           |
 | intermediate density lipoprotein measurement     | EFO:0008595           |
-| intermittent vascular claudication               | MONDO:0005295         |
 | intertrochanteric region size                    | EFO:0010075           |
 | intracranial hemorrhage                          | EFO:0000551           |
 | isoleucine measurement                           | EFO:0009793           |
-| kidney disease                                   | MONDO:0005240         |
 | L lactate dehydrogenase measurement              | EFO:0004808           |
 | late-onset Alzheimers disease                    | EFO:1001870           |
 | latent autoimmune diabetes in adults             | EFO:0009706           |
@@ -187,7 +182,6 @@ The Genetics KP provides the following data
 | omega-6 polyunsaturated fatty acid measurement   | EFO:0005680           |
 | open-angle glaucoma                              | EFO:0004190           |
 | osteoarthritis                                   | EFO:0002506           |
-| osteoarthritis                                   | MONDO:0005178         |
 | osteoarthritis, hip                              | EFO:1000786           |
 | osteoarthritis, knee                             | EFO:0004616           |
 | P wave duration                                  | EFO:0005094           |
@@ -220,14 +214,12 @@ The Genetics KP provides the following data
 | sphingomyelin measurement                        | EFO:0010118           |
 | spine bone mineral density                       | EFO:0007701           |
 | spine bone size                                  | EFO:0004508           |
-| stroke disorder                                  | MONDO:0005098         |
 | systolic blood pressure                          | EFO:0006335           |
 | total cholesterol measurement                    | EFO:0004574           |
 | total cholines                                   | EFO:0010116           |
 | triglyceride measurement                         | EFO:0004530           |
 | triglyceride:HDL cholesterol ratio               | EFO:0007929           |
 | trochanter size                                  | EFO:0010074           |
-| type 2 diabetes mellitus adj BMI                 | MONDO:0005148         |
 | type 2 diabetes nephropathy                      | EFO:0004997           |
 | type I diabetes mellitus                         | EFO:0001359           |
 | type II diabetes mellitus                        | EFO:0001360           |

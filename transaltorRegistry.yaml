@@ -48,7 +48,7 @@ paths:
       tags:
       - predicates
       - 1.0.0
-  /v1/query:
+  /query:
     post:
       description: ''
       operationId: query
