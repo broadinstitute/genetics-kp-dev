@@ -1,0 +1,3 @@
+
+java -jar ~/Apps/Libs/OpenAPI/openapi-generator-cli.jar generate -i TranslatorReasonersAPI.yaml -g python-flask -o python-flask-server
+
