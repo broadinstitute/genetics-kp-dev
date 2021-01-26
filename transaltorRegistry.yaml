@@ -19,6 +19,7 @@ tags:
 - name: 1.0.0
 - name: translator
 - name: x-translator
+- name: reasoner
 - name: metadata
 - name: query 
 paths:
