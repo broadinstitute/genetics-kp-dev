@@ -62,6 +62,7 @@ paths:
                     e00:
                       object: n01
                       subject: n00
+                      predicate: biolink:gene_associated_with_condition
                   nodes:
                     n00:
                       category: biolink:Gene
