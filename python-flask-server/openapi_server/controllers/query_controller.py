@@ -321,7 +321,7 @@ def query(request_body):  # noqa: E501
             print("running query for source type: {} and source_id: {} and target type: {} and edge type: {}".format(sourceType, sourceID, targetType, edge_type))
 
             # queries
-            if temp_edge.is_disease_gene_query:
+            if temp_edge.is_disease_gene_query():
             # if (sourceType == node_disease or sourceType == node_phenotype) and targetType == node_gene and edge_type == edge_disease_gene:
                 info = [["MAGMA-pvalue", "smaller_is_better"],\
                         ["Richards-effector-genes", "higher_is_better"],\
@@ -337,15 +337,15 @@ def query(request_body):  # noqa: E501
 
                            """select rg.gene, rg.id, rg.probability, pl.efo_name, gl.gene from richards_gene rg, gene_lookup gl, phenotype_lookup pl  
                                 where rg.gene = gl.ncbi_id and rg.phenotype = pl.tran_efo_id and 
-                                rg.phenotype='{}' and rg.category='{}' ORDER by rg.probability desc""".format(sourceID, translate_type(sourceType)),\
+                                rg.phenotype='{}' and rg.category='{}' ORDER by rg.probability desc""".format(temp_edge.get_source_id(), translate_type(temp_edge.get_source_type())),\
 
                            """select abc.gene_ncbi_id, abc.edge_id, null, pl.efo_name, gl.gene from abc_gene_phenotype abc, gene_lookup gl, phenotype_lookup pl  
                                 where abc.gene_ncbi_id = gl.ncbi_id and abc.phenotype_efo_id = pl.tran_efo_id and 
-                                abc.phenotype_efo_id='{}' and abc.category='{}' and abc.gene_ncbi_id is not null order by abc.edge_id""".format(sourceID, translate_type(sourceType)),\
+                                abc.phenotype_efo_id='{}' and abc.category='{}' and abc.gene_ncbi_id is not null order by abc.edge_id""".format(temp_edge.get_source_id(), translate_type(temp_edge.get_source_type())),\
 
                            """select mg.GENE, mg.ID, mg.SCORE, pl.efo_name, gl.gene from SCORE_GENES  mg, gene_lookup gl, phenotype_lookup pl 
                                 where mg.GENE = gl.ncbi_id and mg.DISEASE = pl.tran_efo_id and 
-                                mg.DISEASE='{}' and mg.CATEGORY='{}' and mg.SCORE >0.95   ORDER by mg.SCORE  DESC""".format(sourceID, translate_type(sourceType))]
+                                mg.DISEASE='{}' and mg.CATEGORY='{}' and mg.SCORE >0.95   ORDER by mg.SCORE  DESC""".format(temp_edge.get_source_id(), translate_type(temp_edge.get_source_type()))]
 
             elif (sourceType == node_disease or sourceType == node_phenotype) and targetType == node_pathway and edge_type == edge_disease_pathway:
                 info = [["MAGMA-pvalue", "smaller_is_better"]]
@@ -353,14 +353,15 @@ def query(request_body):  # noqa: E501
                         where mp.DISEASE = pl.tran_efo_id and 
                         mp.DISEASE='{}' and mp.CATEGORY='{}' and mp.PVALUE<2.0e-6 ORDER by mp.PVALUE ASC""".format(sourceID, translate_type(sourceType))]
 
-            elif sourceType == node_gene and (targetType == node_disease or targetType == node_phenotype) and edge_type == edge_gene_disease:
+            # elif sourceType == node_gene and (targetType == node_disease or targetType == node_phenotype) and edge_type == edge_gene_disease:
+            elif temp_edge.is_gene_disease_query():
                 info = [["MAGMA-pvalue", "smaller_is_better"],\
                         ["Richards-effector-genes", "higher_is_better"],\
                         ["ABC-genes", "not_displayed"],\
                         ["Genetics-quantile", "higher_is_better"]]
                 queries = [
                             """select mg.phenotype_ontology_id, concat('magma_gene_', mg.id) as id, mg.p_value, mg.gene, mg.phenotype from magma_gene_phenotype mg
-                                where mg.ncbi_id='{}' and mg.biolink_category='{}' and mg.p_value < 0.05 ORDER by mg.p_value ASC""".format(sourceID, targetType),\
+                                where mg.ncbi_id='{}' and mg.biolink_category='{}' and mg.p_value < 0.05 ORDER by mg.p_value ASC""".format(temp_edge.get_source_id(), translate_type(temp_edge.get_target_type())),\
 
                             # """select mg.DISEASE, mg.ID, mg.PVALUE, gl.gene, pl.efo_name from MAGMA_GENES mg, gene_lookup gl, phenotype_lookup pl 
                             #     where mg.GENE = gl.ncbi_id and mg.DISEASE = pl.tran_efo_id and 
@@ -368,15 +369,15 @@ def query(request_body):  # noqa: E501
 
                            """select rg.phenotype, rg.id, rg.probability, gl.gene, pl.efo_name from richards_gene rg, gene_lookup gl, phenotype_lookup pl 
                                 where rg.gene = gl.ncbi_id and rg.phenotype = pl.tran_efo_id and 
-                                rg.gene='{}' and rg.category='{}' ORDER by rg.probability desc""".format(sourceID, translate_type(targetType)),\
+                                rg.gene='{}' and rg.category='{}' ORDER by rg.probability desc""".format(temp_edge.get_source_id(), translate_type(temp_edge.get_target_type())),\
 
                            """select abc.phenotype_efo_id, abc.edge_id, null, gl.gene, pl.efo_name from abc_gene_phenotype abc, gene_lookup gl, phenotype_lookup pl  
                                 where abc.gene_ncbi_id = gl.ncbi_id and abc.phenotype_efo_id = pl.tran_efo_id and 
-                                abc.gene_ncbi_id='{}' and abc.category='{}' and abc.phenotype_efo_id is not null order by abc.edge_id""".format(sourceID, translate_type(targetType)),\
+                                abc.gene_ncbi_id='{}' and abc.category='{}' and abc.phenotype_efo_id is not null order by abc.edge_id""".format(temp_edge.get_source_id(), translate_type(temp_edge.get_target_type())),\
 
                            """select mg.DISEASE, mg.ID, mg.SCORE, gl.gene, pl.efo_name from SCORE_GENES mg, gene_lookup gl, phenotype_lookup pl 
                                 where mg.GENE = gl.ncbi_id and mg.DISEASE = pl.tran_efo_id and 
-                                mg.GENE='{}' and mg.CATEGORY='{}' and mg.SCORE >0.80 ORDER by SCORE DESC""".format(sourceID, translate_type(targetType))]
+                                mg.GENE='{}' and mg.CATEGORY='{}' and mg.SCORE >0.80 ORDER by SCORE DESC""".format(temp_edge.get_source_id(), translate_type(temp_edge.get_target_type()))]
 
             elif sourceType == node_pathway and (targetType == node_disease or targetType == node_phenotype) and edge_type == edge_pathway_disease:
                 info = [["MAGMA-pvalue", "smaller_is_better"]]

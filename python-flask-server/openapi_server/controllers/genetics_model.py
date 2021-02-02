@@ -50,15 +50,19 @@ class QueryInput():
         return self.target.get('id')
 
     def is_disease_gene_query(self):
+        print("---- disease/gene")
         return (self.get_source_type() == node_disease or self.get_source_type() == node_phenotype) and self.get_target_type() == node_gene and self.get_edge_type() == edge_disease_gene
 
     def is_disease_pathway_query(self):
+        print("---- disease/pathway")
         return (self.get_source_type() == node_disease or self.get_source_type() == node_phenotype) and self.get_target_type() == node_pathway and self.get_edge_type() == edge_disease_pathway
 
     def is_pathway_disease_query(self):
+        print("---- pathway/disease")
         return self.get_source_type() == node_pathway and (self.get_target_type() == node_disease or self.get_target_type() == node_phenotype) and self.get_edge_type() == edge_pathway_disease
 
     def is_gene_disease_query(self):
+        print("---- gene/disease")
         return self.get_source_type() == node_gene and (self.get_target_type() == node_disease or self.get_target_type() == node_phenotype) and self.get_edge_type() == edge_gene_disease
 
 
