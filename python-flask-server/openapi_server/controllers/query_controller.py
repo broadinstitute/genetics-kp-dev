@@ -347,11 +347,12 @@ def query(request_body):  # noqa: E501
                                 where mg.GENE = gl.ncbi_id and mg.DISEASE = pl.tran_efo_id and 
                                 mg.DISEASE='{}' and mg.CATEGORY='{}' and mg.SCORE >0.95   ORDER by mg.SCORE  DESC""".format(temp_edge.get_source_id(), translate_type(temp_edge.get_source_type()))]
 
-            elif (sourceType == node_disease or sourceType == node_phenotype) and targetType == node_pathway and edge_type == edge_disease_pathway:
+            # elif (sourceType == node_disease or sourceType == node_phenotype) and targetType == node_pathway and edge_type == edge_disease_pathway:
+            elif temp_edge.is_disease_pathway_query():
                 info = [["MAGMA-pvalue", "smaller_is_better"]]
                 queries = ["""select mp.PATHWAY, mp.ID, mp.PVALUE, pl.efo_name, null from MAGMA_PATHWAYS mp, phenotype_lookup pl 
                         where mp.DISEASE = pl.tran_efo_id and 
-                        mp.DISEASE='{}' and mp.CATEGORY='{}' and mp.PVALUE<2.0e-6 ORDER by mp.PVALUE ASC""".format(sourceID, translate_type(sourceType))]
+                        mp.DISEASE='{}' and mp.CATEGORY='{}' and mp.PVALUE<2.0e-6 ORDER by mp.PVALUE ASC""".format(temp_edge.get_source_id(), translate_type(temp_edge.get_source_type()))]
 
             # elif sourceType == node_gene and (targetType == node_disease or targetType == node_phenotype) and edge_type == edge_gene_disease:
             elif temp_edge.is_gene_disease_query():
@@ -379,11 +380,12 @@ def query(request_body):  # noqa: E501
                                 where mg.GENE = gl.ncbi_id and mg.DISEASE = pl.tran_efo_id and 
                                 mg.GENE='{}' and mg.CATEGORY='{}' and mg.SCORE >0.80 ORDER by SCORE DESC""".format(temp_edge.get_source_id(), translate_type(temp_edge.get_target_type()))]
 
-            elif sourceType == node_pathway and (targetType == node_disease or targetType == node_phenotype) and edge_type == edge_pathway_disease:
+            # elif sourceType == node_pathway and (targetType == node_disease or targetType == node_phenotype) and edge_type == edge_pathway_disease:
+            elif temp_edge.is_pathway_disease_query():
                 info = [["MAGMA-pvalue", "smaller_is_better"]]
                 queries = ["""select mp.DISEASE, mp.ID, mp.PVALUE, null, pl.efo_name from MAGMA_PATHWAYS  mp, phenotype_lookup pl 
                         where mp.DISEASE = pl.tran_efo_id and 
-                        mp.PATHWAY='{}' and mp.CATEGORY='{}' and mp.PVALUE<0.05 ORDER by mp.PVALUE ASC""".format(sourceID, translate_type(targetType))]
+                        mp.PATHWAY='{}' and mp.CATEGORY='{}' and mp.PVALUE<0.05 ORDER by mp.PVALUE ASC""".format(temp_edge.get_source_id(), translate_type(temp_edge.get_target_type()))]
 
             if len(queries) > 0:
                 for i in range(0, len(queries)):
