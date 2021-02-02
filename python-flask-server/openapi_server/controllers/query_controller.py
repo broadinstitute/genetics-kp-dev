@@ -17,7 +17,7 @@ from openapi_server.models.attribute import Attribute
 from openapi_server import util
 
 from openapi_server.controllers.utils import translate_type
-from openapi_server.controllers.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
+from openapi_server.controllers.genetics_model import QueryInput, NodeOuput, EdgeOuput
 
 def queryGenerated(request_body):  # noqa: E501
     """Query reasoner via one of several inputs
@@ -195,7 +195,7 @@ def get_request_elements(body):
             targetNode['node_key'] = edge.get('object')
 
         # create the edge/node object
-        new_edge = GeneticsModel(edge, sourceNode, targetNode)
+        new_edge = QueryInput(edge, sourceNode, targetNode)
 
         # add to the list
         results.append(new_edge)
@@ -278,8 +278,9 @@ def query(request_body):  # noqa: E501
     if connexion.request.is_json:
         # initialize
         # cnx = mysql.connector.connect(database='Translator', user='mvon')
-        cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
+        # cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
         # cnx = pymysql.connect(host='localhost', port=3306, database='tran_genepro', user='root', password='this is no password')
+        cnx = pymysql.connect(host='localhost', port=3306, database='tran_genepro', user='root', password='yoyoma')
         cursor = cnx.cursor()
         genetics_results = []
         query_response = {}
@@ -320,14 +321,15 @@ def query(request_body):  # noqa: E501
             print("running query for source type: {} and source_id: {} and target type: {} and edge type: {}".format(sourceType, sourceID, targetType, edge_type))
 
             # queries
-            if (sourceType == node_disease or sourceType == node_phenotype) and targetType == node_gene and edge_type == edge_disease_gene:
+            if temp_edge.is_disease_gene_query:
+            # if (sourceType == node_disease or sourceType == node_phenotype) and targetType == node_gene and edge_type == edge_disease_gene:
                 info = [["MAGMA-pvalue", "smaller_is_better"],\
                         ["Richards-effector-genes", "higher_is_better"],\
                         ["ABC-genes", "not_displayed"],\
                         ["Genetics-quantile", "higher_is_better"]]
                 queries = [
                             """select mg.ncbi_id, concat('magma_gene_', mg.id) as id, mg.p_value, mg.phenotype, mg.gene from magma_gene_phenotype mg
-                                where mg.phenotype_ontology_id='{}' and mg.biolink_category='{}' and mg.p_value < 0.05 ORDER by mg.p_value ASC""".format(sourceID, sourceType),\
+                                where mg.phenotype_ontology_id='{}' and mg.biolink_category='{}' and mg.p_value < 0.05 ORDER by mg.p_value ASC""".format(temp_edge.get_source_id(), temp_edge.get_source_type()),\
 
                             # """select mg.GENE, mg.ID, mg.PVALUE, pl.efo_name, gl.gene from MAGMA_GENES mg, gene_lookup gl, phenotype_lookup pl
                             #     where mg.GENE = gl.ncbi_id and mg.DISEASE = pl.tran_efo_id and 
