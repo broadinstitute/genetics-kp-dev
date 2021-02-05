@@ -12,7 +12,7 @@ info:
   x-translator:
     component: KP
     team:
-    - Genetics Provider, Broad Institute Flannick Lab
+    - Genetics Provider
 servers:
 - url: https://translator.broadinstitute.org/genetics_provider/trapi/v1.0
 tags:
