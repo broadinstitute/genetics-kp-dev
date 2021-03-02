@@ -28,7 +28,14 @@ def get_queries(web_query_object):
     # sql_object = get_magma_phenotype_gene_query(web_query_object)
     # if sql_object is not None:
     #     sql_list.append(sql_object)
-    sql_object = get_node_edge_score(web_query_object)
+
+    # get all the p_values, sorted best first
+    sql_object = get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue, return_ascending=True)
+    if sql_object is not None:
+        sql_list.append(sql_object)
+
+    # get all the probabilities, sorted best first
+    sql_object = get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_probability, return_ascending=False)
     if sql_object is not None:
         sql_list.append(sql_object)
 
@@ -36,7 +43,7 @@ def get_queries(web_query_object):
     return sql_list
 
 def add_in_equals(sql, term, is_first=True):
-    ''' add in where clause to the sql '''
+    ''' add in and clause to the sql '''
     temp = str(sql)
 
     # add in where if necessary
@@ -47,6 +54,22 @@ def add_in_equals(sql, term, is_first=True):
 
     # add in the condition
     temp = temp + str(term) + " = %s "
+
+    # return
+    return temp
+
+def add_in_less_than(sql, term, is_first=True):
+    ''' add in less than clause to the sql '''
+    temp = str(sql)
+
+    # add in where if necessary
+    if is_first:
+        temp = temp + " where " 
+    else:
+        temp = temp + " and "
+
+    # add in the condition
+    temp = temp + str(term) + " < %s "
 
     # return
     return temp
@@ -124,7 +147,7 @@ def get_magma_phenotype_gene_query(web_query_object):
     return sql_object
 
 
-def get_node_edge_score(web_query_object, return_ascending=True, limit=5000):
+def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue, return_ascending=True, limit=5000):
     ''' takes in GeneticsModel and returns a DbQueryObject object if applicable, None otherwise '''
     # initialize sql string
     sql_string = None
@@ -141,7 +164,7 @@ def get_node_edge_score(web_query_object, return_ascending=True, limit=5000):
     # edge type
     # source type
     # target type
-    sql_string = "select ed.edge_id, so.ontology_id, ta.ontology_id, score, sco_type.type_name, so.node_name, ta.node_name, ted.type_name, tso.type_name, tta.type_name \
+    sql_string = "select ed.edge_id, so.ontology_id, ta.ontology_id, ed.score, sco_type.type_name, so.node_name, ta.node_name, ted.type_name, tso.type_name, tta.type_name \
         from comb_node_edge ed, comb_node_ontology so, comb_node_ontology ta, comb_lookup_type ted, comb_lookup_type tso, comb_lookup_type tta, comb_lookup_type sco_type \
         where ed.source_code = so.node_code and ed.target_code = ta.node_code and ed.edge_type_id = ted.type_id and so.node_type_id = tso.type_id and ta.node_type_id = tta.type_id \
         and ed.score_type_id = sco_type.type_id "
@@ -160,7 +183,7 @@ def get_node_edge_score(web_query_object, return_ascending=True, limit=5000):
             return None
 
     # add in edge type if given
-    if web_query_object.get_source_type() is not None:
+    if web_query_object.get_edge_type() is not None:
         sql_string = add_in_equals(sql_string, "ted.type_name", False)
         param_list.append(web_query_object.get_edge_type())
 
@@ -170,9 +193,20 @@ def get_node_edge_score(web_query_object, return_ascending=True, limit=5000):
         param_list.append(web_query_object.get_source_type())
 
     # add in target type if given
-    if web_query_object.get_source_type() is not None:
+    if web_query_object.get_target_type() is not None:
         sql_string = add_in_equals(sql_string, "tta.type_name", False)
         param_list.append(web_query_object.get_target_type())
+
+    # add in score type if given
+    if score_type is not None:
+        sql_string = add_in_equals(sql_string, "sco_type.type_name", False)
+        param_list.append(score_type)
+
+    # add in score lower bound if score type is p_value 
+    if score_type is not None:
+        if score_type == dcc_utils.attribute_pvalue:
+            sql_string = add_in_less_than(sql_string, "ed.score", False)
+            param_list.append(0.0000025)
 
     # add in source id if given
     if web_query_object.get_source_id() is not None:
@@ -186,9 +220,9 @@ def get_node_edge_score(web_query_object, return_ascending=True, limit=5000):
 
     # add order by at end
     if return_ascending:
-        sql_string = sql_string + " order by score"
+        sql_string = sql_string + " order by ed.score"
     else:
-        sql_string = sql_string + " order by score"
+        sql_string = sql_string + " order by ed.score"
 
     # add limit
     if limit:

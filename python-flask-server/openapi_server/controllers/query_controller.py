@@ -176,7 +176,7 @@ def get_request_elements(body):
     for edge_key, edge in edge_map.items():
 
         # if 'predicate' not in edge or translate_type(edge['predicate']) != 'associated' or 'subject' not in edge or 'object' not in edge:
-        if 'predicate' not in edge or 'subject' not in edge or 'object' not in edge:
+        if 'subject' not in edge or 'object' not in edge:
             print("========== invalid edge format: {}".format(edge))
             continue
         else:
