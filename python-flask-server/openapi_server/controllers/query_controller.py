@@ -226,7 +226,10 @@ def build_results(results_list, query_graph):
         attributes = None
         if edge_element.score is not None:
             attributes = []
-            attributes.append(Attribute(name='pValue', value=edge_element.score, type='biolink:p_value'))
+            if edge_element.score_type == 'biolink:probability':
+                attributes.append(Attribute(name='probability', value=edge_element.score, type=edge_element.score_type))
+            else:
+                attributes.append(Attribute(name='pValue', value=edge_element.score, type=edge_element.score_type))
             # print("added attributes: {}".format(attributes))
         edge = Edge(predicate=translate_type(edge_element.predicate, False), subject=source.curie, object=target.curie, attributes=attributes, relation=None)
         knowledge_graph.edges[edge_element.id] = edge
@@ -470,16 +473,17 @@ def query(request_body):  # noqa: E501
                             sourceID  = record[1]
                             targetID  = record[2]
                             score     = record[3]
-                            sourceName = record[4]
-                            targetName = record[5]
-                            edgeType = record[6]
-                            sourceType = record[7]
-                            targetType = record[8]
+                            scoreType = record[4]
+                            sourceName = record[5]
+                            targetName = record[6]
+                            edgeType = record[7]
+                            sourceType = record[8]
+                            targetType = record[9]
 
                             # build the result objects
                             source_node = NodeOuput(curie=sourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
                             target_node = NodeOuput(curie=targetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
-                            output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, score=score, edge_key=web_request_object.get_edge_key())
+                            output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key())
 
                             # add to the results list
                             genetics_results.append(output_edge)
