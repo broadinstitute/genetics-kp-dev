@@ -12,14 +12,17 @@ info:
   x-translator:
     component: KP
     team:
-    - Genetics Provider
+      - Genetics Provider
+  x-trapi:
+    version 1.0.0
 servers:
 - url: https://translator.broadinstitute.org/genetics_provider/trapi/v1.0
+  environment: prod
 tags:
 - name: 1.0.0
 - name: translator
+  description: KP for the Genetics Provider team, providing genetic association statistics
 - name: x-translator
-- name: reasoner
 - name: metadata
 - name: query 
 paths:
