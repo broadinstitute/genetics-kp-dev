@@ -1,6 +1,13 @@
+
+# import relative libraries
+dir_code = "/home/javaprog/Code/"
+import sys
+sys.path.insert(0, dir_code + 'TranslatorWorkspace/GeneticsPro/python-flask-server/')
+
 # imports
 import openapi_server.dcc.utils as dcc_utils
 from openapi_server.dcc.genetics_model import GeneticsModel
+import openapi_server.dcc.biolink_utils as bio_utils
 
 
 class DbQueryObject():
@@ -14,6 +21,26 @@ class DbQueryObject():
 
     __repr__ = __str__
 
+def expand_queries(web_query_object, debug=False):
+    ''' will take a query object and expand it according to all possible queries supported '''
+    # initialize
+    object_list = []
+
+    # get all the possible supported combinations
+    query_list = bio_utils.get_overlap_queries_for_parts(web_query_object.source.get('category'), web_query_object.target.get('category'), web_query_object.edge.get('predicate'), debug)
+
+    # loop
+    for item in query_list:
+        # split
+        subject_type, predicate, object_type = item.split()
+
+        # add new query
+        object_list.append(GeneticsModel(edge={"predicate": predicate},
+                target={"category": object_type, "id": web_query_object.target.get('id')},
+                source={"category": subject_type, "id": web_query_object.source.get('id')}))
+
+    # return
+    return object_list
 
 def get_queries(web_query_object):
     ''' will return query/parameter objects based on the query provided '''
@@ -29,15 +56,21 @@ def get_queries(web_query_object):
     # if sql_object is not None:
     #     sql_list.append(sql_object)
 
-    # get all the p_values, sorted best first
-    sql_object = get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue, return_ascending=True)
-    if sql_object is not None:
-        sql_list.append(sql_object)
+    # TODO - add in code to split one query into possible multiple ones
+    # for more generalized queries
+    query_list = expand_queries(web_query_object, True)
 
-    # get all the probabilities, sorted best first
-    sql_object = get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_probability, return_ascending=False)
-    if sql_object is not None:
-        sql_list.append(sql_object)
+    # loop through the queries and get the sql to run
+    for item in query_list:
+        # get all the p_values, sorted best first
+        sql_object = get_node_edge_score(item, score_type=dcc_utils.attribute_pvalue, return_ascending=True)
+        if sql_object is not None:
+            sql_list.append(sql_object)
+
+        # get all the probabilities, sorted best first
+        sql_object = get_node_edge_score(item, score_type=dcc_utils.attribute_probability, return_ascending=False)
+        if sql_object is not None:
+            sql_list.append(sql_object)
 
     # return the list
     return sql_list
@@ -142,9 +175,7 @@ def get_magma_phenotype_gene_query(web_query_object):
     # add order by at end
     sql_string = sql_string + " ORDER by mg.p_value ASC"
 
-    # build the query object and return
-    sql_object = DbQueryObject(sql_string, param_list)
-    return sql_object
+    # build the query object and returnget_magma_gene_query
 
 
 def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue, return_ascending=True, limit=5000):
@@ -240,7 +271,7 @@ if __name__ == "__main__":
                 target={"category": dcc_utils.node_disease,"id": "not_good"})
 
     # get the sql object
-    sql_object = get_magma_gene_query(web_test)
+    sql_object = get_magma_phenotype_gene_query(web_test)
     print("got object: {}\n".format(sql_object))
 
     # build the test object
@@ -249,7 +280,7 @@ if __name__ == "__main__":
                 target={"category": dcc_utils.node_disease,"id": "not_good"})
 
     # get the sql object
-    sql_object = get_magma_gene_query(web_test)
+    sql_object = get_magma_phenotype_gene_query(web_test)
     print("got object: {}\n".format(sql_object))
 
     # build the test object
@@ -258,7 +289,7 @@ if __name__ == "__main__":
                 target={"category": dcc_utils.node_disease})
 
     # get the sql object
-    sql_object = get_magma_gene_query(web_test)
+    sql_object = get_magma_phenotype_gene_query(web_test)
     print("got object: {}\n".format(sql_object))
 
     # build the test object
@@ -267,7 +298,7 @@ if __name__ == "__main__":
                 source={"category": dcc_utils.node_disease,"id": "not_good"})
 
     # get the sql object
-    sql_object = get_magma_gene_query(web_test)
+    sql_object = get_magma_phenotype_gene_query(web_test)
     print("got object: {}\n".format(sql_object))
 
     # build the test object
@@ -278,3 +309,21 @@ if __name__ == "__main__":
     # get the sql object
     sql_object = get_queries(web_test)
     print("got object: {}\n".format(sql_object))
+
+    # test biolink ancestry conversion
+    print("testing biolink query expansion")
+    web_test = GeneticsModel(edge={"predicate": "biolink:related_to"},
+                target={"category": dcc_utils.node_gene, "id": "gene_dude"},
+                source={"category": dcc_utils.node_disease,"id": "not_good"})
+    query_list = expand_queries(web_test, True)
+    print("for test query: {}".format(web_test))
+    for item in query_list:
+        print("got expanded query: {}".format(item))
+    web_test = GeneticsModel(edge={"predicate": "biolink:related_to"},
+                target={"id": "gene_dude"},
+                source={"category": dcc_utils.node_disease,"id": "not_good"})
+    query_list = expand_queries(web_test, True)
+    print("for test query: {}".format(web_test))
+    for item in query_list:
+        print("got expanded query: {}".format(item))
+    print()

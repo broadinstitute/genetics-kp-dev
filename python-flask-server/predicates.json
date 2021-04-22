@@ -1,0 +1,34 @@
+{
+    "biolink:Disease": {
+        "biolink:Gene": [
+            "biolink:condition_associated_with_gene"
+        ],
+        "biolink:Pathway": [
+            "biolink:genetic_association"
+        ]
+    },
+    "biolink:Gene": {
+        "biolink:Disease": [
+            "biolink:gene_associated_with_condition"
+        ],
+        "biolink:PhenotypicFeature": [
+            "biolink:gene_associated_with_condition"
+        ]
+    },
+    "biolink:Pathway": {
+        "biolink:Disease": [
+            "biolink:genetic_association"
+        ],
+        "biolink:PhenotypicFeature": [
+            "biolink:genetic_association"
+        ]
+    },
+    "biolink:PhenotypicFeature": {
+        "biolink:Gene": [
+            "biolink:condition_associated_with_gene"
+        ],
+        "biolink:Pathway": [
+            "biolink:genetic_association"
+        ]
+    }
+}

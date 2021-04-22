@@ -62,7 +62,7 @@ def translate_type(input_type, is_input=True):
         result = map[input_type]
 
     # log
-    print("utils.translate_type: returning {} for input {}".format(result, input_type))
+    # print("utils.translate_type: returning {} for input {}".format(result, input_type))
 
     # return
     return result
