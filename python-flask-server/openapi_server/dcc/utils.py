@@ -1,4 +1,5 @@
 import json
+import requests 
 
 # constants
 # node types
@@ -104,6 +105,34 @@ def migrate_transformer_chains(inFile, outFile):
         print(chain['subject'],chain['predicate'],chain['object'],'\n')
     with open(outFile, 'w') as json_file:
         json.dump(json_obj, json_file, indent=4, separators=(',', ': ')) # save to file with prettifying
+
+def get_curie_synonyms(curie_input, prefix_list=None):
+  ''' will call the curie normalizer and return the curie name and a list of only the matching prefixes from the prefix list provided '''
+  url_normalizer = "https://nodenormalization-sri.renci.org/get_normalized_nodes?curie={}"
+  list_result = []
+  curie_name = None
+
+  # call the service
+  url_call = url_normalizer.format(curie_input)
+  response = requests.get(url_call)
+  json_response = response.json()
+
+  # get the list of curies
+  if json_response.get(curie_input):
+    curie_name = json_response.get(curie_input).get('id').get('label')
+    for item in json_response[curie_input]['equivalent_identifiers']:
+      list_result.append(item['identifier'])
+
+    # if a prefix list provided, filter with it
+    if prefix_list:
+      list_new = []
+      for item in list_result:
+        if item.split(':')[0] in prefix_list:
+          list_new.append(item)
+      list_result = list_new
+
+  # return
+  return curie_name, list_result
 
 if (__name__ == "__main__"):
     curie = "ChEMBL:CHEMBL1197118"

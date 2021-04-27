@@ -16,7 +16,7 @@ from openapi_server.models.attribute import Attribute
 
 from openapi_server import util
 
-from openapi_server.dcc.utils import translate_type
+from openapi_server.dcc.utils import translate_type, get_curie_synonyms
 from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
 import openapi_server.dcc.query_builder as qbuilder
 
@@ -422,6 +422,7 @@ def query2(request_body):  # noqa: E501
         # return error
         return({"status": 400, "title": "body content not JSON", "detail": "Required body content is not JSON", "type": "about:blank"}, 400)
 
+
 def query(request_body):  # noqa: E501
     """Query reasoner via one of several inputs
 
@@ -456,35 +457,50 @@ def query(request_body):  # noqa: E501
             # log
             print("running query for web query object: {}".format(web_request_object))
 
+            # get the normalized curies
+            # keep track of whether result came in for this curie
+            curie_name, curie_list = get_curie_synonyms(web_request_object.get_source_id(), ['MONDO', 'EFO', 'NCBIGene', 'GO'])
+            print("for input {} with name {} got normalized curies: {}".format(web_request_object.get_source_id(), curie_name, curie_list))
+
             # queries
-            queries = qbuilder.get_queries(web_request_object)
-            if len(queries) > 0:
-                for i in range(0, len(queries)):
-                    sql_object = queries[i]
-                    print("running query: {}".format(sql_object))
-                    cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
-                    results = cursor.fetchall()
-                    print("result of type {} is {}".format(type(results), results))
-                    if results:
-                        for record in results:
-                            edgeID    = record[0]
-                            sourceID  = record[1]
-                            targetID  = record[2]
-                            score     = record[3]
-                            scoreType = record[4]
-                            sourceName = record[5]
-                            targetName = record[6]
-                            edgeType = record[7]
-                            sourceType = record[8]
-                            targetType = record[9]
+            found_results_already = False
+            for source_curie in curie_list:
+                # only run next normalized curie in list if there were no other results, or else will get duplicate results
+                if not found_results_already:
+                    # set the normalized curie for the call
+                    web_request_object.set_source_normalized_id(source_curie)
+                    queries = qbuilder.get_queries(web_request_object)
 
-                            # build the result objects
-                            source_node = NodeOuput(curie=sourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
-                            target_node = NodeOuput(curie=targetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
-                            output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key())
+                    # if results
+                    if len(queries) > 0:
+                        found_results_already = True
+                        for i in range(0, len(queries)):
+                            sql_object = queries[i]
+                            print("running query: {}".format(sql_object))
+                            cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
+                            results = cursor.fetchall()
+                            print("result of type {} is {}".format(type(results), results))
+                            if results:
+                                for record in results:
+                                    edgeID    = record[0]
+                                    # sourceID  = record[1]
+                                    sourceID  = web_request_object.get_source_id()
+                                    targetID  = record[2]
+                                    score     = record[3]
+                                    scoreType = record[4]
+                                    sourceName = record[5]
+                                    targetName = record[6]
+                                    edgeType = record[7]
+                                    sourceType = record[8]
+                                    targetType = record[9]
 
-                            # add to the results list
-                            genetics_results.append(output_edge)
+                                    # build the result objects
+                                    source_node = NodeOuput(curie=sourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
+                                    target_node = NodeOuput(curie=targetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
+                                    output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key())
+
+                                    # add to the results list
+                                    genetics_results.append(output_edge)
 
         # close the connection
         cnx.close()

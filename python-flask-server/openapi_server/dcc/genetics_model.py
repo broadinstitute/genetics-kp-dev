@@ -1,11 +1,12 @@
 
 class GeneticsModel():
     ''' class to encapsulate the web query object values '''
-    def __init__(self, edge, source, target):
+    def __init__(self, edge, source, target, source_normalized_id=None):
         self.edge = edge
         self.source = source
         self.target = target 
-    
+        self.source_normalized_id = source_normalized_id
+
     def get_edge_type(self):
         return self.edge.get('predicate')
 
@@ -17,6 +18,12 @@ class GeneticsModel():
 
     def get_source_id(self):
         return self.source.get('id')
+
+    def get_source_normalized_id(self):
+        return self.source_normalized_id
+
+    def set_source_normalized_id(self, item_id):
+        self.source_normalized_id = item_id
 
     def get_target_id(self):
         return self.target.get('id')
@@ -32,7 +39,7 @@ class GeneticsModel():
     
   
     def __str__(self):
-        return "edge: {}, source: {}, target: {}".format(self.edge, self.source, self.target)
+        return "edge: {}, source: {}, target: {}, normalized id {} - {}".format(self.edge, self.source, self.target, self.source_normalized_id, self.get_source_normalized_id())
 
     __repr__ = __str__
 
