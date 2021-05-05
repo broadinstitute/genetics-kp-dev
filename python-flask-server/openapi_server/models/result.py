@@ -55,7 +55,7 @@ class Result(Model):
     def node_bindings(self):
         """Gets the node_bindings of this Result.
 
-        List of QNode-KNode bindings.  # noqa: E501
+        The dictionary of Input Query Graph to Result Knowledge Graph node bindings where the dictionary keys are the key identifiers of the Query Graph nodes and the associated values of those keys are instances of NodeBinding schema type (see below). This value is an array of NodeBindings since a given query node may have multiple knowledge graph Node bindings in the result.  # noqa: E501
 
         :return: The node_bindings of this Result.
         :rtype: Dict[str, List[NodeBinding]]
@@ -66,7 +66,7 @@ class Result(Model):
     def node_bindings(self, node_bindings):
         """Sets the node_bindings of this Result.
 
-        List of QNode-KNode bindings.  # noqa: E501
+        The dictionary of Input Query Graph to Result Knowledge Graph node bindings where the dictionary keys are the key identifiers of the Query Graph nodes and the associated values of those keys are instances of NodeBinding schema type (see below). This value is an array of NodeBindings since a given query node may have multiple knowledge graph Node bindings in the result.  # noqa: E501
 
         :param node_bindings: The node_bindings of this Result.
         :type node_bindings: Dict[str, List[NodeBinding]]
@@ -80,7 +80,7 @@ class Result(Model):
     def edge_bindings(self):
         """Gets the edge_bindings of this Result.
 
-        List of QEdge-KEdge bindings.  # noqa: E501
+        The dictionary of Input Query Graph to Result Knowledge Graph edge bindings where the dictionary keys are the key identifiers of the Query Graph edges and the associated values of those keys are instances of EdgeBinding schema type (see below). This value is an array of EdgeBindings since a given query edge may resolve to multiple knowledge graph edges in the result.  # noqa: E501
 
         :return: The edge_bindings of this Result.
         :rtype: Dict[str, List[EdgeBinding]]
@@ -91,7 +91,7 @@ class Result(Model):
     def edge_bindings(self, edge_bindings):
         """Sets the edge_bindings of this Result.
 
-        List of QEdge-KEdge bindings.  # noqa: E501
+        The dictionary of Input Query Graph to Result Knowledge Graph edge bindings where the dictionary keys are the key identifiers of the Query Graph edges and the associated values of those keys are instances of EdgeBinding schema type (see below). This value is an array of EdgeBindings since a given query edge may resolve to multiple knowledge graph edges in the result.  # noqa: E501
 
         :param edge_bindings: The edge_bindings of this Result.
         :type edge_bindings: Dict[str, List[EdgeBinding]]

@@ -22,10 +22,10 @@ REQUIRES = [
 setup(
     name=NAME,
     version=VERSION,
-    description="OpenAPI for NCATS Biomedical Translator Reasoners",
-    author_email="edeutsch@systemsbiology.org",
+    description="INSERT-TITLE-OF-YOUR-SERVICE-HERE",
+    author_email="INSERT@EMAIL-ADDRESS-OF-IMPLEMENTER-HERE.ORG",
     url="",
-    keywords=["OpenAPI", "OpenAPI for NCATS Biomedical Translator Reasoners"],
+    keywords=["OpenAPI", "INSERT-TITLE-OF-YOUR-SERVICE-HERE"],
     install_requires=REQUIRES,
     packages=find_packages(),
     package_data={'': ['openapi/openapi.yaml']},
@@ -33,7 +33,7 @@ setup(
     entry_points={
         'console_scripts': ['openapi_server=openapi_server.__main__:main']},
     long_description="""\
-    OpenAPI for NCATS Biomedical Translator Reasoners
+    INSERT-DESCRIPTION-OF-YOUR-SERVICE-HERE
     """
 )
 
