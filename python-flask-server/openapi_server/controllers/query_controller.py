@@ -16,8 +16,10 @@ from openapi_server.models.attribute import Attribute
 
 from openapi_server import util
 
-from openapi_server.controllers.utils import translate_type
-from openapi_server.controllers.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
+from openapi_server.dcc.utils import translate_type, get_curie_synonyms
+from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
+import openapi_server.dcc.query_builder as qbuilder
+
 
 def queryGenerated(request_body):  # noqa: E501
     """Query reasoner via one of several inputs
@@ -174,21 +176,23 @@ def get_request_elements(body):
     for edge_key, edge in edge_map.items():
 
         # if 'predicate' not in edge or translate_type(edge['predicate']) != 'associated' or 'subject' not in edge or 'object' not in edge:
-        if 'predicate' not in edge or 'subject' not in edge or 'object' not in edge:
+        if 'subject' not in edge or 'object' not in edge:
             print("========== invalid edge format: {}".format(edge))
             continue
         else:
             edge['edge_key'] = edge_key
         
         sourceNode = node_map.get(edge.get('subject'))
-        if sourceNode is None or 'category' not in sourceNode or 'id' not in sourceNode:
+        # if sourceNode is None or 'category' not in sourceNode or 'id' not in sourceNode:
+        if sourceNode is None:
             print("=========== invalid source node format: {}".format(sourceNode))
             continue
         else:
             sourceNode['node_key'] = edge.get('subject')
 
         targetNode = node_map.get(edge.get('object'))
-        if targetNode is None or 'category' not in targetNode:
+        # if targetNode is None or 'category' not in targetNode:
+        if targetNode is None:
             print("============= invalid target node format: {}".format(targetNode))
             continue
         else:
@@ -222,7 +226,10 @@ def build_results(results_list, query_graph):
         attributes = None
         if edge_element.score is not None:
             attributes = []
-            attributes.append(Attribute(name='pValue', value=edge_element.score, type='biolink:p_value'))
+            if edge_element.score_type == 'biolink:probability':
+                attributes.append(Attribute(name='probability', value=edge_element.score, type=edge_element.score_type))
+            else:
+                attributes.append(Attribute(name='pValue', value=edge_element.score, type=edge_element.score_type))
             # print("added attributes: {}".format(attributes))
         edge = Edge(predicate=translate_type(edge_element.predicate, False), subject=source.curie, object=target.curie, attributes=attributes, relation=None)
         knowledge_graph.edges[edge_element.id] = edge
@@ -253,7 +260,7 @@ def build_results(results_list, query_graph):
     # return
     return results_response
 
-def query(request_body):  # noqa: E501
+def query2(request_body):  # noqa: E501
     """Query reasoner via one of several inputs
 
      # noqa: E501
@@ -278,7 +285,7 @@ def query(request_body):  # noqa: E501
     if connexion.request.is_json:
         # initialize
         # cnx = mysql.connector.connect(database='Translator', user='mvon')
-        cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
+        # cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
         # cnx = pymysql.connect(host='localhost', port=3306, database='tran_genepro', user='root', password='this is no password')
         cursor = cnx.cursor()
         genetics_results = []
@@ -415,89 +422,104 @@ def query(request_body):  # noqa: E501
         # return error
         return({"status": 400, "title": "body content not JSON", "detail": "Required body content is not JSON", "type": "about:blank"}, 400)
 
-def get_data(edge, sourceNode, targetNode):
-    qeID       = edge['id']
-    sourceID   = sourceNode['curie']
-    qn0ID      = sourceNode['id']
-    qn1ID      = targetNode['id']
-    sourceType = sourceNode['type']
-    targetType = targetNode['type']
 
-    # N = 0
-    info    = []
-    queries = []
+def query(request_body):  # noqa: E501
+    """Query reasoner via one of several inputs
 
-    # log
-    print("running query for source type: {} and source_id: {} and target type: {}".format(sourceType, sourceID, targetType))
+     # noqa: E501
 
-    # cnx = mysql.connector.connect(database='Translator', user='mvon')
-    # cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
-    cnx = pymysql.connect(host='localhost', port=3306, database='tran_genepro', user='root', password='yoyoma')
-    cursor = cnx.cursor()
+    :param request_body: Query information to be submitted
+    :type request_body: Dict[str, ]
 
-    # queries
-    if (sourceType == 'disease' or sourceType == 'phenotypic_feature') and targetType == 'gene':
-        # N = 2
-        info = [["MAGMA-pvalue", "smaller_is_better"],\
-                ["Richards-effector-genes", "higher_is_better"],\
-                ["ABC-genes", "not_displayed"],\
-                ["Genetics-quantile", "higher_is_better"]]
-        queries = ["select GENE,ID,PVALUE from MAGMA_GENES where DISEASE='{}' and CATEGORY='{}' and PVALUE<2.5e-6 ORDER by PVALUE  ASC".format(sourceID,sourceType),\
-                    "select gene, id, probability from richards_gene where phenotype='{}' and category='{}' ORDER by probability desc".format(sourceID,sourceType),\
-                    "select gene_ncbi_id, edge_id, null from abc_gene_phenotype where phenotype_efo_id='{}' and category='{}' and gene_ncbi_id is not null order by edge_id".format(sourceID,sourceType),\
-                    "select GENE,ID,SCORE  from SCORE_GENES where DISEASE='{}' and CATEGORY='{}' and SCORE >0.95   ORDER by SCORE  DESC".format(sourceID,sourceType)]
+    :rtype: Response
+    """
+    if connexion.request.is_json:
+        # initialize
+        # cnx = mysql.connector.connect(database='Translator', user='mvon')
+        cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
+        # cnx = pymysql.connect(host='localhost', port=3306, database='tran_genepro', user='root', password='this is no password')
+        cursor = cnx.cursor()
+        genetics_results = []
+        query_response = {}
 
-    elif (sourceType == 'disease' or sourceType == 'phenotypic_feature') and targetType == 'pathway':
-        # N = 1
-        info = [["MAGMA-pvalue", "smaller_is_better"]]
-        queries = ["select PATHWAY,ID,PVALUE from MAGMA_PATHWAYS where DISEASE='{}' and CATEGORY='{}' and PVALUE<2.0e-6 ORDER by PVALUE ASC".format(sourceID,sourceType)]
+        # verify the json
+        body = connexion.request.get_json()
+        print("got {}".format(body))
+        query_graph = copy.deepcopy(body['message']['query_graph'])
+        takenNodes = {}
+        takenEdges = {}
 
-    elif sourceType == 'gene' and (targetType == 'disease' or targetType == 'phenotypic_feature'):
-        # N = 2
-        info = [["MAGMA-pvalue", "smaller_is_better"],\
-                ["Richards-effector-genes", "higher_is_better"],\
-                ["ABC-genes", "not_displayed"],\
-                ["Genetics-quantile", "higher_is_better"]]
-        queries = ["select DISEASE,ID,PVALUE from MAGMA_GENES where GENE='{}' and CATEGORY='{}' and PVALUE<0.05 ORDER by PVALUE ASC".format(sourceID,targetType),\
-                    "select phenotype, id, probability from richards_gene where gene='{}' and category='{}' ORDER by probability desc".format(sourceID,targetType),\
-                    "select phenotype_efo_id, edge_id, null from abc_gene_phenotype where gene_ncbi_id='{}' and category='{}' and phenotype_efo_id is not null order by edge_id".format(sourceID,targetType),\
-                    "select DISEASE,ID,SCORE  from SCORE_GENES where GENE='{}' and CATEGORY='{}' and SCORE >0.80 ORDER by SCORE DESC".format(sourceID,targetType)]
+        # build the interim data structure
+        request_input = get_request_elements(body)
+        print("got request input {}".format(request_input))
+ 
+        for web_request_object in request_input:
+            # log
+            print("running query for web query object: {}\n".format(web_request_object))
 
-    elif sourceType == 'pathway' and (targetType == 'disease' or targetType == 'phenotypic_feature'):
-        # N = 1
-        info = [["MAGMA-pvalue", "smaller_is_better"]]
-        queries = ["select DISEASE,ID,PVALUE from MAGMA_PATHWAYS where PATHWAY='{}' and CATEGORY='{}' and PVALUE<0.05 ORDER by PVALUE ASC".format(sourceID,targetType)]
+            # get the normalized curies
+            # keep track of whether result came in for this curie
+            subject_curie_name, subject_curie_list = get_curie_synonyms(web_request_object.get_source_id(), prefix_list=['MONDO', 'EFO', 'NCBIGene', 'GO'], type_name='subject', log=True)
+            target_curie_name, target_curie_list = get_curie_synonyms(web_request_object.get_target_id(), prefix_list=['MONDO', 'EFO', 'NCBIGene', 'GO'], type_name='target', log=True)
 
-    if len(queries) > 0:
-        for i in range(0, len(queries)):
-            print("running query: {}".format(queries[i]))
-            cursor.execute(queries[i])
-            results = cursor.fetchall()
-            if results:
-                for record in results:
-                    targetID  = record[0]
-                    edgeID    = record[1]
-                    score     = record[2]
+            # queries
+            found_results_already = False
+            for source_curie in subject_curie_list:
+                for target_curie in target_curie_list:
+                    # only run next normalized curie in list if there were no other results, or else will get duplicate results
+                    if not found_results_already:
+                        # set the normalized curie for the call
+                        web_request_object.set_source_normalized_id(source_curie)
+                        web_request_object.set_target_normalized_id(target_curie)
+                        queries = qbuilder.get_queries(web_request_object)
 
-                    if sourceID not in takenNodes:
-                        body['knowledge_graph']['nodes'].append({"id" : sourceID, "type" : sourceType})
-                        takenNodes[sourceID] = 1
+                        # if results
+                        if len(queries) > 0:
+                            found_results_already = True
+                            for i in range(0, len(queries)):
+                                sql_object = queries[i]
+                                print("running query: {}\n".format(sql_object))
+                                cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
+                                results = cursor.fetchall()
+                                # print("result of type {} is {}".format(type(results), results))
+                                if results:
+                                    for record in results:
+                                        edgeID    = record[0]
+                                        if web_request_object.get_source_id() is not None:
+                                            sourceID  = web_request_object.get_source_id()
+                                        else:
+                                            sourceID  = record[1]
 
-                    if targetID not in takenNodes:
-                        body['knowledge_graph']['nodes'].append({"id" : targetID, "type" : targetType})
-                        takenNodes[targetID] = 1
+                                        if web_request_object.get_target_id() is not None:
+                                            targetID  = web_request_object.get_target_id()
+                                        else:
+                                            targetID  = record[2]
 
-                    if edgeID not in takenEdges: 
-                        if score is not None:
-                            body['knowledge_graph']['edges'].append({"id" : edgeID, "source_id": sourceID, "target_id" : targetID, "score_name" : info[i][0], "score" : score, "score_direction" : info[i][1], "type" : "associated"})
-                        else:
-                            body['knowledge_graph']['edges'].append({"id" : edgeID, "source_id": sourceID, "target_id" : targetID, "score_name" : info[i][0], "type" : "associated"})
-                        takenEdges[edgeID] = 1
+                                        # sourceID  = record[1]
+                                        # targetID  = record[2]
+                                        score     = record[3]
+                                        scoreType = record[4]
+                                        sourceName = record[5]
+                                        targetName = record[6]
+                                        edgeType = record[7]
+                                        sourceType = record[8]
+                                        targetType = record[9]
 
-                    body['results'].append({"edge_bindings": [ {"kg_id": edgeID, "qg_id": qeID} ], "node_bindings": [ { "kg_id": sourceID, "qg_id": qn0ID }, { "kg_id": targetID, 'qg_id': qn1ID } ] })
+                                        # build the result objects
+                                        source_node = NodeOuput(curie=sourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
+                                        target_node = NodeOuput(curie=targetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
+                                        output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key())
 
-        body['query_graph'] = body['message']['query_graph']
-        del body['message']
-        return body
+                                        # add to the results list
+                                        genetics_results.append(output_edge)
 
-    cnx.close() 
+        # close the connection
+        cnx.close()
+
+        # build the response
+        query_response = build_results(results_list=genetics_results, query_graph=query_graph)
+        return query_response
+
+    else :
+        # return error
+        return({"status": 400, "title": "body content not JSON", "detail": "Required body content is not JSON", "type": "about:blank"}, 400)

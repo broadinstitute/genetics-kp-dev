@@ -1,31 +1,23 @@
 openapi: 3.0.1
 info:
   contact:
-    email: mduby@broadinstitute.org
-    name: Marc Duby
-    url: https://github.com/broadinstitute/genetics-kp-dev
-  description: A Translator API for Genetic Disease Asociation
-  termsOfService: http://www.apache.org/licenses/LICENSE-2.0.html
-  title: Genetics Provider
+    email: mvon@broadinstitute.org
+    name: Marcin von Grotthuss
+  description: A ReasonerStdAPI for Genetics Provider
+  termsOfService: https://translator.broadinstitute.org
+  title: Genetics Provider API
   version: 1.0.0
-  x-reasoner_standard_version: 1.0.0
+  x-reasoner_standard_version: 0.9.1
   x-translator:
     component: KP
     team:
-      - Genetics Provider
-  x-trapi:
-    version 1.0.0
+    - Genetics Provider
 servers:
-- url: https://translator.broadinstitute.org/genetics_provider/trapi/v1.0
-  environment: prod
+- url: https://translator.broadinstitute.org/genetics_data_provider/
 tags:
-- name: 1.0.0
+- name: 0.9.2
 - name: translator
-  description: KP for the Genetics Provider team, providing genetic association statistics
-- name: x-translator
-- name: trapi
-- name: metadata
-- name: query 
+- name: reasoner
 paths:
   /predicates:
     get:
@@ -44,19 +36,14 @@ paths:
                   type: object
                 description: Source map
                 example:
-                  biolink:Gene:
-                    biolink:Disease:
-                    - biolink:gene_associated_with_condition
+                  disease:
+                    gene:
+                    - associated
                 type: object
           description: Predicates by source and target
-      summary: Get Genetics Provider supported relationships by source and target
-      tags:
-      - predicates
-      - 1.0.0
+      summary: Get supported relationships by source and target
   /query:
     post:
-      description: ''
-      operationId: query
       requestBody:
         content:
           application/json:
@@ -64,53 +51,44 @@ paths:
               message:
                 query_graph:
                   edges:
-                    e00:
-                      object: n01
-                      subject: n00
-                      predicate: biolink:gene_associated_with_condition
+                  - id: e00
+                    source_id: n00
+                    target_id: n03
+                    type: associated
+                  - id: e00
+                    source_id: n01
+                    target_id: n03
+                    type: associated
+                  - id: e00
+                    source_id: n02
+                    target_id: n03
+                    type: associated
                   nodes:
-                    n00:
-                      category: biolink:Gene
-                      id: NCBIGene:1803
-                    n01:
-                      category: biolink:Disease
+                  - curie: NCBIGENE:5468
+                    id: n00
+                    type: gene
+                  - curie: NCBIGENE:5469
+                    id: n01
+                    type: gene
+                  - curie: NCBIGENE:5470
+                    id: n02
+                    type: gene
+                  - id: n03
+                    type: disease
             schema:
               $ref: '#/components/schemas/Query'
-        description: Query information to be submitted
+        description: A message with question graph.
         required: true
       responses:
         '200':
           content:
             application/json:
               schema:
-                $ref: '#/components/schemas/Response'
-          description: OK. There may or may not be results. Note that some of the
-            provided identifiers may not have been recognized.
-        '400':
-          content:
-            application/json:
-              schema:
-                type: string
-          description: Bad request. The request is invalid according to this OpenAPI
-            schema OR a specific identifier is believed to be invalid somehow (not
-            just unrecognized).
-        '500':
-          content:
-            application/json:
-              schema:
-                type: string
-          description: Internal server error.
-        '501':
-          content:
-            application/json:
-              schema:
-                type: string
-          description: Not implemented.
-      summary: Query Genetics Provider TRAPI API as KP
+                $ref: '#/components/schemas/Message'
+          description: A message with knowledge graph and answers.
+      summary: Get answers to a question
       tags:
-      - query
-      - 1.0.0
-      x-swagger-router-controller: swagger_server.controllers.query_controller
+      - 0.9.2
 components:
   schemas:
     BiolinkEntity:
@@ -219,29 +197,6 @@ components:
       required:
       - nodes
       - edges
-      type: object
-    LogEntry:
-      properties:
-        code:
-          description: One of a standardized set of short codes e.g. QueryNotTraversable,
-            KPNotAvailable, KPResponseMalformed
-          type: string
-        level:
-          description: Logging level
-          enum:
-          - ERROR
-          - WARNING
-          - INFO
-          - DEBUG
-          type: string
-        message:
-          description: A human-readable log message
-          type: string
-        timestamp:
-          description: Timestamp in ISO 8601 format
-          example: '2020-09-03T18:13:49+00:00'
-          format: date-time
-          type: string
       type: object
     Message:
       properties:
@@ -376,35 +331,6 @@ components:
       required:
       - url
       - credentials
-      type: object
-    Response:
-      description: The Response object contains the main payload when a TRAPI query
-        endpoint interprets and responds to the submitted query successfully (i.e.,
-        HTTP Status Code 200). The message property contains the knowledge of the
-        response (query graph, knowledge graph, and results). The status, description,
-        and logs properties provide additional details about the response.
-      properties:
-        description:
-          description: A brief human-readable description of the outcome
-          example: Success. 42 results found.
-          type: string
-        logs:
-          description: Log entries containing errors, warnings, debugging information,
-            etc
-          items:
-            $ref: '#/components/schemas/LogEntry'
-          type: array
-        message:
-          $ref: '#/components/schemas/Message'
-          description: Contains the knowledge of the response (query graph, knowledge
-            graph, and results).
-        status:
-          description: One of a standardized set of short codes, e.g. Success, QueryNotTraversable,
-            KPsNotAvailable
-          example: Success
-          type: string
-      required:
-      - message
       type: object
     Result:
       description: One of potentially several results or answers for a query
