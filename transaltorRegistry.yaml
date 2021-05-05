@@ -23,6 +23,7 @@ tags:
 - name: translator
   description: KP for the Genetics Provider team, providing genetic association statistics
 - name: x-translator
+- name: trapi
 - name: metadata
 - name: query 
 paths:
