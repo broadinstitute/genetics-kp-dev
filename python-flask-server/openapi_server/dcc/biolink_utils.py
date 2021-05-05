@@ -264,6 +264,28 @@ def get_all_overap_queries_for_parts(ancestor_map, predicate_json, subject_type,
     # return
     return result
 
+def get_overlap_queries_for_parts_list(subject_type_list, object_type_list, predicate_list, predicates_map=None, debug=False):
+    ''' returns the intersection of the predicates and biolink expanded query list '''
+    query_list = []
+
+    # get the ancestor map
+    biolink_object = BiolinkAncestrySingleton.getInstance(predicates_map)
+    ancestor_map = biolink_object.ancestry_map
+    predicate_map = biolink_object.predicate_map
+
+    # get the query list
+    for subject_type in subject_type_list:
+        for object_type in object_type_list:
+            for predicate in predicate_list:
+                query_list += get_all_overap_queries_for_parts(ancestor_map, predicate_map, subject_type, object_type, predicate, debug)
+
+    # make a set to remove duplicates
+    print("got list {}".format(query_list))
+    query_set = set(query_list)
+
+    # return
+    return list(query_set)
+
 def make_into_array(temp):
     ''' turns input into array if not already '''
     result = temp

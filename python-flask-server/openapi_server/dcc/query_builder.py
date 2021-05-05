@@ -38,7 +38,8 @@ def expand_queries(web_query_object, debug=False):
         object_list.append(GeneticsModel(edge={"predicate": predicate},
                 target={"category": object_type, "id": web_query_object.target.get('id')},
                 source={"category": subject_type, "id": web_query_object.source.get('id')},
-                source_normalized_id=web_query_object.get_source_normalized_id()))
+                source_normalized_id=web_query_object.get_source_normalized_id(),
+                target_normalized_id=web_query_object.get_target_normalized_id()))
 
     # return
     return object_list
@@ -250,9 +251,12 @@ def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue,
         param_list.append(web_query_object.get_source_normalized_id())
         
     # add in target id if given
-    if web_query_object.get_target_id() is not None:
+    # if web_query_object.get_target_id() is not None:
+    #     sql_string = add_in_equals(sql_string, "ta.ontology_id", False)
+    #     param_list.append(web_query_object.get_target_id())
+    if web_query_object.get_target_normalized_id() is not None:
         sql_string = add_in_equals(sql_string, "ta.ontology_id", False)
-        param_list.append(web_query_object.get_target_id())
+        param_list.append(web_query_object.get_target_normalized_id())
 
     # add order by at end
     if return_ascending:

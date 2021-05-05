@@ -106,11 +106,15 @@ def migrate_transformer_chains(inFile, outFile):
     with open(outFile, 'w') as json_file:
         json.dump(json_obj, json_file, indent=4, separators=(',', ': ')) # save to file with prettifying
 
-def get_curie_synonyms(curie_input, prefix_list=None):
+def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
   ''' will call the curie normalizer and return the curie name and a list of only the matching prefixes from the prefix list provided '''
   url_normalizer = "https://nodenormalization-sri.renci.org/get_normalized_nodes?curie={}"
   list_result = []
   curie_name = None
+
+  # log
+  if log:
+      print("-> get_curie_synonyms got curie {}, ontology lts {} and type name {}".format(curie_input, prefix_list, type_name))
 
   # call the service
   url_call = url_normalizer.format(curie_input)
@@ -123,6 +127,9 @@ def get_curie_synonyms(curie_input, prefix_list=None):
     for item in json_response[curie_input]['equivalent_identifiers']:
       list_result.append(item['identifier'])
 
+    if log:
+        print("got curie synonym list result {}".format(list_result))
+
     # if a prefix list provided, filter with it
     if prefix_list:
       list_new = []
@@ -132,6 +139,8 @@ def get_curie_synonyms(curie_input, prefix_list=None):
       list_result = list_new
 
   # return
+  list_result = list_result if len(list_result) > 0 else [None]
+  print("for {} input {} return name {} and ontologies {}".format(type_name, curie_input, curie_name, list_result))
   return curie_name, list_result
 
 if (__name__ == "__main__"):
