@@ -180,7 +180,7 @@ def get_magma_phenotype_gene_query(web_query_object):
     # build the query object and returnget_magma_gene_query
 
 
-def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue, return_ascending=True, limit=5):
+def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue, return_ascending=True, limit=500):
     ''' takes in GeneticsModel and returns a DbQueryObject object if applicable, None otherwise '''
     # initialize sql string
     sql_string = None
