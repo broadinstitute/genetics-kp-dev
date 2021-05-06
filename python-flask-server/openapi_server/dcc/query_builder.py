@@ -27,7 +27,7 @@ def expand_queries(web_query_object, debug=False):
     object_list = []
 
     # get all the possible supported combinations
-    query_list = bio_utils.get_overlap_queries_for_parts(web_query_object.source.get('category'), web_query_object.target.get('category'), web_query_object.edge.get('predicate'), debug)
+    query_list = bio_utils.get_overlap_queries_for_parts(web_query_object.get_source_types(), web_query_object.get_target_types(), web_query_object.get_edge_types(), debug)
 
     # loop
     for item in query_list:
@@ -35,9 +35,19 @@ def expand_queries(web_query_object, debug=False):
         subject_type, predicate, object_type = item.split()
 
         # add new query
-        object_list.append(GeneticsModel(edge={"predicate": predicate},
-                target={"category": object_type, "id": web_query_object.target.get('id')},
-                source={"category": subject_type, "id": web_query_object.source.get('id')},
+        # object_list.append(GeneticsModel(edge={"predicate": predicate},
+        #         target={"category": object_type, "id": web_query_object.target.get('id')},
+        #         source={"category": subject_type, "id": web_query_object.source.get('id')},
+        #         source_normalized_id=web_query_object.get_source_normalized_id(),
+        #         target_normalized_id=web_query_object.get_target_normalized_id()))
+        object_list.append(GeneticsModel(edge=web_query_object.get_edge,
+                source=web_query_object.get_source(),
+                target=web_query_object.get_target(),
+                source_id=web_query_object.get_source_id(),
+                target_id=web_query_object.get_target_id(),
+                edge_type=web_query_object.get_edge_type(),
+                source_type=web_query_object.get_source_type(),
+                target_type=web_query_object.get_target_type(),
                 source_normalized_id=web_query_object.get_source_normalized_id(),
                 target_normalized_id=web_query_object.get_target_normalized_id()))
 
@@ -180,7 +190,7 @@ def get_magma_phenotype_gene_query(web_query_object):
     # build the query object and returnget_magma_gene_query
 
 
-def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue, return_ascending=True, limit=500):
+def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue, return_ascending=True, limit=5):
     ''' takes in GeneticsModel and returns a DbQueryObject object if applicable, None otherwise '''
     # initialize sql string
     sql_string = None

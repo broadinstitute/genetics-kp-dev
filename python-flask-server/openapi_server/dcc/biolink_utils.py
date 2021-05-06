@@ -377,13 +377,13 @@ if __name__ == "__main__":
         predicate_json = response_obj.json()
         with open(file_chem_query) as f:
             query_json = json.load(f)
-            overlap_list = get_all_overap_queries(ancestor_map, predicate_json, query_json)
+            overlap_list = get_all_overlap_queries(ancestor_map, predicate_json, query_json)
             for item in overlap_list:
                 print("got overlap query '{}'".format(item))
         print()
         with open(file_blank_query) as f:
             query_json = json.load(f)
-            overlap_list = get_all_overap_queries(ancestor_map, predicate_json, query_json)
+            overlap_list = get_all_overlap_queries(ancestor_map, predicate_json, query_json)
             for item in overlap_list:
                 print("got overlap query '{}'".format(item))
         print()

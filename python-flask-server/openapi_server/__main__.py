@@ -11,7 +11,8 @@ def main():
     app.add_api('openapi.yaml',
                 arguments={'title': 'Genetics Data Provider for NCATS Biomedical Translator Reasoners'},
                 pythonic_params=True)
-    app.run(port=8080)
+    # app.run(port=8080)
+    app.run(port=7002)
 
 
 if __name__ == '__main__':

@@ -140,11 +140,8 @@ def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
 
   # return
   list_result = list_result if len(list_result) > 0 else [None]
-  print("for {} input {} return name {} and ontologies {}".format(type_name, curie_input, curie_name, list_result))
+  print("for {} input {} return name {} and ontologies {}\n".format(type_name, curie_input, curie_name, list_result))
   return curie_name, list_result
 
 if (__name__ == "__main__"):
-    curie = "ChEMBL:CHEMBL1197118"
-    translated_curie = translate_curie(curie, False)
-
-    migrate_transformer_chains("transformer_chains.json","transformer_chains.json")
+    pass    
