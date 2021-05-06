@@ -249,21 +249,21 @@ def build_results(results_list, query_graph):
         if edge_element.score is not None:
             attributes = []
             if edge_element.score_type == 'biolink:probability':
-                attributes.append(Attribute(name='probability', value=edge_element.score, type=edge_element.score_type))
+                attributes.append(Attribute(original_attribute_name='probability', value=edge_element.score, attribute_type_id=edge_element.score_type))
             else:
-                attributes.append(Attribute(name='pValue', value=edge_element.score, type=edge_element.score_type))
+                attributes.append(Attribute(original_attribute_name='pValue', value=edge_element.score, attribute_type_id=edge_element.score_type))
             # print("added attributes: {}".format(attributes))
         edge = Edge(predicate=translate_type(edge_element.predicate, False), subject=source.curie, object=target.curie, attributes=attributes, relation=None)
         knowledge_graph.edges[edge_element.id] = edge
         edges[(source.node_key, target.node_key)] = edge
 
         # add the subject node
-        node = Node(name=source.name, category=translate_type(source.category, False), attributes=None)
+        node = Node(name=source.name, categories=[translate_type(source.category, False)], attributes=None)
         nodes[source.node_key] = node           
         knowledge_graph.nodes[source.curie] = node
 
         # add the target node
-        node = Node(name=target.name, category=translate_type(target.category, False), attributes=None)
+        node = Node(name=target.name, categories=[translate_type(target.category, False)], attributes=None)
         nodes[target.node_key] = node           
         knowledge_graph.nodes[target.curie] = node
 
