@@ -83,51 +83,6 @@
         }
     ],
     "paths": {
-        "/entity": {
-            "get": {
-                "operationId": "get_entity",
-                "parameters": [
-                    {
-                        "description": "A string to search by (name, abbreviation, CURIE, etc.). The parameter may be repeated for multiple search strings.",
-                        "explode": true,
-                        "in": "query",
-                        "name": "q",
-                        "required": true,
-                        "schema": {
-                            "example": [
-                                "MESH:D014867",
-                                "NCIT:C34373"
-                            ],
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
-                        },
-                        "style": "form"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object"
-                                }
-                            }
-                        },
-                        "description": "successful operation"
-                    },
-                    "404": {
-                        "description": "Entity not found"
-                    }
-                },
-                "summary": "Obtain CURIE and synonym information about a search term",
-                "tags": [
-                    "entity"
-                ],
-                "x-openapi-router-controller": "openapi_server.controllers.entity_controller"
-            }
-        },
         "/meta_knowledge_graph": {
             "get": {
                 "operationId": "meta_knowledge_graph",
@@ -480,18 +435,26 @@
                     "query_graph": {
                         "edges": {
                             "e00": {
+                                "subject": "n00",
                                 "object": "n01",
-                                "predicate": "biolink:physically_interacts_with",
-                                "subject": "n00"
+                                "predicates": [
+                                    "biolink:gene_associated_with_condition"
+                                ]
                             }
                         },
                         "nodes": {
                             "n00": {
-                                "category": "biolink:ChemicalSubstance",
-                                "id": "CHEMBL.COMPOUND:CHEMBL112"
+                                "ids": [
+                                    "ENSEMBL:ENSG00000133401"
+                                ],
+                                "categories": [
+                                    "biolink:Gene"
+                                ]
                             },
                             "n01": {
-                                "category": "biolink:Protein"
+                                "categories": [
+                                    "biolink:Disease"
+                                ]
                             }
                         }
                     }
