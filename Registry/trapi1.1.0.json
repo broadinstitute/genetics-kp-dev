@@ -820,70 +820,8 @@
                 "additionalProperties": true,
                 "description": "The Query class is used to package a user request for information. A Query object consists of a required Message object with optional additional properties. Additional properties are intended to convey implementation-specific or query-independent parameters. For example, an additional property specifying a log level could allow a user to override the default log level in order to receive more fine-grained log information when debugging an issue.",
                 "properties": {
-                    "bypass_cache": {
-                        "default": false,
-                        "description": "Set to true in order to bypass any possible cached response and try to answer the query from scratch",
-                        "type": "boolean"
-                    },
-                    "enforce_edge_directionality": {
-                        "default": false,
-                        "description": "Set to true in order to enforce edge directionality during queries. By default, edge directionality can be reversed without penalty.",
-                        "type": "boolean"
-                    },
-                    "log_level": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/LogLevel"
-                            }
-                        ],
-                        "description": "The least critical level of logs to return",
-                        "nullable": true
-                    },
-                    "max_results": {
-                        "default": 100,
-                        "description": "Maximum number of individual results to return",
-                        "example": 100,
-                        "type": "integer"
-                    },
                     "message": {
                         "$ref": "#/components/schemas/Message"
-                    },
-                    "operations": {
-                        "allOf": [
-                            {
-                                "$ref": "#/components/schemas/Operations"
-                            }
-                        ],
-                        "description": "Container for one or more Message objects or identifiers for one or more Messages along with a processing plan and options for how those messages should be processed and returned"
-                    },
-                    "page_number": {
-                        "default": 1,
-                        "description": "Page number of results when the number of results exceeds the page_size, with page 1 as the first page",
-                        "example": 1,
-                        "type": "integer"
-                    },
-                    "page_size": {
-                        "default": 100,
-                        "description": "Split the results into pages with this number of results each",
-                        "example": 100,
-                        "type": "integer"
-                    },
-                    "return_minimal_metadata": {
-                        "default": false,
-                        "description": "Set to true in order to return only the most minimal metadata. By default, rich metadata for nodes and edges are supplied, which may cause a very large and slower Response.",
-                        "type": "boolean"
-                    },
-                    "stream_progress": {
-                        "default": false,
-                        "description": "Set to true in order to receive a stream of LogEntry objects as the query is progressing",
-                        "type": "boolean"
-                    },
-                    "workflow": {
-                        "description": "A list of operations to be applied",
-                        "items": {
-                            "type": "object"
-                        },
-                        "type": "array"
                     }
                 },
                 "required": [
