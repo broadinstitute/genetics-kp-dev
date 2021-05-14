@@ -22,7 +22,8 @@ class TestMetaKnowledgeGraphController(BaseTestCase):
             'Accept': 'application/json',
         }
         response = self.client.open(
-            '/molepro/trapi/v1.1/meta_knowledge_graph',
+            # '/molepro/trapi/v1.1/meta_knowledge_graph',
+            '/genetics_provider/trapi/v1.1/meta_knowledge_graph',
             method='GET',
             headers=headers)
         self.assert200(response,

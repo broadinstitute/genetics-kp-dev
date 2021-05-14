@@ -9,6 +9,9 @@ from openapi_server.models.message import Message  # noqa: E501
 from openapi_server.test import BaseTestCase
 
 
+# files
+file_gene_query = "tests/data/queryGenePayload.json"
+
 class TestQueryController(BaseTestCase):
     """QueryController integration test stubs"""
 
@@ -17,9 +20,17 @@ class TestQueryController(BaseTestCase):
 
         Query reasoner via one of several inputs
         """
-        request_body = None
+
+        # get the data
+        with open(file_gene_query) as json_file:
+            # read the map
+            request_body = json.load(json_file)
+        # request_body = None
+
+        # call the service
         response = self.client.open(
-            '/query',
+            # '/query',
+            '/genetics_provider/trapi/v1.1/query',
             method='POST',
             data=json.dumps(request_body),
             content_type='application/json')

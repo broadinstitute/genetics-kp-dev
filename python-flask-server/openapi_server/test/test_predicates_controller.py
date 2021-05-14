@@ -17,7 +17,8 @@ class TestPredicatesController(BaseTestCase):
         Get supported relationships by source and target
         """
         response = self.client.open(
-            '/predicates',
+            # '/predicates',
+            '/genetics_provider/trapi/v1.1/predicates',
             method='GET')
         self.assert200(response,
                        'Response body is : ' + response.data.decode('utf-8'))
