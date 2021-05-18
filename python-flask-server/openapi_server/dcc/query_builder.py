@@ -40,14 +40,27 @@ def expand_queries(web_query_object, debug=False):
         #         source={"category": subject_type, "id": web_query_object.source.get('id')},
         #         source_normalized_id=web_query_object.get_source_normalized_id(),
         #         target_normalized_id=web_query_object.get_target_normalized_id()))
+
+        # BUG? - not using split elements
+        # object_list.append(GeneticsModel(edge=web_query_object.get_edge,
+        #         source=web_query_object.get_source(),
+        #         target=web_query_object.get_target(),
+        #         source_id=web_query_object.get_source_id(),
+        #         target_id=web_query_object.get_target_id(),
+        #         edge_type=web_query_object.get_edge_type(),
+        #         source_type=web_query_object.get_source_type(),
+        #         target_type=web_query_object.get_target_type(),
+        #         source_normalized_id=web_query_object.get_source_normalized_id(),
+        #         target_normalized_id=web_query_object.get_target_normalized_id()))
+
         object_list.append(GeneticsModel(edge=web_query_object.get_edge,
                 source=web_query_object.get_source(),
                 target=web_query_object.get_target(),
                 source_id=web_query_object.get_source_id(),
                 target_id=web_query_object.get_target_id(),
-                edge_type=web_query_object.get_edge_type(),
-                source_type=web_query_object.get_source_type(),
-                target_type=web_query_object.get_target_type(),
+                edge_type=predicate,
+                source_type=subject_type,
+                target_type=object_type,
                 source_normalized_id=web_query_object.get_source_normalized_id(),
                 target_normalized_id=web_query_object.get_target_normalized_id()))
 
@@ -283,7 +296,7 @@ def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue,
     if score_type is not None:
         if score_type == dcc_utils.attribute_probability:
             sql_string = add_in_more_than(sql_string, "ed.score", False)
-            param_list.append(0.5)
+            param_list.append(1.1)
 
     # add in source id if given
     # if web_query_object.get_source_id() is not None:

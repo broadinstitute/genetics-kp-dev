@@ -108,41 +108,47 @@ def migrate_transformer_chains(inFile, outFile):
         json.dump(json_obj, json_file, indent=4, separators=(',', ': ')) # save to file with prettifying
 
 def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
-  ''' will call the curie normalizer and return the curie name and a list of only the matching prefixes from the prefix list provided '''
-  url_normalizer = "https://nodenormalization-sri.renci.org/get_normalized_nodes?curie={}"
-  list_result = []
-  curie_name = None
+    ''' will call the curie normalizer and return the curie name and a list of only the matching prefixes from the prefix list provided '''
+    url_normalizer = "https://nodenormalization-sri.renci.org/get_normalized_nodes?curie={}"
+    list_result = []
+    curie_name = None
 
-  # log
-  if log:
-      print("-> get_curie_synonyms got curie {}, ontology lts {} and type name {}".format(curie_input, prefix_list, type_name))
+    # log
+    if log:
+        print("-> get_curie_synonyms got curie {}, ontology lts {} and type name {}".format(curie_input, prefix_list, type_name))
 
-  # call the service
-  url_call = url_normalizer.format(curie_input)
-  response = requests.get(url_call)
-  json_response = response.json()
+    # if provided no curie, return [None]
+    if curie_input is None:
+        return curie_name, [None]
 
-  # get the list of curies
-  if json_response.get(curie_input):
-    curie_name = json_response.get(curie_input).get('id').get('label')
-    for item in json_response[curie_input]['equivalent_identifiers']:
-      list_result.append(item['identifier'])
+    # call the service
+    url_call = url_normalizer.format(curie_input)
+    response = requests.get(url_call)
+    json_response = response.json()
+
+    # get the list of curies
+    if json_response.get(curie_input):
+        curie_name = json_response.get(curie_input).get('id').get('label')
+        for item in json_response[curie_input]['equivalent_identifiers']:
+            list_result.append(item['identifier'])
 
     if log:
         print("got curie synonym list result {}".format(list_result))
 
     # if a prefix list provided, filter with it
     if prefix_list:
-      list_new = []
-      for item in list_result:
-        if item.split(':')[0] in prefix_list:
-          list_new.append(item)
-      list_result = list_new
+        list_new = []
+        for item in list_result:
+            if item.split(':')[0] in prefix_list:
+                list_new.append(item)
+        list_result = list_new
 
-  # return
-  list_result = list_result if len(list_result) > 0 else [None]
-  print("for {} input {} return name {} and ontologies {}\n".format(type_name, curie_input, curie_name, list_result))
-  return curie_name, list_result
+    # return
+    # BUG? only return none if none provided
+    # list_result = list_result if len(list_result) > 0 else [None]
+    if log:
+        print("for {} input {} return name {} and ontologies {}\n".format(type_name, curie_input, curie_name, list_result))
+    return curie_name, list_result
 
 if (__name__ == "__main__"):
     pass    
