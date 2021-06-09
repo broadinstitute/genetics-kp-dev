@@ -1,5 +1,6 @@
 import json
 import requests 
+from urllib.error import HTTPError
 
 # constants
 # node types
@@ -109,7 +110,7 @@ def migrate_transformer_chains(inFile, outFile):
 
 def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
     ''' will call the curie normalizer and return the curie name and a list of only the matching prefixes from the prefix list provided '''
-    url_normalizer = "https://nodenormalization-sri.renci.org/get_normalized_nodes?curie={}"
+    url_normalizer = "https://nodenormalization-sri.renci.org/1.1/get_normalized_nodes?curie={}"
     list_result = []
     curie_name = None
 
@@ -124,16 +125,24 @@ def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
     # call the service
     url_call = url_normalizer.format(curie_input)
     response = requests.get(url_call)
-    json_response = response.json()
 
-    # get the list of curies
-    if json_response.get(curie_input):
-        curie_name = json_response.get(curie_input).get('id').get('label')
-        for item in json_response[curie_input]['equivalent_identifiers']:
-            list_result.append(item['identifier'])
+    # if error, then return curie input as name and one element array
+    if response.status_code == 404:
+        curie_name = curie_input
+        list_result = [curie_input]
+        print("ERROR: got node normalizer error for url: {}".format(url_call))
 
-    if log:
-        print("got curie synonym list result {}".format(list_result))
+    else:
+        json_response = response.json()
+
+        # get the list of curies
+        if json_response.get(curie_input):
+            curie_name = json_response.get(curie_input).get('id').get('label')
+            for item in json_response[curie_input]['equivalent_identifiers']:
+                list_result.append(item['identifier'])
+
+        if log:
+            print("got curie synonym list result {}".format(list_result))
 
     # if a prefix list provided, filter with it
     if prefix_list:

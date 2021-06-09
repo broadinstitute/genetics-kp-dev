@@ -20,6 +20,8 @@ from openapi_server.dcc.utils import translate_type, get_curie_synonyms
 from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
 import openapi_server.dcc.query_builder as qbuilder
 
+# constants
+list_ontology_prefix = ['UMLS', 'NCIT', 'MONDO', 'EFO', 'NCBIGene', 'GO', 'HP']
 
 def query_post(request_body):  # noqa: E501
     """Query reasoner via one of several inputs
@@ -58,7 +60,6 @@ def queryOld(request_body):  # noqa: E501
     """
     # cnx = mysql.connector.connect(database='Translator', user='mvon')
     # cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
-    cnx = pymysql.connect(host='localhost', port=3306, database='tran_genepro', user='root', password='yoyoma')
     cursor = cnx.cursor()
 
     if connexion.request.is_json:
@@ -321,8 +322,8 @@ def query(request_body):  # noqa: E501
 
             # get the normalized curies
             # keep track of whether result came in for this curie
-            subject_curie_name, subject_curie_list = get_curie_synonyms(web_request_object.get_source_id(), prefix_list=['MONDO', 'EFO', 'NCBIGene', 'GO'], type_name='subject', log=True)
-            target_curie_name, target_curie_list = get_curie_synonyms(web_request_object.get_target_id(), prefix_list=['MONDO', 'EFO', 'NCBIGene', 'GO'], type_name='target', log=True)
+            subject_curie_name, subject_curie_list = get_curie_synonyms(web_request_object.get_source_id(), prefix_list=list_ontology_prefix, type_name='subject', log=True)
+            target_curie_name, target_curie_list = get_curie_synonyms(web_request_object.get_target_id(), prefix_list=list_ontology_prefix, type_name='target', log=True)
 
             # queries
             found_results_already = False
