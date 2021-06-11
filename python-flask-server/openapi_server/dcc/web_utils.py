@@ -308,9 +308,21 @@ def query(request_body):  # noqa: E501
         # verify the json
         body = connexion.request.get_json()
         print("got {}".format(body))
+
+        # copy the original query to return in the result
         query_graph = copy.deepcopy(body['message']['query_graph'])
-        takenNodes = {}
-        takenEdges = {}
+
+        # check that not more than one hop query (edge list not more than one)
+        if len(body.get('message').get('query_graph').get('edges')) > 1:
+            print("INFO: multi hop query requested, not supported")
+            return ({"status": 501, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 501)
+        else:
+            print("INFO: single hop query requested, supported")
+
+
+
+        # takenNodes = {}
+        # takenEdges = {}
 
         # build the interim data structure
         request_input = get_request_elements(body)
