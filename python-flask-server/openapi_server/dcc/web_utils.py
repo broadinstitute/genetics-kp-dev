@@ -22,6 +22,14 @@ import openapi_server.dcc.query_builder as qbuilder
 
 # constants
 list_ontology_prefix = ['UMLS', 'NCIT', 'MONDO', 'EFO', 'NCBIGene', 'GO', 'HP']
+PROVENANCE_INFORES_KP_GENETICS='infores:genetics-data-provider'
+PROVENANCE_AGGREGATOR_KP_GENETICS = Attribute(value = PROVENANCE_INFORES_KP_GENETICS,
+    attribute_type_id = 'biolink:aggregator_knowledge_source',
+    value_type_id = 'biolink:InformationResource',
+    value_url = 'https://translator.broadinstitute.org/genetics_provider/trapi/v1.1',
+    description = 'The Genetics Data Provider KP from NCATS Translator',
+    attribute_source = PROVENANCE_INFORES_KP_GENETICS)
+
 
 def query_post(request_body):  # noqa: E501
     """Query reasoner via one of several inputs
@@ -246,9 +254,9 @@ def build_results(results_list, query_graph):
         # print("edge element: {}".format(edge_element))
 
         # add the edge
-        attributes = None
+        attributes = [PROVENANCE_AGGREGATOR_KP_GENETICS]
+        # add in the pvalue/probability if applicable
         if edge_element.score is not None:
-            attributes = []
             if edge_element.score_type == 'biolink:probability':
                 attributes.append(Attribute(original_attribute_name='probability', value=edge_element.score, attribute_type_id=edge_element.score_type))
             elif edge_element.score_type == 'biolink:classification':
@@ -299,8 +307,9 @@ def query(request_body):  # noqa: E501
     if connexion.request.is_json:
         # initialize
         # cnx = mysql.connector.connect(database='Translator', user='mvon')
-        cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
+        # cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
         # cnx = pymysql.connect(host='localhost', port=3306, database='tran_genepro', user='root', password='this is no password')
+        cnx = pymysql.connect(host='localhost', port=3306, database='tran_test2', user='root', password='yoyoma')
         cursor = cnx.cursor()
         genetics_results = []
         query_response = {}
