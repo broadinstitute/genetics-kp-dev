@@ -22,13 +22,42 @@ import openapi_server.dcc.query_builder as qbuilder
 
 # constants
 list_ontology_prefix = ['UMLS', 'NCIT', 'MONDO', 'EFO', 'NCBIGene', 'GO', 'HP']
+# infores
 PROVENANCE_INFORES_KP_GENETICS='infores:genetics-data-provider'
+PROVENANCE_INFORES_CLINVAR='infores:clinvar'
+PROVENANCE_INFORES_CLINGEN='infores:clingen'
+PROVENANCE_INFORES_GENCC='infores:clingen'
+# provenance attributes
 PROVENANCE_AGGREGATOR_KP_GENETICS = Attribute(value = PROVENANCE_INFORES_KP_GENETICS,
     attribute_type_id = 'biolink:aggregator_knowledge_source',
     value_type_id = 'biolink:InformationResource',
     value_url = 'https://translator.broadinstitute.org/genetics_provider/trapi/v1.1',
     description = 'The Genetics Data Provider KP from NCATS Translator',
     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
+PROVENANCE_AGGREGATOR_CLINVAR = Attribute(value = PROVENANCE_INFORES_CLINVAR,
+    attribute_type_id = 'biolink:aggregator_knowledge_source',
+    value_type_id = 'biolink:InformationResource',
+    value_url = 'https://www.ncbi.nlm.nih.gov/clinvar/',
+    description = 'ClinVar is a freely accessible, public archive of reports of the relationships among human variations and phenotypes',
+    attribute_source = PROVENANCE_INFORES_KP_GENETICS)
+PROVENANCE_AGGREGATOR_CLINGEN = Attribute(value = PROVENANCE_INFORES_CLINGEN,
+    attribute_type_id = 'biolink:aggregator_knowledge_source',
+    value_type_id = 'biolink:InformationResource',
+    value_url = 'https://clinicalgenome.org/',
+    description = 'ClinGen is a NIH-funded resource dedicated to building a central resource that defines the clinical relevance of genes and variants for use in precision medicine and research',
+    attribute_source = PROVENANCE_INFORES_KP_GENETICS)
+PROVENANCE_AGGREGATOR_GENCC = Attribute(value = PROVENANCE_INFORES_GENCC,
+    attribute_type_id = 'biolink:aggregator_knowledge_source',
+    value_type_id = 'biolink:InformationResource',
+    value_url = 'https://thegencc.org/',
+    description = 'The GenCC DB provides information pertaining to the validity of gene-disease relationships, with a current focus on Mendelian diseases',
+    attribute_source = PROVENANCE_INFORES_KP_GENETICS)
+# PROVENANCE_AGGREGATOR_RICHARDS = Attribute(value = PROVENANCE_INFORES_CLINGEN,
+#     attribute_type_id = 'biolink:aggregator_knowledge_source',
+#     value_type_id = 'biolink:InformationResource',
+#     value_url = 'https://clinicalgenome.org/',
+#     description = 'ClinGen is a NIH-funded resource dedicated to building a central resource that defines the clinical relevance of genes and variants for use in precision medicine and research',
+#     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
 
 
 def query_post(request_body):  # noqa: E501
@@ -307,9 +336,8 @@ def query(request_body):  # noqa: E501
     if connexion.request.is_json:
         # initialize
         # cnx = mysql.connector.connect(database='Translator', user='mvon')
-        # cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
+        cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
         # cnx = pymysql.connect(host='localhost', port=3306, database='tran_genepro', user='root', password='this is no password')
-        cnx = pymysql.connect(host='localhost', port=3306, database='tran_test2', user='root', password='yoyoma')
         cursor = cnx.cursor()
         genetics_results = []
         query_response = {}
