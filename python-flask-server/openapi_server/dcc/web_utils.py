@@ -52,6 +52,10 @@ PROVENANCE_AGGREGATOR_GENCC = Attribute(value = PROVENANCE_INFORES_GENCC,
     value_url = 'https://thegencc.org/',
     description = 'The GenCC DB provides information pertaining to the validity of gene-disease relationships, with a current focus on Mendelian diseases',
     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
+
+# build map for study types
+MAP_PROVENANCE = {5: PROVENANCE_AGGREGATOR_CLINGEN, 6: PROVENANCE_AGGREGATOR_CLINVAR, 7: PROVENANCE_AGGREGATOR_GENCC}
+
 # PROVENANCE_AGGREGATOR_RICHARDS = Attribute(value = PROVENANCE_INFORES_CLINGEN,
 #     attribute_type_id = 'biolink:aggregator_knowledge_source',
 #     value_type_id = 'biolink:InformationResource',
@@ -283,7 +287,12 @@ def build_results(results_list, query_graph):
         # print("edge element: {}".format(edge_element))
 
         # add the edge
+        # build the provenance data
         attributes = [PROVENANCE_AGGREGATOR_KP_GENETICS]
+        provenance_child = MAP_PROVENANCE.get(edge_element.study_type_id)
+        if provenance_child:
+            attributes.append(provenance_child)
+
         # add in the pvalue/probability if applicable
         if edge_element.score is not None:
             if edge_element.score_type == 'biolink:probability':
@@ -418,11 +427,13 @@ def query(request_body):  # noqa: E501
                                     edgeType = record[7]
                                     sourceType = record[8]
                                     targetType = record[9]
+                                    studyTypeId = record[10]
 
                                     # build the result objects
                                     source_node = NodeOuput(curie=sourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
                                     target_node = NodeOuput(curie=targetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
-                                    output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key())
+                                    output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
+                                        score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId)
 
                                     # add to the results list
                                     genetics_results.append(output_edge)
