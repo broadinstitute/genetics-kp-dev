@@ -361,7 +361,9 @@ def query(request_body):  # noqa: E501
         # check that not more than one hop query (edge list not more than one)
         if len(body.get('message').get('query_graph').get('edges')) > 1:
             print("INFO: multi hop query requested, not supported")
-            return ({"status": 501, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 501)
+            # switch to 400 error code for multi hop query
+            # return ({"status": 501, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 501)
+            return ({"status": 400, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 400)
         else:
             print("INFO: single hop query requested, supported")
 
