@@ -26,7 +26,7 @@ list_ontology_prefix = ['UMLS', 'NCIT', 'MONDO', 'EFO', 'NCBIGene', 'GO', 'HP']
 PROVENANCE_INFORES_KP_GENETICS='infores:genetics-data-provider'
 PROVENANCE_INFORES_CLINVAR='infores:clinvar'
 PROVENANCE_INFORES_CLINGEN='infores:clingen'
-PROVENANCE_INFORES_GENCC='infores:clingen'
+PROVENANCE_INFORES_GENCC='infores:gencc'
 # provenance attributes
 PROVENANCE_AGGREGATOR_KP_GENETICS = Attribute(value = PROVENANCE_INFORES_KP_GENETICS,
     attribute_type_id = 'biolink:aggregator_knowledge_source',
