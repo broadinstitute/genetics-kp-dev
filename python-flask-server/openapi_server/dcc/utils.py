@@ -1,6 +1,7 @@
 import json
 import requests 
 from urllib.error import HTTPError
+from openapi_server.dcc.disease_utils import get_disease_descendants
 
 # constants
 # node types
@@ -110,9 +111,11 @@ def migrate_transformer_chains(inFile, outFile):
 
 def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
     ''' will call the curie normalizer and return the curie name and a list of only the matching prefixes from the prefix list provided '''
+    ''' 20210729 - also added in descendant MONDO diseases '''
     url_normalizer = "https://nodenormalization-sri.renci.org/1.1/get_normalized_nodes?curie={}"
     list_result = []
     curie_name = None
+    prefix_disease_list = ['MONDO', 'EFO']
 
     # log
     if log:
@@ -151,6 +154,26 @@ def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
             if item.split(':')[0] in prefix_list:
                 list_new.append(item)
         list_result = list_new
+
+    # loop through, if MONDO or EFO, look for descendants
+    list_new = []
+    for item in list_result:
+        if item.split(':')[0] in prefix_disease_list:
+            if log:
+                print("looking for descendants for disease {}".format(item))
+
+            # look for the descendants
+            temp_list = get_disease_descendants(item)
+
+            # add in results to the new list
+            list_new += temp_list
+
+    # combine result lists
+    list_result += list_new
+
+    # make sure list is unique
+    list_result = list(set(list_result))
+    
 
     # return
     # BUG? only return none if none provided
