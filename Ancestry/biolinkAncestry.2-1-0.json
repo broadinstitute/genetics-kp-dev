@@ -1,0 +1,98 @@
+{
+    "all": [
+        "biolink:PhenotypicFeature",
+        "biolink:Gene",
+        "biolink:condition_associated_with_gene",
+        "biolink:genetic_association",
+        "biolink:gene_associated_with_condition",
+        "biolink:Disease",
+        "biolink:Pathway"
+    ],
+    "biolink:PhenotypicFeature": [
+        "biolink:PhenotypicFeature"
+    ],
+    "biolink:DiseaseOrPhenotypicFeature": [
+        "biolink:PhenotypicFeature",
+        "biolink:Disease"
+    ],
+    "biolink:BiologicalEntity": [
+        "biolink:PhenotypicFeature",
+        "biolink:Gene",
+        "biolink:Disease",
+        "biolink:Pathway"
+    ],
+    "biolink:NamedThing": [
+        "biolink:PhenotypicFeature",
+        "biolink:Gene",
+        "biolink:Disease",
+        "biolink:Pathway"
+    ],
+    "biolink:Entity": [
+        "biolink:PhenotypicFeature",
+        "biolink:Gene",
+        "biolink:Disease",
+        "biolink:Pathway"
+    ],
+    "biolink:ThingWithTaxon": [
+        "biolink:PhenotypicFeature",
+        "biolink:Gene",
+        "biolink:Disease"
+    ],
+    "biolink:Gene": [
+        "biolink:Gene"
+    ],
+    "biolink:GeneOrGeneProduct": [
+        "biolink:Gene"
+    ],
+    "biolink:MacromolecularMachineMixin": [
+        "biolink:Gene"
+    ],
+    "biolink:GenomicEntity": [
+        "biolink:Gene"
+    ],
+    "biolink:ChemicalEntityOrGeneOrGeneProduct": [
+        "biolink:Gene"
+    ],
+    "biolink:PhysicalEssence": [
+        "biolink:Gene"
+    ],
+    "biolink:PhysicalEssenceOrOccurrent": [
+        "biolink:Gene",
+        "biolink:Pathway"
+    ],
+    "biolink:OntologyClass": [
+        "biolink:Gene",
+        "biolink:Pathway"
+    ],
+    "biolink:condition_associated_with_gene": [
+        "biolink:condition_associated_with_gene"
+    ],
+    "biolink:genetic_association": [
+        "biolink:condition_associated_with_gene",
+        "biolink:genetic_association",
+        "biolink:gene_associated_with_condition"
+    ],
+    "biolink:related_to": [
+        "biolink:condition_associated_with_gene",
+        "biolink:genetic_association",
+        "biolink:gene_associated_with_condition"
+    ],
+    "biolink:gene_associated_with_condition": [
+        "biolink:gene_associated_with_condition"
+    ],
+    "biolink:Disease": [
+        "biolink:Disease"
+    ],
+    "biolink:Pathway": [
+        "biolink:Pathway"
+    ],
+    "biolink:BiologicalProcess": [
+        "biolink:Pathway"
+    ],
+    "biolink:BiologicalProcessOrActivity": [
+        "biolink:Pathway"
+    ],
+    "biolink:Occurrent": [
+        "biolink:Pathway"
+    ]
+}

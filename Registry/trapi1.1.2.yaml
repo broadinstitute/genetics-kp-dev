@@ -14,9 +14,7 @@ info:
     team:
       - Genetics Provider
   x-trapi:
-    version: 1.1.0
-    operations:
-    - lookup
+    version 1.0.0
 servers:
 - url: https://translator.broadinstitute.org/genetics_provider/trapi/v1.0
   environment: prod

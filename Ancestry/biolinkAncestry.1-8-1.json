@@ -1,0 +1,73 @@
+{
+    "all": [
+        "biolink:PhenotypicFeature",
+        "biolink:condition_associated_with_gene",
+        "biolink:genetic_association",
+        "biolink:Gene",
+        "biolink:Pathway",
+        "biolink:Disease",
+        "biolink:gene_associated_with_condition"
+    ],
+    "biolink:PhenotypicFeature": [
+        "biolink:PhenotypicFeature"
+    ],
+    "biolink:DiseaseOrPhenotypicFeature": [
+        "biolink:PhenotypicFeature",
+        "biolink:Disease"
+    ],
+    "biolink:BiologicalEntity": [
+        "biolink:PhenotypicFeature",
+        "biolink:Gene",
+        "biolink:Pathway",
+        "biolink:Disease"
+    ],
+    "biolink:NamedThing": [
+        "biolink:PhenotypicFeature",
+        "biolink:Gene",
+        "biolink:Pathway",
+        "biolink:Disease"
+    ],
+    "biolink:Entity": [
+        "biolink:PhenotypicFeature",
+        "biolink:Gene",
+        "biolink:Pathway",
+        "biolink:Disease"
+    ],
+    "biolink:condition_associated_with_gene": [
+        "biolink:condition_associated_with_gene"
+    ],
+    "biolink:genetic_association": [
+        "biolink:condition_associated_with_gene",
+        "biolink:genetic_association",
+        "biolink:gene_associated_with_condition"
+    ],
+    "biolink:related_to": [
+        "biolink:condition_associated_with_gene",
+        "biolink:genetic_association",
+        "biolink:gene_associated_with_condition"
+    ],
+    "biolink:Gene": [
+        "biolink:Gene"
+    ],
+    "biolink:GenomicEntity": [
+        "biolink:Gene"
+    ],
+    "biolink:MolecularEntity": [
+        "biolink:Gene"
+    ],
+    "biolink:Pathway": [
+        "biolink:Pathway"
+    ],
+    "biolink:BiologicalProcess": [
+        "biolink:Pathway"
+    ],
+    "biolink:BiologicalProcessOrActivity": [
+        "biolink:Pathway"
+    ],
+    "biolink:Disease": [
+        "biolink:Disease"
+    ],
+    "biolink:gene_associated_with_condition": [
+        "biolink:gene_associated_with_condition"
+    ]
+}
