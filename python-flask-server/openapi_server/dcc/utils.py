@@ -1,5 +1,7 @@
 import json
 import requests 
+from urllib.error import HTTPError
+from openapi_server.dcc.disease_utils import get_disease_descendants
 
 # constants
 # node types
@@ -17,6 +19,7 @@ edge_disease_pathway = 'biolink:genetic_association'
 # attribute types
 attribute_pvalue = 'biolink:p_value'
 attribute_probability = 'biolink:probability'
+attribute_classification = 'biolink:classification'
 
 # list of accepted edge types
 accepted_edge_types = [edge_gene_disease, edge_disease_gene, edge_pathway_disease, edge_disease_pathway]
@@ -107,44 +110,77 @@ def migrate_transformer_chains(inFile, outFile):
         json.dump(json_obj, json_file, indent=4, separators=(',', ': ')) # save to file with prettifying
 
 def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
-  ''' will call the curie normalizer and return the curie name and a list of only the matching prefixes from the prefix list provided '''
-  url_normalizer = "https://nodenormalization-sri.renci.org/get_normalized_nodes?curie={}"
-  list_result = []
-  curie_name = None
+    ''' will call the curie normalizer and return the curie name and a list of only the matching prefixes from the prefix list provided '''
+    ''' 20210729 - also added in descendant MONDO diseases '''
+    url_normalizer = "https://nodenormalization-sri.renci.org/1.1/get_normalized_nodes?curie={}"
+    list_result = []
+    curie_name = None
+    prefix_disease_list = ['MONDO', 'EFO']
 
-  # log
-  if log:
-      print("-> get_curie_synonyms got curie {}, ontology lts {} and type name {}".format(curie_input, prefix_list, type_name))
-
-  # call the service
-  url_call = url_normalizer.format(curie_input)
-  response = requests.get(url_call)
-  json_response = response.json()
-
-  # get the list of curies
-  if json_response.get(curie_input):
-    curie_name = json_response.get(curie_input).get('id').get('label')
-    for item in json_response[curie_input]['equivalent_identifiers']:
-      list_result.append(item['identifier'])
-
+    # log
     if log:
-        print("got curie synonym list result {}".format(list_result))
+        print("-> get_curie_synonyms got curie {}, ontology lts {} and type name {}".format(curie_input, prefix_list, type_name))
+
+    # if provided no curie, return [None]
+    if curie_input is None:
+        return curie_name, [None]
+
+    # call the service
+    url_call = url_normalizer.format(curie_input)
+    response = requests.get(url_call)
+
+    # if error, then return curie input as name and one element array
+    if response.status_code == 404:
+        curie_name = curie_input
+        list_result = [curie_input]
+        print("ERROR: got node normalizer error for url: {}".format(url_call))
+
+    else:
+        json_response = response.json()
+
+        # get the list of curies
+        if json_response.get(curie_input):
+            curie_name = json_response.get(curie_input).get('id').get('label')
+            for item in json_response[curie_input]['equivalent_identifiers']:
+                list_result.append(item['identifier'])
+
+        if log:
+            print("got curie synonym list result {}".format(list_result))
 
     # if a prefix list provided, filter with it
     if prefix_list:
-      list_new = []
-      for item in list_result:
-        if item.split(':')[0] in prefix_list:
-          list_new.append(item)
-      list_result = list_new
+        list_new = []
+        for item in list_result:
+            if item.split(':')[0] in prefix_list:
+                list_new.append(item)
+        list_result = list_new
 
-  # return
-  list_result = list_result if len(list_result) > 0 else [None]
-  print("for {} input {} return name {} and ontologies {}".format(type_name, curie_input, curie_name, list_result))
-  return curie_name, list_result
+    # loop through, if MONDO or EFO, look for descendants
+    list_new = []
+    for item in list_result:
+        if item.split(':')[0] in prefix_disease_list:
+            if log:
+                print("looking for descendants for disease {}".format(item))
+
+            # look for the descendants
+            temp_list = get_disease_descendants(item)
+
+            # add in results to the new list
+            list_new += temp_list
+
+    # combine result lists
+    list_result += list_new
+
+    # make sure list is unique
+    list_result = list(set(list_result))
+    
+
+    # return
+    # BUG? only return none if none provided
+    # list_result = list_result if len(list_result) > 0 else [None]
+    if log:
+        print("for {} input {} return name {} and ontologies {}\n".format(type_name, curie_input, curie_name, list_result))
+    return curie_name, list_result
 
 if (__name__ == "__main__"):
-    curie = "ChEMBL:CHEMBL1197118"
-    translated_curie = translate_curie(curie, False)
-
-    migrate_transformer_chains("transformer_chains.json","transformer_chains.json")
+    pass    

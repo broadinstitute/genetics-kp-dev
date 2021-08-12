@@ -9,10 +9,10 @@ def main():
     app = connexion.App(__name__, specification_dir='./openapi/')
     app.app.json_encoder = encoder.JSONEncoder
     app.add_api('openapi.yaml',
-                arguments={'title': 'OpenAPI for NCATS Biomedical Translator Reasoners'},
+                arguments={'title': 'Genetics Data Provider for NCATS Biomedical Translator Reasoners'},
                 pythonic_params=True)
     # app.run(port=8080)
-    app.run(port=7001)
+    app.run(port=7002)
 
 
 if __name__ == '__main__':

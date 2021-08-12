@@ -132,7 +132,36 @@ def create_query_string(subject_type=None, object_type=None, predicate=None):
     # return
     return query    
 
-def create_predicate_query_list(predicate_json):
+def get_node_map():
+    # initialize
+    map_node = {}
+
+    # build the map
+    map_node["biolink:Gene"] = ["NCBIGene"]
+    map_node["biolink:Pathway"] = ["GO"]
+    map_node["biolink:Disease"] = ["MONDO", "EFO"]
+    map_node["biolink:PhenotypicFeature"] = ["MONDO", "EFO"]
+
+    # return
+    return map_node
+
+def create_predicate_triple_list():
+    ''' create a list query triples of all accepted queries for the given predicate '''
+    query_list = []
+
+    # get the list
+    biolink_object = BiolinkAncestrySingleton.getInstance()
+    start_list = create_predicate_query_list_from_json(biolink_object.predicate_map)
+
+    # for each item, split and populate the list
+    for item in start_list:
+        split_item = item.split()
+        query_list.append(split_item)
+
+    # return the list
+    return query_list
+
+def create_predicate_query_list_from_json(predicate_json):
     ''' create a list query strings of all accepted queries for the given predicate '''
     query_list = []
 
@@ -240,7 +269,7 @@ def get_overlap_queries_for_parts(subject_type, object_type, predicate, debug=Fa
 
 def get_all_overap_queries_for_parts(ancestor_map, predicate_json, subject_type, object_type, predicate, debug=False):
     ''' returns the intersection of the predicates and expanded parts from query '''
-    predicate_list =  create_predicate_query_list(predicate_json)
+    predicate_list =  create_predicate_query_list_from_json(predicate_json)
     # print("predicate {}".format(len(predicate_list)))
     query_list = build_query_descendant_list(ancestor_map, subject_type, object_type, predicate)
 
@@ -339,7 +368,7 @@ if __name__ == "__main__":
     print("testing getting predicate queries")
     with closing(requests.get(url_molepro_predicates)) as response_obj:
         response = response_obj.json()
-        query_string_list = create_predicate_query_list(response)
+        query_string_list = create_predicate_query_list_from_json(response)
         for item in query_string_list:
             print("query '{}'".format(item))
 
@@ -377,19 +406,22 @@ if __name__ == "__main__":
         predicate_json = response_obj.json()
         with open(file_chem_query) as f:
             query_json = json.load(f)
-            overlap_list = get_all_overap_queries(ancestor_map, predicate_json, query_json)
+            overlap_list = get_all_overlap_queries(ancestor_map, predicate_json, query_json)
             for item in overlap_list:
                 print("got overlap query '{}'".format(item))
         print()
         with open(file_blank_query) as f:
             query_json = json.load(f)
-            overlap_list = get_all_overap_queries(ancestor_map, predicate_json, query_json)
+            overlap_list = get_all_overlap_queries(ancestor_map, predicate_json, query_json)
             for item in overlap_list:
                 print("got overlap query '{}'".format(item))
         print()
         overlap_list = get_all_overap_queries_for_parts(ancestor_map, predicate_json, None, None, 'biolink:correlated_with')
         for item in overlap_list:
             print("got overlap query '{}'".format(item))
+
+
+    # test array queries for trapi 1.1
 
 
 

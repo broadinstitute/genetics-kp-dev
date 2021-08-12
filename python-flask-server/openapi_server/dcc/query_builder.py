@@ -27,7 +27,7 @@ def expand_queries(web_query_object, debug=False):
     object_list = []
 
     # get all the possible supported combinations
-    query_list = bio_utils.get_overlap_queries_for_parts(web_query_object.source.get('category'), web_query_object.target.get('category'), web_query_object.edge.get('predicate'), debug)
+    query_list = bio_utils.get_overlap_queries_for_parts(web_query_object.get_source_types(), web_query_object.get_target_types(), web_query_object.get_edge_types(), debug)
 
     # loop
     for item in query_list:
@@ -35,9 +35,32 @@ def expand_queries(web_query_object, debug=False):
         subject_type, predicate, object_type = item.split()
 
         # add new query
-        object_list.append(GeneticsModel(edge={"predicate": predicate},
-                target={"category": object_type, "id": web_query_object.target.get('id')},
-                source={"category": subject_type, "id": web_query_object.source.get('id')},
+        # object_list.append(GeneticsModel(edge={"predicate": predicate},
+        #         target={"category": object_type, "id": web_query_object.target.get('id')},
+        #         source={"category": subject_type, "id": web_query_object.source.get('id')},
+        #         source_normalized_id=web_query_object.get_source_normalized_id(),
+        #         target_normalized_id=web_query_object.get_target_normalized_id()))
+
+        # BUG? - not using split elements
+        # object_list.append(GeneticsModel(edge=web_query_object.get_edge,
+        #         source=web_query_object.get_source(),
+        #         target=web_query_object.get_target(),
+        #         source_id=web_query_object.get_source_id(),
+        #         target_id=web_query_object.get_target_id(),
+        #         edge_type=web_query_object.get_edge_type(),
+        #         source_type=web_query_object.get_source_type(),
+        #         target_type=web_query_object.get_target_type(),
+        #         source_normalized_id=web_query_object.get_source_normalized_id(),
+        #         target_normalized_id=web_query_object.get_target_normalized_id()))
+
+        object_list.append(GeneticsModel(edge=web_query_object.get_edge,
+                source=web_query_object.get_source(),
+                target=web_query_object.get_target(),
+                source_id=web_query_object.get_source_id(),
+                target_id=web_query_object.get_target_id(),
+                edge_type=predicate,
+                source_type=subject_type,
+                target_type=object_type,
                 source_normalized_id=web_query_object.get_source_normalized_id(),
                 target_normalized_id=web_query_object.get_target_normalized_id()))
 
@@ -74,6 +97,11 @@ def get_queries(web_query_object):
         if sql_object is not None:
             sql_list.append(sql_object)
 
+        # get all the clinvar/clingen data, sorted best first
+        sql_object = get_node_edge_score(item, score_type=dcc_utils.attribute_classification, return_ascending=False)
+        if sql_object is not None:
+            sql_list.append(sql_object)
+
     # return the list
     return sql_list
 
@@ -105,6 +133,22 @@ def add_in_less_than(sql, term, is_first=True):
 
     # add in the condition
     temp = temp + str(term) + " < %s "
+
+    # return
+    return temp
+
+def add_in_more_than(sql, term, is_first=True):
+    ''' add in less than clause to the sql '''
+    temp = str(sql)
+
+    # add in where if necessary
+    if is_first:
+        temp = temp + " where " 
+    else:
+        temp = temp + " and "
+
+    # add in the condition
+    temp = temp + str(term) + " > %s "
 
     # return
     return temp
@@ -197,10 +241,31 @@ def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue,
     # edge type
     # source type
     # target type
-    sql_string = "select concat(ed.edge_id, so.ontology_id, ta.ontology_id), so.ontology_id, ta.ontology_id, ed.score, sco_type.type_name, so.node_name, ta.node_name, ted.type_name, tso.type_name, tta.type_name \
-        from comb_node_edge ed, comb_node_ontology so, comb_node_ontology ta, comb_lookup_type ted, comb_lookup_type tso, comb_lookup_type tta, comb_lookup_type sco_type \
-        where ed.source_code = so.node_code and ed.target_code = ta.node_code and ed.edge_type_id = ted.type_id and so.node_type_id = tso.type_id and ta.node_type_id = tta.type_id \
-        and ed.score_type_id = sco_type.type_id and ed.source_type_id = so.node_type_id and ed.target_type_id = ta.node_type_id "
+    # sql_string = "select concat(ed.edge_id, so.ontology_id, ta.ontology_id), so.ontology_id, ta.ontology_id, ed.score, sco_type.type_name, so.node_name, ta.node_name, ted.type_name, tso.type_name, tta.type_name \
+    #     from comb_node_edge ed, comb_node_ontology so, comb_node_ontology ta, comb_lookup_type ted, comb_lookup_type tso, comb_lookup_type tta, comb_lookup_type sco_type \
+    #     where ed.source_code = so.node_code and ed.target_code = ta.node_code and ed.edge_type_id = ted.type_id and so.node_type_id = tso.type_id and ta.node_type_id = tta.type_id \
+    #     and ed.score_type_id = sco_type.type_id and ed.source_type_id = so.node_type_id and ed.target_type_id = ta.node_type_id "
+
+    # # replace sql string if using classification
+    # if score_type == dcc_utils.attribute_classification:
+    #     sql_string = "select concat(ed.edge_id, so.ontology_id, ta.ontology_id), so.ontology_id, ta.ontology_id, ed.score_text, sco_type.type_name, so.node_name, ta.node_name, ted.type_name, tso.type_name, tta.type_name \
+    #         from comb_node_edge ed, comb_node_ontology so, comb_node_ontology ta, comb_lookup_type ted, comb_lookup_type tso, comb_lookup_type tta, comb_lookup_type sco_type \
+    #         where ed.source_code = so.node_code and ed.target_code = ta.node_code and ed.edge_type_id = ted.type_id and so.node_type_id = tso.type_id and ta.node_type_id = tta.type_id \
+    #         and ed.score_type_id = sco_type.type_id and ed.source_type_id = so.node_type_id and ed.target_type_id = ta.node_type_id "
+
+    sql_string = "select concat(ed.edge_id, so.ontology_id, ta.ontology_id), so.ontology_id, ta.ontology_id, ed.score, sco_type.type_name, \
+            so.node_name, ta.node_name, ted.type_name, tso.type_name, tta.type_name, ed.study_id \
+        from comb_edge_node ed, comb_node_ontology so, comb_node_ontology ta, comb_lookup_type ted, comb_lookup_type tso, comb_lookup_type tta, comb_lookup_type sco_type \
+        where ed.edge_type_id = ted.type_id and so.node_type_id = tso.type_id and ta.node_type_id = tta.type_id \
+        and ed.score_type_id = sco_type.type_id and ed.source_node_id = so.id and ed.target_node_id = ta.id "
+
+    # replace sql string if using classification; substitute ed.score_text for ed.score
+    if score_type == dcc_utils.attribute_classification:
+        sql_string = "select concat(ed.edge_id, so.ontology_id, ta.ontology_id), so.ontology_id, ta.ontology_id, ed.score_text, sco_type.type_name, \
+                so.node_name, ta.node_name, ted.type_name, tso.type_name, tta.type_name, ed.study_id \
+            from comb_edge_node ed, comb_node_ontology so, comb_node_ontology ta, comb_lookup_type ted, comb_lookup_type tso, comb_lookup_type tta, comb_lookup_type sco_type \
+            where ed.edge_type_id = ted.type_id and so.node_type_id = tso.type_id and ta.node_type_id = tta.type_id \
+            and ed.score_type_id = sco_type.type_id and ed.source_node_id = so.id and ed.target_node_id = ta.id "
 
     # if web_query_object.get_edge_type() == dcc_utils.edge_disease_gene and web_query_object.get_target_type() == dcc_utils.node_gene:
     #     sql_string = "select concat('magma_gene_', mg.id) as id, mg.phenotype_ontology_id, mg.ncbi_id, mg.p_value, mg.phenotype, mg.gene, \
@@ -240,6 +305,14 @@ def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue,
         if score_type == dcc_utils.attribute_pvalue:
             sql_string = add_in_less_than(sql_string, "ed.score", False)
             param_list.append(0.0000025)
+            # TODO - use for testing
+            # param_list.append(0.0025)
+
+    # add in score lower bound if score type is p_value 
+    if score_type is not None:
+        if score_type == dcc_utils.attribute_probability:
+            sql_string = add_in_more_than(sql_string, "ed.score", False)
+            param_list.append(1.1)
 
     # add in source id if given
     # if web_query_object.get_source_id() is not None:
