@@ -34,7 +34,7 @@
     },
     "servers": [
         {
-            "url": "http://translator.type2diabeteskb.org/genetics_provider/trapi/v1.1"
+            "url": "https://translator.broadinstitute.org/genetics_provider/trapi/v1.1"
         }
     ],
     "externalDocs": {
