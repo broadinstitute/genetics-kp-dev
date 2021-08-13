@@ -72,6 +72,46 @@ DB_USER = os.environ.get('DB_USER')
 DB_PASSWD = os.environ.get('DB_PASSWD')
 DB_SCHEMA = os.environ.get('DB_SCHEMA')
 
+def build_cached_ontology_list(debug=True):
+    ''' will build all the non gene ontology ids the KP services '''
+    list_result = [None]
+
+    # query db
+    cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
+    cursor = cnx.cursor()
+    cursor.execute("select ontology_id from comb_node_ontology where node_type_id in (1, 3)")
+    results = cursor.fetchall()
+    # print("result of type {} is {}".format(type(results), results))
+
+    # build list
+    if results:
+        for record in results:
+            list_result.append(record[0])
+
+    # log
+    if debug:
+        print("INFO - web_utils: got {} disease/phenotype cached list\n".format(len(list_result)))
+
+    # return unique set
+    return set(list_result)
+
+# build the cached disease/phenotype list
+SET_CACHED_PHENOTYPES = build_cached_ontology_list()
+
+def trim_disease_list_to_what_is_in_the_db(list_input, set_cache, debug=True):
+    ''' will trim the list based on the list given; returns unique entries in the list '''
+    list_result = []
+
+    # trim the list
+    list_result = [item for item in list_input if (item is None or 'Gene' in item or 'GO' in item or item in set_cache)]
+
+    # log
+    if debug:
+        print("\nINFO - web_utils - for input list of {} - {} return {} - {}".format(len(list_input), list_input, len(list_result), list_result))
+
+    # return
+    return list_result
+
 def query_post(request_body):  # noqa: E501
     """Query reasoner via one of several inputs
 
@@ -398,6 +438,10 @@ def query(request_body):  # noqa: E501
             # keep track of whether result came in for this curie; returns name from NN and synonym curie list
             subject_curie_name, subject_curie_list = get_curie_synonyms(web_request_object.get_source_id(), prefix_list=list_ontology_prefix, type_name='subject', log=True)
             target_curie_name, target_curie_list = get_curie_synonyms(web_request_object.get_target_id(), prefix_list=list_ontology_prefix, type_name='target', log=True)
+
+            # trim source/target lists to what we have in db
+            subject_curie_list = trim_disease_list_to_what_is_in_the_db(subject_curie_list, SET_CACHED_PHENOTYPES)
+            target_curie_list = trim_disease_list_to_what_is_in_the_db(target_curie_list, SET_CACHED_PHENOTYPES)
 
             # queries
             found_results_already = False
