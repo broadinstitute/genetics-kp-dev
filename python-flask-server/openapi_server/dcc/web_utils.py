@@ -3,6 +3,7 @@ import connexion
 import six
 import pymysql
 import copy
+import os
 
 from openapi_server.models.message import Message
 from openapi_server.models.knowledge_graph import KnowledgeGraph
@@ -19,6 +20,7 @@ from openapi_server import util
 from openapi_server.dcc.utils import translate_type, get_curie_synonyms
 from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
 import openapi_server.dcc.query_builder as qbuilder
+
 
 # constants
 list_ontology_prefix = ['UMLS', 'NCIT', 'MONDO', 'EFO', 'NCBIGene', 'GO', 'HP']
@@ -63,6 +65,12 @@ MAP_PROVENANCE = {5: PROVENANCE_AGGREGATOR_CLINGEN, 6: PROVENANCE_AGGREGATOR_CLI
 #     description = 'ClinGen is a NIH-funded resource dedicated to building a central resource that defines the clinical relevance of genes and variants for use in precision medicine and research',
 #     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
 
+# DB CONSTANTS
+# TODO - when figure out how to get app_context working, get values from there
+DB_HOST = os.environ.get('DB_HOST')
+DB_USER = os.environ.get('DB_USER')
+DB_PASSWD = os.environ.get('DB_PASSWD')
+DB_SCHEMA = os.environ.get('DB_SCHEMA')
 
 def query_post(request_body):  # noqa: E501
     """Query reasoner via one of several inputs
@@ -260,6 +268,10 @@ def get_request_elements(body):
         list_source = original_edge.get_source_ids() if original_edge.get_source_ids() is not None and len(original_edge.get_source_ids()) > 0 else [None]
         list_target = original_edge.get_target_ids() if original_edge.get_target_ids() is not None and len(original_edge.get_target_ids()) > 0 else [None]
 
+        # make sure each list has unique items
+        list_source = list(set(list_source))
+        list_target = list(set(list_target))
+
         # for each combination, create a new request model object
         for sitem in list_source:
             for titem in list_target:
@@ -345,8 +357,10 @@ def query(request_body):  # noqa: E501
     if connexion.request.is_json:
         # initialize
         # cnx = mysql.connector.connect(database='Translator', user='mvon')
-        cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
+        # cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
         # cnx = pymysql.connect(host='localhost', port=3306, database='tran_genepro', user='root', password='this is no password')
+        # cnx = pymysql.connect(host='localhost', port=3306, database='tran_test_202108', user='root', password='yoyoma')
+        cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
         cursor = cnx.cursor()
         genetics_results = []
         query_response = {}

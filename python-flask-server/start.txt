@@ -1,1 +1,7 @@
+export PORT=7002
+export DB_HOST=localhost
+export DB_USER=user
+export DB_PASSWD=db_passwd 
+export DB_SCHEMA=db_schema 
+
 python3 -m openapi_server
