@@ -72,6 +72,9 @@ DB_USER = os.environ.get('DB_USER')
 DB_PASSWD = os.environ.get('DB_PASSWD')
 DB_SCHEMA = os.environ.get('DB_SCHEMA')
 
+# web constants
+MAX_SIZE_ID_LIST = 100
+
 def build_cached_ontology_list(debug=True):
     ''' will build all the non gene ontology ids the KP services '''
     list_result = [None]
@@ -417,7 +420,7 @@ def query(request_body):  # noqa: E501
             print("INFO: multi hop query requested, not supported")
             # switch to 400 error code for multi hop query
             # return ({"status": 501, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 501)
-            return ({"status": 400, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 400)
+            return ({"status": 503, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 503)
         else:
             print("INFO: single hop query requested, supported")
 
@@ -429,6 +432,12 @@ def query(request_body):  # noqa: E501
         # build the interim data structure
         request_input = get_request_elements(body)
         print("got request input {}".format(request_input))
+
+        # only allow small queries
+        if len(request_input) > MAX_SIZE_ID_LIST:
+            print("INFO: too big rquest, asking for {} combinations".format(len(request_input)))
+            return ({"status": 507, "title": "Quesry too large", "detail": "Query too large, exceeds the {} subject/object combination size".format(MAX_SIZE_ID_LIST), "type": "about:blank" }, 507)
+
  
         for web_request_object in request_input:
             # log
