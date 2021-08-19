@@ -3,7 +3,7 @@ export DB_HOST=localhost
 export DB_USER=user
 export DB_PASSWD=db_passwd 
 export DB_SCHEMA=db_schema 
-export TRAN_LOG_FILE = genepro.log
-export TRAN_ACCESS_LOG_FILE = geneproAccess.log
+export TRAN_LOG_FILE=genepro.log
+export TRAN_ACCESS_LOG_FILE=geneproAccess.log
 
 gunicorn -w 2 --bind 0.0.0.0:$PORT openapi_server.__main__:app --timeout 3600 --log-file $TRAN_LOG_FILE --capture-output --access-logfile $TRAN_ACCESS_LOG_FILE
