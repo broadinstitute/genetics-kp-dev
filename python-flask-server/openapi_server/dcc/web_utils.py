@@ -357,7 +357,7 @@ def build_results(results_list, query_graph):
             else:
                 attributes.append(Attribute(original_attribute_name='pValue', value=edge_element.score, attribute_type_id=edge_element.score_type))
             # print("added attributes: {}".format(attributes))
-        edge = Edge(predicate=translate_type(edge_element.predicate, False), subject=source.curie, object=target.curie, attributes=attributes, relation=None)
+        edge = Edge(predicate=translate_type(edge_element.predicate, False), subject=source.curie, object=target.curie, attributes=attributes)
         knowledge_graph.edges[edge_element.id] = edge
         edges[(source.node_key, target.node_key)] = edge
 
