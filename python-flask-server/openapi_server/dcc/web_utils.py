@@ -3,6 +3,7 @@ import connexion
 import six
 import pymysql
 import copy
+import os
 
 from openapi_server.models.message import Message
 from openapi_server.models.knowledge_graph import KnowledgeGraph
@@ -19,6 +20,7 @@ from openapi_server import util
 from openapi_server.dcc.utils import translate_type, get_curie_synonyms
 from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
 import openapi_server.dcc.query_builder as qbuilder
+
 
 # constants
 list_ontology_prefix = ['UMLS', 'NCIT', 'MONDO', 'EFO', 'NCBIGene', 'GO', 'HP']
@@ -63,6 +65,55 @@ MAP_PROVENANCE = {5: PROVENANCE_AGGREGATOR_CLINGEN, 6: PROVENANCE_AGGREGATOR_CLI
 #     description = 'ClinGen is a NIH-funded resource dedicated to building a central resource that defines the clinical relevance of genes and variants for use in precision medicine and research',
 #     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
 
+# DB CONSTANTS
+# TODO - when figure out how to get app_context working, get values from there
+DB_HOST = os.environ.get('DB_HOST')
+DB_USER = os.environ.get('DB_USER')
+DB_PASSWD = os.environ.get('DB_PASSWD')
+DB_SCHEMA = os.environ.get('DB_SCHEMA')
+
+# web constants
+MAX_SIZE_ID_LIST = 100
+
+def build_cached_ontology_list(debug=True):
+    ''' will build all the non gene ontology ids the KP services '''
+    list_result = [None]
+
+    # query db
+    cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
+    cursor = cnx.cursor()
+    cursor.execute("select ontology_id from comb_node_ontology where node_type_id in (1, 3)")
+    results = cursor.fetchall()
+    # print("result of type {} is {}".format(type(results), results))
+
+    # build list
+    if results:
+        for record in results:
+            list_result.append(record[0])
+
+    # log
+    if debug:
+        print("INFO - web_utils: got {} disease/phenotype cached list\n".format(len(list_result)))
+
+    # return unique set
+    return set(list_result)
+
+# build the cached disease/phenotype list
+SET_CACHED_PHENOTYPES = build_cached_ontology_list()
+
+def trim_disease_list_to_what_is_in_the_db(list_input, set_cache, debug=True):
+    ''' will trim the list based on the list given; returns unique entries in the list '''
+    list_result = []
+
+    # trim the list
+    list_result = [item for item in list_input if (item is None or 'Gene' in item or 'GO' in item or item in set_cache)]
+
+    # log
+    if debug:
+        print("\nINFO - web_utils - for input list of {} - {} return {} - {}".format(len(list_input), list_input, len(list_result), list_result))
+
+    # return
+    return list_result
 
 def query_post(request_body):  # noqa: E501
     """Query reasoner via one of several inputs
@@ -260,6 +311,10 @@ def get_request_elements(body):
         list_source = original_edge.get_source_ids() if original_edge.get_source_ids() is not None and len(original_edge.get_source_ids()) > 0 else [None]
         list_target = original_edge.get_target_ids() if original_edge.get_target_ids() is not None and len(original_edge.get_target_ids()) > 0 else [None]
 
+        # make sure each list has unique items
+        list_source = list(set(list_source))
+        list_target = list(set(list_target))
+
         # for each combination, create a new request model object
         for sitem in list_source:
             for titem in list_target:
@@ -345,8 +400,10 @@ def query(request_body):  # noqa: E501
     if connexion.request.is_json:
         # initialize
         # cnx = mysql.connector.connect(database='Translator', user='mvon')
-        cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
+        # cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
         # cnx = pymysql.connect(host='localhost', port=3306, database='tran_genepro', user='root', password='this is no password')
+        # cnx = pymysql.connect(host='localhost', port=3306, database='tran_test_202108', user='root', password='yoyoma')
+        cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
         cursor = cnx.cursor()
         genetics_results = []
         query_response = {}
@@ -363,7 +420,7 @@ def query(request_body):  # noqa: E501
             print("INFO: multi hop query requested, not supported")
             # switch to 400 error code for multi hop query
             # return ({"status": 501, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 501)
-            return ({"status": 400, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 400)
+            return ({"status": 503, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 503)
         else:
             print("INFO: single hop query requested, supported")
 
@@ -375,6 +432,12 @@ def query(request_body):  # noqa: E501
         # build the interim data structure
         request_input = get_request_elements(body)
         print("got request input {}".format(request_input))
+
+        # only allow small queries
+        if len(request_input) > MAX_SIZE_ID_LIST:
+            print("INFO: too big rquest, asking for {} combinations".format(len(request_input)))
+            return ({"status": 507, "title": "Quesry too large", "detail": "Query too large, exceeds the {} subject/object combination size".format(MAX_SIZE_ID_LIST), "type": "about:blank" }, 507)
+
  
         for web_request_object in request_input:
             # log
@@ -384,6 +447,10 @@ def query(request_body):  # noqa: E501
             # keep track of whether result came in for this curie; returns name from NN and synonym curie list
             subject_curie_name, subject_curie_list = get_curie_synonyms(web_request_object.get_source_id(), prefix_list=list_ontology_prefix, type_name='subject', log=True)
             target_curie_name, target_curie_list = get_curie_synonyms(web_request_object.get_target_id(), prefix_list=list_ontology_prefix, type_name='target', log=True)
+
+            # trim source/target lists to what we have in db
+            subject_curie_list = trim_disease_list_to_what_is_in_the_db(subject_curie_list, SET_CACHED_PHENOTYPES)
+            target_curie_list = trim_disease_list_to_what_is_in_the_db(target_curie_list, SET_CACHED_PHENOTYPES)
 
             # queries
             found_results_already = False
