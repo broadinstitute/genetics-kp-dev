@@ -6,11 +6,11 @@ from datetime import date, datetime  # noqa: F401
 from typing import List, Dict  # noqa: F401
 
 from openapi_server.models.base_model_ import Model
-from openapi_server.models.any_type import AnyType
+# from openapi_server.models.any_type import AnyType
 from openapi_server.models.sub_attribute import SubAttribute
 from openapi_server import util
 
-from openapi_server.models.any_type import AnyType  # noqa: E501
+# from openapi_server.models.any_type import AnyType  # noqa: E501
 from openapi_server.models.sub_attribute import SubAttribute  # noqa: E501
 
 class Attribute(Model):
@@ -42,7 +42,8 @@ class Attribute(Model):
         self.openapi_types = {
             'attribute_type_id': str,
             'original_attribute_name': str,
-            'value': AnyType,
+            # 'value': AnyType,
+            'value': object,
             'value_type_id': str,
             'attribute_source': str,
             'value_url': str,
