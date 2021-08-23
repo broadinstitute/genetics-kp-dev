@@ -150,85 +150,6 @@
                 "x-openapi-router-controller": "openapi_server.controllers.asyncquery_controller"
             }
         },
-        "/entity": {
-            "get": {
-                "operationId": "get_entity",
-                "parameters": [
-                    {
-                        "description": "A string to search by (name, abbreviation, CURIE, etc.). The parameter may be repeated for multiple search strings.",
-                        "explode": true,
-                        "in": "query",
-                        "name": "q",
-                        "required": true,
-                        "schema": {
-                            "example": [
-                                "MESH:D014867",
-                                "NCIT:C34373"
-                            ],
-                            "items": {
-                                "type": "string"
-                            },
-                            "type": "array"
-                        },
-                        "style": "form"
-                    }
-                ],
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "type": "object"
-                                }
-                            }
-                        },
-                        "description": "successful operation"
-                    },
-                    "404": {
-                        "description": "Entity not found"
-                    }
-                },
-                "summary": "Obtain CURIE and synonym information about a search term",
-                "tags": [
-                    "entity"
-                ],
-                "x-openapi-router-controller": "openapi_server.controllers.entity_controller"
-            },
-            "post": {
-                "operationId": "post_entity",
-                "requestBody": {
-                    "content": {
-                        "application/json": {
-                            "schema": {
-                                "type": "object"
-                            }
-                        }
-                    },
-                    "description": "List of terms to get information about",
-                    "required": true
-                },
-                "responses": {
-                    "200": {
-                        "content": {
-                            "application/json": {
-                                "schema": {
-                                    "$ref": "#/components/schemas/EntityQuery"
-                                }
-                            }
-                        },
-                        "description": "successful operation"
-                    },
-                    "404": {
-                        "description": "Entity not found"
-                    }
-                },
-                "summary": "Obtain CURIE and synonym information about search terms",
-                "tags": [
-                    "entity"
-                ],
-                "x-openapi-router-controller": "openapi_server.controllers.entity_controller"
-            }
-        },
         "/meta_knowledge_graph": {
             "get": {
                 "operationId": "meta_knowledge_graph",
@@ -259,6 +180,36 @@
                         "application/json": {
                             "schema": {
                                 "$ref": "#/components/schemas/Query"
+                            },
+                            "example": {
+                                "message": {
+                                    "query_graph": {
+                                        "edges": {
+                                            "e00": {
+                                                "subject": "n00",
+                                                "object": "n01",
+                                                "predicates": [
+                                                    "biolink:gene_associated_with_condition"
+                                                ]
+                                            }
+                                        },
+                                        "nodes": {
+                                            "n00": {
+                                                "ids": [
+                                                    "ENSEMBL:ENSG00000133401"
+                                                ],
+                                                "categories": [
+                                                    "biolink:Gene"
+                                                ]
+                                            },
+                                            "n01": {
+                                                "categories": [
+                                                    "biolink:Disease"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     },
@@ -632,34 +583,6 @@
             "Message": {
                 "additionalProperties": false,
                 "description": "The message object holds the main content of a Query or a Response in three properties: query_graph, results, and knowledge_graph. The query_graph property contains the query configuration, the results property contains any answers that are returned by the service, and knowledge_graph property contains lists of edges and nodes in the thought graph corresponding to this message. The content of these properties is context-dependent to the encompassing object and the TRAPI operation requested.",
-                "example": {
-                    "query_graph": {
-                        "edges": {
-                            "e00": {
-                                "subject": "n00",
-                                "object": "n01",
-                                "predicates": [
-                                    "biolink:gene_associated_with_condition"
-                                ]
-                            }
-                        },
-                        "nodes": {
-                            "n00": {
-                                "ids": [
-                                    "ENSEMBL:ENSG00000133401"
-                                ],
-                                "categories": [
-                                    "biolink:Gene"
-                                ]
-                            },
-                            "n01": {
-                                "categories": [
-                                    "biolink:Disease"
-                                ]
-                            }
-                        }
-                    }
-                },
                 "properties": {
                     "knowledge_graph": {
                         "allOf": [
