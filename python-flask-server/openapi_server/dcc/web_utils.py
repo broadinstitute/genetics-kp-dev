@@ -17,10 +17,12 @@ from openapi_server.models.attribute import Attribute
 
 from openapi_server import util
 
-from openapi_server.dcc.utils import translate_type, get_curie_synonyms
+from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger
 from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
 import openapi_server.dcc.query_builder as qbuilder
 
+# get logger
+logger = get_logger(__name__)
 
 # constants
 list_ontology_prefix = ['UMLS', 'NCIT', 'MONDO', 'EFO', 'NCBIGene', 'GO', 'HP']
@@ -397,6 +399,12 @@ def query(request_body):  # noqa: E501
 
     :rtype: Response
     """
+    # verify all operations asked for are supported
+    if request_body.get("workflow") and len(request_body.get("workflow")) > 0:
+        logger.info("got workflow: {}".format(request_body.get("workflow")))
+    else:
+        logger.info("no workflow specified")
+
     if connexion.request.is_json:
         # initialize
         # cnx = mysql.connector.connect(database='Translator', user='mvon')
@@ -410,7 +418,7 @@ def query(request_body):  # noqa: E501
 
         # verify the json
         body = connexion.request.get_json()
-        print("got {}".format(body))
+        logger.info("got {}".format(body))
 
         # copy the original query to return in the result
         query_graph = copy.deepcopy(body['message']['query_graph'])
@@ -470,7 +478,7 @@ def query(request_body):  # noqa: E501
                         found_results_already = True
                         for i in range(0, len(queries)):
                             sql_object = queries[i]
-                            print("running query: {}\n".format(sql_object))
+                            # print("running query: {}\n".format(sql_object))
                             cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
                             results = cursor.fetchall()
                             # print("result of type {} is {}".format(type(results), results))

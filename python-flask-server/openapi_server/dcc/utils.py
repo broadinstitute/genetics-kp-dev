@@ -2,6 +2,26 @@ import json
 import requests 
 from urllib.error import HTTPError
 from openapi_server.dcc.disease_utils import get_disease_descendants
+import logging 
+import sys 
+
+# logging
+# logging.setLevel('INFO')
+# logging.basicConfig(level=logging.DEBUG)
+# logging.basicConfig(filename='record.log', level=logging.DEBUG, format=f'%(asctime)s %(levelname)s %(name)s %(threadName)s : %(message)s')
+logging.basicConfig(level=logging.INFO, format=f'[%(asctime)s] - %(levelname)s - %(name)s %(threadName)s : %(message)s')
+handler = logging.StreamHandler(sys.stdout)
+
+def get_logger(name): 
+    # get the logger
+    logger = logging.getLogger(name)
+    # logger.addHandler(handler)
+
+    # return
+    return logger 
+
+# get logger
+logger = get_logger(__name__)
 
 # constants
 # node types
@@ -93,7 +113,7 @@ def translate_curie(input_curie, is_input=True):
                 result = map[prefix] + ":" + value
 
     # log
-    print("utils.translate_curie: returning {} for input {}".format(result, input_curie))
+    logger.info("utils.translate_curie: returning {} for input {}".format(result, input_curie))
 
     # return
     return result
@@ -119,7 +139,7 @@ def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
 
     # log
     if log:
-        print("-> get_curie_synonyms got curie {}, ontology lts {} and type name {}".format(curie_input, prefix_list, type_name))
+        logger.info("-> get_curie_synonyms got curie {}, ontology lts {} and type name {}".format(curie_input, prefix_list, type_name))
 
     # if provided no curie, return [None]
     if curie_input is None:
@@ -133,7 +153,7 @@ def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
     if response.status_code == 404:
         curie_name = curie_input
         list_result = [curie_input]
-        print("ERROR: got node normalizer error for url: {}".format(url_call))
+        logger.error("ERROR: got node normalizer error for url: {}".format(url_call))
 
     else:
         json_response = response.json()
@@ -145,7 +165,7 @@ def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
                 list_result.append(item['identifier'])
 
         if log:
-            print("got curie synonym list result {}".format(list_result))
+            logger.info("got curie synonym list result {}".format(list_result))
 
     # if a prefix list provided, filter with it
     if prefix_list:
@@ -179,7 +199,7 @@ def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
     # BUG? only return none if none provided
     # list_result = list_result if len(list_result) > 0 else [None]
     if log:
-        print("for {} input {} return name {} and ontologies {}\n".format(type_name, curie_input, curie_name, list_result))
+        logger.info("for {} input {} return name {} and ontologies {}\n".format(type_name, curie_input, curie_name, list_result))
     return curie_name, list_result
 
 if (__name__ == "__main__"):
