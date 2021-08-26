@@ -75,7 +75,11 @@ DB_PASSWD = os.environ.get('DB_PASSWD')
 DB_SCHEMA = os.environ.get('DB_SCHEMA')
 
 # web constants
-MAX_SIZE_ID_LIST = 100
+MAX_SIZE_ID_LIST = 500
+max_query_size = int(os.environ.get('TRAN_MAX_QUERY_SIZE'))
+if max_query_size:
+    MAX_SIZE_ID_LIST = max_query_size
+logger.info("Using max query size of: {}".format(MAX_SIZE_ID_LIST))
 
 def build_cached_ontology_list(debug=True):
     ''' will build all the non gene ontology ids the KP services '''
@@ -95,7 +99,7 @@ def build_cached_ontology_list(debug=True):
 
     # log
     if debug:
-        print("INFO - web_utils: got {} disease/phenotype cached list\n".format(len(list_result)))
+        logger.info("got {} disease/phenotype cached list\n".format(len(list_result)))
 
     # return unique set
     return set(list_result)
@@ -112,7 +116,7 @@ def trim_disease_list_to_what_is_in_the_db(list_input, set_cache, debug=True):
 
     # log
     if debug:
-        print("\nINFO - web_utils - for input list of {} - {} return {} - {}".format(len(list_input), list_input, len(list_result), list_result))
+        logger.info("for input list of {} - {} return {} - {}".format(len(list_input), list_input, len(list_result), list_result))
 
     # return
     return list_result
@@ -425,12 +429,12 @@ def query(request_body):  # noqa: E501
 
         # check that not more than one hop query (edge list not more than one)
         if len(body.get('message').get('query_graph').get('edges')) > 1:
-            print("INFO: multi hop query requested, not supported")
+            logger.error("multi hop query requested, not supported")
             # switch to 400 error code for multi hop query
             # return ({"status": 501, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 501)
             return ({"status": 503, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 503)
         else:
-            print("INFO: single hop query requested, supported")
+            logger.info("single hop query requested, supported")
 
 
 
@@ -439,17 +443,17 @@ def query(request_body):  # noqa: E501
 
         # build the interim data structure
         request_input = get_request_elements(body)
-        print("got request input {}".format(request_input))
+        logger.info("got request input {}".format(request_input))
 
         # only allow small queries
         if len(request_input) > MAX_SIZE_ID_LIST:
-            print("INFO: too big rquest, asking for {} combinations".format(len(request_input)))
+            logger.error("too big request, asking for {} combinations".format(len(request_input)))
             return ({"status": 507, "title": "Quesry too large", "detail": "Query too large, exceeds the {} subject/object combination size".format(MAX_SIZE_ID_LIST), "type": "about:blank" }, 507)
 
  
         for web_request_object in request_input:
             # log
-            print("running query for web query object: {}\n".format(web_request_object))
+            logger.info("running query for web query object: {}\n".format(web_request_object))
 
             # get the normalized curies
             # keep track of whether result came in for this curie; returns name from NN and synonym curie list
