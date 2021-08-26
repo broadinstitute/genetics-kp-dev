@@ -17,7 +17,7 @@ from openapi_server.models.attribute import Attribute
 
 from openapi_server import util
 
-from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger
+from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger, build_pubmed_ids
 from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
 import openapi_server.dcc.query_builder as qbuilder
 
@@ -363,6 +363,17 @@ def build_results(results_list, query_graph):
             else:
                 attributes.append(Attribute(original_attribute_name='pValue', value=edge_element.score, attribute_type_id=edge_element.score_type))
             # print("added attributes: {}".format(attributes))
+
+        if edge_element.publication_ids:
+            list_publication = build_pubmed_ids(edge_element.publication_ids)
+            if (list_publication):
+                pub_source = None
+                if MAP_PROVENANCE.get(edge_element.study_type_id):
+                    pub_source = MAP_PROVENANCE.get(edge_element.study_type_id).value
+                attributes.append(Attribute(original_attribute_name='publication', value=list_publication, 
+                    attribute_type_id='biolink:has_supporting_publications', value_type_id='biolink:Publication', attribute_source=pub_source))
+
+        # build the edge
         edge = Edge(predicate=translate_type(edge_element.predicate, False), subject=source.curie, object=target.curie, attributes=attributes)
         knowledge_graph.edges[edge_element.id] = edge
         edges[(source.node_key, target.node_key)] = edge
@@ -509,12 +520,13 @@ def query(request_body):  # noqa: E501
                                     sourceType = record[8]
                                     targetType = record[9]
                                     studyTypeId = record[10]
+                                    publications = record[11]
 
                                     # build the result objects
                                     source_node = NodeOuput(curie=sourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
                                     target_node = NodeOuput(curie=targetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
                                     output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
-                                        score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId)
+                                        score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, publication_ids=publications)
 
                                     # add to the results list
                                     genetics_results.append(output_edge)

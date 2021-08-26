@@ -202,5 +202,16 @@ def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
         logger.info("for {} input {} return name {} and ontologies {}\n".format(type_name, curie_input, curie_name, list_result))
     return curie_name, list_result
 
+def build_pubmed_ids(publications):
+    ''' will build and return the list of pubmid IDs from a comma seperated string of article ids '''
+    result = None
+
+    # split string and prepend annotation
+    if publications:
+        result = ['PMID:' + x.strip() for x in publications.split(',')]
+
+    # return
+    return result
+
 if (__name__ == "__main__"):
     pass    
