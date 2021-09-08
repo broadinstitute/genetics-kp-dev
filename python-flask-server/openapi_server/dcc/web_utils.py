@@ -402,7 +402,7 @@ def build_results(results_list, query_graph):
         target_binding = NodeBinding(id=target.curie)
         edge_map = {edge_element.edge_key: [edge_binding]}
         nodes_map = {source.node_key: [source_binding], target.node_key: [target_binding]}
-        results.append(Result(nodes_map, edge_map))
+        results.append(Result(nodes_map, edge_map, score=edge_element.score_translator))
 
     # build out the message
     message = Message(results=results, query_graph=query_graph, knowledge_graph=knowledge_graph)
@@ -529,12 +529,14 @@ def query(request_body):  # noqa: E501
                                     targetType = record[9]
                                     studyTypeId = record[10]
                                     publications = record[11]
+                                    score_translator = record[12]
 
                                     # build the result objects
                                     source_node = NodeOuput(curie=sourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
                                     target_node = NodeOuput(curie=targetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
                                     output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
-                                        score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, publication_ids=publications)
+                                        score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, 
+                                        publication_ids=publications, score_translator=score_translator)
 
                                     # add to the results list
                                     genetics_results.append(output_edge)

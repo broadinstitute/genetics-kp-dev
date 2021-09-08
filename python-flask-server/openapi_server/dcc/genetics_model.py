@@ -99,7 +99,7 @@ class NodeOuput():
     __repr__ = __str__
         
 class EdgeOuput():
-    def __init__(self, id, source_node, target_node, predicate, edge_key, study_type_id, score=None, score_type=None, publication_ids=None):
+    def __init__(self, id, source_node, target_node, predicate, edge_key, study_type_id, score=None, score_type=None, publication_ids=None, score_translator=None):
         self.id = id
         self.source_node = source_node
         self.target_node = target_node
@@ -109,6 +109,7 @@ class EdgeOuput():
         self.edge_key = edge_key
         self.study_type_id = study_type_id
         self.publication_ids = publication_ids
+        self.score_translator = score_translator
     
     def __str__(self):
         return "id: {}, subject: {}, object: {}, perdicate: {}, edge key: {}, score: {}, score type: {}, study: {}".format(self.id, self.source_node, self.target_node, self.predicate, self.edge_key, self.score, self.score_type, self.study_type_id)
