@@ -17,7 +17,7 @@ class QueryConstraint(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, id=None, name=None, _not=False, operator='==', value=None, unit_id=None, unit_name=None):  # noqa: E501
+    def __init__(self, id=None, name=None, _not=False, operator=None, value=None, unit_id=None, unit_name=None):  # noqa: E501
         """QueryConstraint - a model defined in OpenAPI
 
         :param id: The id of this QueryConstraint.  # noqa: E501
@@ -40,12 +40,12 @@ class QueryConstraint(Model):
             'name': str,
             '_not': bool,
             'operator': str,
+            'value': object,
+            'unit_id': object,
+            'unit_name': object
             # 'value': AnyType,
             # 'unit_id': AnyType,
             # 'unit_name': AnyType
-            'value': str,
-            'unit_id': str,
-            'unit_name': str
         }
 
         self.attribute_map = {

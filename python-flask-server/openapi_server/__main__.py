@@ -22,7 +22,7 @@ from openapi_server import encoder
 app = connexion.App(__name__, specification_dir='./openapi/')
 app.app.json_encoder = encoder.JSONEncoder
 app.add_api('openapi.yaml',
-            arguments={'title': 'Molecular Data Provider for NCATS Biomedical Translator'},
+            arguments={'title': 'Genetics Data Provider for NCATS Biomedical Translator Reasoners'},
             pythonic_params=True)
 
 def main():

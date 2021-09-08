@@ -1,3 +1,7 @@
+from openapi_server.dcc.utils import get_logger
+
+# get logger
+logger = get_logger(__name__)
 
 class GeneticsModel():
     ''' class to encapsulate the web query object values '''
@@ -12,7 +16,7 @@ class GeneticsModel():
         self.target_type = target_type
         self.source_normalized_id = source_normalized_id
         self.target_normalized_id = target_normalized_id
-        print("GeneticsModel - created {} with source {} and target {} and source id {} and target id {}\n".format(edge, source, target, source_id, target_id))
+        logger.info("created {} with source {} and target {} and source id {} and target id {}\n".format(edge, source, target, source_id, target_id))
 
     def get_edge(self):
         return self.edge
@@ -95,7 +99,7 @@ class NodeOuput():
     __repr__ = __str__
         
 class EdgeOuput():
-    def __init__(self, id, source_node, target_node, predicate, edge_key, study_type_id, score=None, score_type=None):
+    def __init__(self, id, source_node, target_node, predicate, edge_key, study_type_id, score=None, score_type=None, publication_ids=None, score_translator=None):
         self.id = id
         self.source_node = source_node
         self.target_node = target_node
@@ -104,6 +108,8 @@ class EdgeOuput():
         self.score_type = score_type
         self.edge_key = edge_key
         self.study_type_id = study_type_id
+        self.publication_ids = publication_ids
+        self.score_translator = score_translator
     
     def __str__(self):
         return "id: {}, subject: {}, object: {}, perdicate: {}, edge key: {}, score: {}, score type: {}, study: {}".format(self.id, self.source_node, self.target_node, self.predicate, self.edge_key, self.score, self.score_type, self.study_type_id)

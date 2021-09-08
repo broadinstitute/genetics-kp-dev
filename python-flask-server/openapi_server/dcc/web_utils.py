@@ -17,10 +17,12 @@ from openapi_server.models.attribute import Attribute
 
 from openapi_server import util
 
-from openapi_server.dcc.utils import translate_type, get_curie_synonyms
+from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger, build_pubmed_ids
 from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
 import openapi_server.dcc.query_builder as qbuilder
 
+# get logger
+logger = get_logger(__name__)
 
 # constants
 list_ontology_prefix = ['UMLS', 'NCIT', 'MONDO', 'EFO', 'NCBIGene', 'GO', 'HP']
@@ -29,6 +31,8 @@ PROVENANCE_INFORES_KP_GENETICS='infores:genetics-data-provider'
 PROVENANCE_INFORES_CLINVAR='infores:clinvar'
 PROVENANCE_INFORES_CLINGEN='infores:clingen'
 PROVENANCE_INFORES_GENCC='infores:gencc'
+PROVENANCE_INFORES_GENEBASS='infores:genebass'
+
 # provenance attributes
 PROVENANCE_AGGREGATOR_KP_GENETICS = Attribute(value = PROVENANCE_INFORES_KP_GENETICS,
     attribute_type_id = 'biolink:aggregator_knowledge_source',
@@ -54,9 +58,15 @@ PROVENANCE_AGGREGATOR_GENCC = Attribute(value = PROVENANCE_INFORES_GENCC,
     value_url = 'https://thegencc.org/',
     description = 'The GenCC DB provides information pertaining to the validity of gene-disease relationships, with a current focus on Mendelian diseases',
     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
+PROVENANCE_AGGREGATOR_GENEBASS = Attribute(value = PROVENANCE_INFORES_GENEBASS,
+    attribute_type_id = 'biolink:aggregator_knowledge_source',
+    value_type_id = 'biolink:InformationResource',
+    value_url = 'https://genebass.org/',
+    description = 'Genebass is a resource of exome-based association statistics, made available to the public. The dataset encompasses 3,817 phenotypes with gene-based and single-variant testing across 281,852 individuals with exome sequence data from the UK Biobank.',
+    attribute_source = PROVENANCE_INFORES_KP_GENETICS)
 
 # build map for study types
-MAP_PROVENANCE = {5: PROVENANCE_AGGREGATOR_CLINGEN, 6: PROVENANCE_AGGREGATOR_CLINVAR, 7: PROVENANCE_AGGREGATOR_GENCC}
+MAP_PROVENANCE = {5: PROVENANCE_AGGREGATOR_CLINGEN, 6: PROVENANCE_AGGREGATOR_CLINVAR, 7: PROVENANCE_AGGREGATOR_GENCC, 17: PROVENANCE_AGGREGATOR_GENEBASS}
 
 # PROVENANCE_AGGREGATOR_RICHARDS = Attribute(value = PROVENANCE_INFORES_CLINGEN,
 #     attribute_type_id = 'biolink:aggregator_knowledge_source',
@@ -73,7 +83,11 @@ DB_PASSWD = os.environ.get('DB_PASSWD')
 DB_SCHEMA = os.environ.get('DB_SCHEMA')
 
 # web constants
-MAX_SIZE_ID_LIST = 100
+MAX_SIZE_ID_LIST = 500
+max_query_size = int(os.environ.get('TRAN_MAX_QUERY_SIZE'))
+if max_query_size:
+    MAX_SIZE_ID_LIST = max_query_size
+logger.info("Using max query size of: {}".format(MAX_SIZE_ID_LIST))
 
 def build_cached_ontology_list(debug=True):
     ''' will build all the non gene ontology ids the KP services '''
@@ -93,7 +107,7 @@ def build_cached_ontology_list(debug=True):
 
     # log
     if debug:
-        print("INFO - web_utils: got {} disease/phenotype cached list\n".format(len(list_result)))
+        logger.info("got {} disease/phenotype cached list\n".format(len(list_result)))
 
     # return unique set
     return set(list_result)
@@ -110,7 +124,7 @@ def trim_disease_list_to_what_is_in_the_db(list_input, set_cache, debug=True):
 
     # log
     if debug:
-        print("\nINFO - web_utils - for input list of {} - {} return {} - {}".format(len(list_input), list_input, len(list_result), list_result))
+        logger.info("for input list of {} - {} return {} - {}".format(len(list_input), list_input, len(list_result), list_result))
 
     # return
     return list_result
@@ -357,7 +371,18 @@ def build_results(results_list, query_graph):
             else:
                 attributes.append(Attribute(original_attribute_name='pValue', value=edge_element.score, attribute_type_id=edge_element.score_type))
             # print("added attributes: {}".format(attributes))
-        edge = Edge(predicate=translate_type(edge_element.predicate, False), subject=source.curie, object=target.curie, attributes=attributes, relation=None)
+
+        if edge_element.publication_ids:
+            list_publication = build_pubmed_ids(edge_element.publication_ids)
+            if (list_publication):
+                pub_source = None
+                if MAP_PROVENANCE.get(edge_element.study_type_id):
+                    pub_source = MAP_PROVENANCE.get(edge_element.study_type_id).value
+                attributes.append(Attribute(original_attribute_name='publication', value=list_publication, 
+                    attribute_type_id='biolink:has_supporting_publications', value_type_id='biolink:Publication', attribute_source=pub_source))
+
+        # build the edge
+        edge = Edge(predicate=translate_type(edge_element.predicate, False), subject=source.curie, object=target.curie, attributes=attributes)
         knowledge_graph.edges[edge_element.id] = edge
         edges[(source.node_key, target.node_key)] = edge
 
@@ -377,7 +402,7 @@ def build_results(results_list, query_graph):
         target_binding = NodeBinding(id=target.curie)
         edge_map = {edge_element.edge_key: [edge_binding]}
         nodes_map = {source.node_key: [source_binding], target.node_key: [target_binding]}
-        results.append(Result(nodes_map, edge_map))
+        results.append(Result(nodes_map, edge_map, score=edge_element.score_translator))
 
     # build out the message
     message = Message(results=results, query_graph=query_graph, knowledge_graph=knowledge_graph)
@@ -397,6 +422,12 @@ def query(request_body):  # noqa: E501
 
     :rtype: Response
     """
+    # verify all operations asked for are supported
+    if request_body.get("workflow") and len(request_body.get("workflow")) > 0:
+        logger.info("got workflow: {}".format(request_body.get("workflow")))
+    else:
+        logger.info("no workflow specified")
+
     if connexion.request.is_json:
         # initialize
         # cnx = mysql.connector.connect(database='Translator', user='mvon')
@@ -410,19 +441,19 @@ def query(request_body):  # noqa: E501
 
         # verify the json
         body = connexion.request.get_json()
-        print("got {}".format(body))
+        logger.info("got {}".format(body))
 
         # copy the original query to return in the result
         query_graph = copy.deepcopy(body['message']['query_graph'])
 
         # check that not more than one hop query (edge list not more than one)
         if len(body.get('message').get('query_graph').get('edges')) > 1:
-            print("INFO: multi hop query requested, not supported")
+            logger.error("multi hop query requested, not supported")
             # switch to 400 error code for multi hop query
             # return ({"status": 501, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 501)
             return ({"status": 503, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 503)
         else:
-            print("INFO: single hop query requested, supported")
+            logger.info("single hop query requested, supported")
 
 
 
@@ -431,17 +462,17 @@ def query(request_body):  # noqa: E501
 
         # build the interim data structure
         request_input = get_request_elements(body)
-        print("got request input {}".format(request_input))
+        logger.info("got request input {}".format(request_input))
 
         # only allow small queries
         if len(request_input) > MAX_SIZE_ID_LIST:
-            print("INFO: too big rquest, asking for {} combinations".format(len(request_input)))
+            logger.error("too big request, asking for {} combinations".format(len(request_input)))
             return ({"status": 507, "title": "Quesry too large", "detail": "Query too large, exceeds the {} subject/object combination size".format(MAX_SIZE_ID_LIST), "type": "about:blank" }, 507)
 
  
         for web_request_object in request_input:
             # log
-            print("running query for web query object: {}\n".format(web_request_object))
+            logger.info("running query for web query object: {}\n".format(web_request_object))
 
             # get the normalized curies
             # keep track of whether result came in for this curie; returns name from NN and synonym curie list
@@ -470,7 +501,7 @@ def query(request_body):  # noqa: E501
                         found_results_already = True
                         for i in range(0, len(queries)):
                             sql_object = queries[i]
-                            print("running query: {}\n".format(sql_object))
+                            # print("running query: {}\n".format(sql_object))
                             cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
                             results = cursor.fetchall()
                             # print("result of type {} is {}".format(type(results), results))
@@ -497,12 +528,15 @@ def query(request_body):  # noqa: E501
                                     sourceType = record[8]
                                     targetType = record[9]
                                     studyTypeId = record[10]
+                                    publications = record[11]
+                                    score_translator = record[12]
 
                                     # build the result objects
                                     source_node = NodeOuput(curie=sourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
                                     target_node = NodeOuput(curie=targetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
                                     output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
-                                        score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId)
+                                        score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, 
+                                        publication_ids=publications, score_translator=score_translator)
 
                                     # add to the results list
                                     genetics_results.append(output_edge)
