@@ -31,6 +31,8 @@ PROVENANCE_INFORES_KP_GENETICS='infores:genetics-data-provider'
 PROVENANCE_INFORES_CLINVAR='infores:clinvar'
 PROVENANCE_INFORES_CLINGEN='infores:clingen'
 PROVENANCE_INFORES_GENCC='infores:gencc'
+PROVENANCE_INFORES_GENEBASS='infores:genebass'
+
 # provenance attributes
 PROVENANCE_AGGREGATOR_KP_GENETICS = Attribute(value = PROVENANCE_INFORES_KP_GENETICS,
     attribute_type_id = 'biolink:aggregator_knowledge_source',
@@ -56,9 +58,15 @@ PROVENANCE_AGGREGATOR_GENCC = Attribute(value = PROVENANCE_INFORES_GENCC,
     value_url = 'https://thegencc.org/',
     description = 'The GenCC DB provides information pertaining to the validity of gene-disease relationships, with a current focus on Mendelian diseases',
     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
+PROVENANCE_AGGREGATOR_GENEBASS = Attribute(value = PROVENANCE_INFORES_GENEBASS,
+    attribute_type_id = 'biolink:aggregator_knowledge_source',
+    value_type_id = 'biolink:InformationResource',
+    value_url = 'https://genebass.org/',
+    description = 'Genebass is a resource of exome-based association statistics, made available to the public. The dataset encompasses 3,817 phenotypes with gene-based and single-variant testing across 281,852 individuals with exome sequence data from the UK Biobank.',
+    attribute_source = PROVENANCE_INFORES_KP_GENETICS)
 
 # build map for study types
-MAP_PROVENANCE = {5: PROVENANCE_AGGREGATOR_CLINGEN, 6: PROVENANCE_AGGREGATOR_CLINVAR, 7: PROVENANCE_AGGREGATOR_GENCC}
+MAP_PROVENANCE = {5: PROVENANCE_AGGREGATOR_CLINGEN, 6: PROVENANCE_AGGREGATOR_CLINVAR, 7: PROVENANCE_AGGREGATOR_GENCC, 17: PROVENANCE_AGGREGATOR_GENEBASS}
 
 # PROVENANCE_AGGREGATOR_RICHARDS = Attribute(value = PROVENANCE_INFORES_CLINGEN,
 #     attribute_type_id = 'biolink:aggregator_knowledge_source',
