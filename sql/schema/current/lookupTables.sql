@@ -52,6 +52,8 @@ insert into comb_study_type (study_id, study_name) values(13, 'PanelApp Australi
 insert into comb_study_type (study_id, study_name) values(14, 'TGMI|G2P');
 insert into comb_study_type (study_id, study_name) values(15, 'Franklin by Genoox');
 insert into comb_study_type (study_id, study_name) values(16, 'Online Mendelian Inheritance in Man (OMIM)');
+-- 20210908 - adding genebess/uk biobank
+insert into comb_study_type (study_id, study_name) values(17, 'GeneBass');
 
 
 -- add ontology lookup tables
@@ -71,5 +73,8 @@ insert into comb_ontology_type (ontology_id, ontology_name) values(4, 'GO pathwa
 insert into comb_ontology_type (ontology_id, ontology_name) values(5, 'UMLS disease/phenotype');
 insert into comb_ontology_type (ontology_id, ontology_name) values(6, 'HP disease/phenotype');
 insert into comb_ontology_type (ontology_id, ontology_name) values(7, 'NCIT disease/phenotype');
+-- 20210908 - adding MESH
+insert into comb_ontology_type (ontology_id, ontology_name) values(8, 'MESH disease/phenotype');
+
 
 
