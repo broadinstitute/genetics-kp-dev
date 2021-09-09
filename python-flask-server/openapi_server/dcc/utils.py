@@ -4,6 +4,8 @@ from urllib.error import HTTPError
 from openapi_server.dcc.disease_utils import get_disease_descendants
 import logging 
 import sys 
+import pymysql
+import os
 
 # logging
 # logging.setLevel('INFO')
@@ -24,6 +26,12 @@ def get_logger(name):
 logger = get_logger(__name__)
 
 # constants
+# DB settings
+DB_HOST = os.environ.get('DB_HOST')
+DB_USER = os.environ.get('DB_USER')
+DB_PASSWD = os.environ.get('DB_PASSWD')
+DB_SCHEMA = os.environ.get('DB_SCHEMA')
+
 # node types
 node_gene ='biolink:Gene'
 node_disease = 'biolink:Disease'
@@ -129,6 +137,54 @@ def migrate_transformer_chains(inFile, outFile):
     with open(outFile, 'w') as json_file:
         json.dump(json_obj, json_file, indent=4, separators=(',', ': ')) # save to file with prettifying
 
+def get_db_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
+    ''' will call database cache and return the curie name and a list of only the matching prefixes from the prefix list provided '''
+    list_result = []
+
+    # get the db connection
+    cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
+    cursor = cnx.cursor()
+
+    # query
+    sql_select = "select distinct node_synonym_id from comb_cache_curie where node_curie_id = %s"
+    cursor.execute(sql_select, curie_input)
+
+    # get the data
+    results = cursor.fetchall()
+    if results and len(results) > 0:
+        logger.info("found curie synonyms results for: {} of size: {}".format(curie_input, len(results)))
+        for row in results:
+            list_result.append(row[0])
+
+    # close db connection
+    cursor.close()
+    cnx.close()
+
+    # return
+    return list_result
+
+def insert_curie_synonyms(curie_id, curie_name, list_synonyms, log=False):
+    ''' will insert rows into the curie cache DB '''
+    # initialize
+    sql_insert = "insert into comb_cache_curie (node_curie_id, node_name, node_synonym_id) values(%s, %s, %s)"
+
+    # create the cursor
+    cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
+    cursor = cnx.cursor()
+
+    # insert the data
+    for item in list_synonyms:
+        cursor.execute(sql_insert, (curie_id, curie_name, item))
+    cnx.commit()
+
+    # close the connection
+    cursor.close()
+    cnx.close()
+
+    # log
+    logger.info("inserted synonyms for: {} of: {}".format(curie_id, list_synonyms))
+
+
 def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
     ''' will call the curie normalizer and return the curie name and a list of only the matching prefixes from the prefix list provided '''
     ''' 20210729 - also added in descendant MONDO diseases '''
@@ -152,55 +208,61 @@ def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
         logger.info("skip normalizing standard curie: {}".format(curie_input))
         return curie_name, [curie_input]
 
-    # call the service
-    url_call = url_normalizer.format(curie_input)
-    response = requests.get(url_call)
+    # look in the DB first
+    list_result = get_db_curie_synonyms(curie_input)
 
-    # if error, then return curie input as name and one element array
-    if response.status_code == 404:
-        curie_name = curie_input
-        list_result = [curie_input]
-        logger.error("ERROR: got node normalizer error for url: {}".format(url_call))
+    if len(list_result) < 1:
+        # call the service
+        url_call = url_normalizer.format(curie_input)
+        response = requests.get(url_call)
 
-    else:
-        json_response = response.json()
+        # if error, then return curie input as name and one element array
+        if response.status_code == 404:
+            curie_name = curie_input
+            list_result = [curie_input]
+            logger.error("ERROR: got node normalizer error for url: {}".format(url_call))
 
-        # get the list of curies
-        if json_response.get(curie_input):
-            curie_name = json_response.get(curie_input).get('id').get('label')
-            for item in json_response[curie_input]['equivalent_identifiers']:
-                list_result.append(item['identifier'])
+        else:
+            json_response = response.json()
 
-        if log:
-            logger.info("got curie synonym list result {}".format(list_result))
+            # get the list of curies
+            if json_response.get(curie_input):
+                curie_name = json_response.get(curie_input).get('id').get('label')
+                for item in json_response[curie_input]['equivalent_identifiers']:
+                    list_result.append(item['identifier'])
 
-    # if a prefix list provided, filter with it
-    if prefix_list:
+            if log:
+                logger.info("got curie synonym list result {}".format(list_result))
+
+        # if a prefix list provided, filter with it
+        if prefix_list:
+            list_new = []
+            for item in list_result:
+                if item.split(':')[0] in prefix_list:
+                    list_new.append(item)
+            list_result = list_new
+
+        # loop through, if MONDO or EFO, look for descendants
         list_new = []
         for item in list_result:
-            if item.split(':')[0] in prefix_list:
-                list_new.append(item)
-        list_result = list_new
+            if item.split(':')[0] in prefix_disease_list:
+                if log:
+                    print("looking for descendants for disease {}".format(item))
 
-    # loop through, if MONDO or EFO, look for descendants
-    list_new = []
-    for item in list_result:
-        if item.split(':')[0] in prefix_disease_list:
-            if log:
-                print("looking for descendants for disease {}".format(item))
+                # look for the descendants
+                temp_list = get_disease_descendants(item)
 
-            # look for the descendants
-            temp_list = get_disease_descendants(item)
+                # add in results to the new list
+                list_new += temp_list
 
-            # add in results to the new list
-            list_new += temp_list
+        # combine result lists
+        list_result += list_new
 
-    # combine result lists
-    list_result += list_new
+        # make sure list is unique
+        list_result = list(set(list_result))
 
-    # make sure list is unique
-    list_result = list(set(list_result))
-    
+        # insert data into the cache DB
+        insert_curie_synonyms(curie_input, curie_name, list_result)
 
     # return
     # BUG? only return none if none provided
