@@ -188,7 +188,7 @@ def insert_curie_synonyms(curie_id, curie_name, list_synonyms, log=False):
 def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
     ''' will call the curie normalizer and return the curie name and a list of only the matching prefixes from the prefix list provided '''
     ''' 20210729 - also added in descendant MONDO diseases '''
-    url_normalizer = "https://nodenormalization-sri.renci.org/1.1/get_normalized_nodes?curie={}"
+    url_normalizer = "https://nodenormalization-sri.renci.org/1.1/get_normalized_nodes?conflate=true&curie={}"
     list_result = []
     curie_name = None
     prefix_disease_list = ['MONDO', 'EFO']
@@ -234,13 +234,6 @@ def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
             if log:
                 logger.info("got curie synonym list result {}".format(list_result))
 
-        # if a prefix list provided, filter with it
-        if prefix_list:
-            list_new = []
-            for item in list_result:
-                if item.split(':')[0] in prefix_list:
-                    list_new.append(item)
-            list_result = list_new
 
         # loop through, if MONDO or EFO, look for descendants
         list_new = []
@@ -263,6 +256,14 @@ def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
 
         # insert data into the cache DB
         insert_curie_synonyms(curie_input, curie_name, list_result)
+
+    # if a prefix list provided, filter with it
+    if prefix_list:
+        list_new = []
+        for item in list_result:
+            if item.split(':')[0] in prefix_list:
+                list_new.append(item)
+        list_result = list_new
 
     # return
     # BUG? only return none if none provided

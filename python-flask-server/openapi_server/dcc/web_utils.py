@@ -583,6 +583,9 @@ def query(request_body):  # noqa: E501
                             # add to the results list
                             genetics_results.append(output_edge)
 
+        # log
+        logger.info("query return edge count: {}".format(len(genetics_results)))
+        
         # close the connection
         cnx.close()
 
