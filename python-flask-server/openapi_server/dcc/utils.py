@@ -139,11 +139,18 @@ def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
 
     # log
     if log:
-        logger.info("-> get_curie_synonyms got curie {}, ontology lts {} and type name {}".format(curie_input, prefix_list, type_name))
+        logger.info("-> get_curie_synonyms got curie {}, ontology list {} and type name {}".format(curie_input, prefix_list, type_name))
 
     # if provided no curie, return [None]
     if curie_input is None:
-        return curie_name, [None]
+        # OLD - add in at leat None so that have one input when doing query building (as opposed top skipping query with no input)
+        # return curie_name, [None]
+        return curie_name, []
+
+    # if ncbi or go, skip since that is our standard for genes/pathways
+    if curie_input.split(':')[0] in ['NCBIGene', 'GO']:
+        logger.info("skip normalizing standard curie: {}".format(curie_input))
+        return curie_name, [curie_input]
 
     # call the service
     url_call = url_normalizer.format(curie_input)
@@ -200,6 +207,7 @@ def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
     # list_result = list_result if len(list_result) > 0 else [None]
     if log:
         logger.info("for {} input {} return name {} and ontologies {}\n".format(type_name, curie_input, curie_name, list_result))
+
     return curie_name, list_result
 
 def build_pubmed_ids(publications):

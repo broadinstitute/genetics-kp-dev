@@ -25,7 +25,7 @@ import openapi_server.dcc.query_builder as qbuilder
 logger = get_logger(__name__)
 
 # constants
-list_ontology_prefix = ['UMLS', 'NCIT', 'MONDO', 'EFO', 'NCBIGene', 'GO', 'HP']
+list_ontology_prefix = ['UMLS', 'NCIT', 'MONDO', 'EFO', 'NCBIGene', 'GO', 'HP', 'MESH']
 # infores
 PROVENANCE_INFORES_KP_GENETICS='infores:genetics-data-provider'
 PROVENANCE_INFORES_CLINVAR='infores:clinvar'
@@ -124,7 +124,7 @@ def trim_disease_list_to_what_is_in_the_db(list_input, set_cache, debug=True):
 
     # log
     if debug:
-        logger.info("for input list of {} - {} return {} - {}".format(len(list_input), list_input, len(list_result), list_result))
+        logger.info("for input list of {} - {} return cached result {} - {}".format(len(list_input), list_input, len(list_result), list_result))
 
     # return
     return list_result
@@ -319,23 +319,64 @@ def get_request_elements(body):
             targetNode['node_key'] = edge.get('object')
 
         # create the edge/node object from the original query
-        original_edge = GeneticsModel(edge, sourceNode, targetNode)
+        original_edge = GeneticsModel(edge=edge, source=sourceNode, target=targetNode, map_source_normalized_id={}, map_target_normalized_id={})
+        logger.info(original_edge)
 
-        # split the source and target ids
-        list_source = original_edge.get_source_ids() if original_edge.get_source_ids() is not None and len(original_edge.get_source_ids()) > 0 else [None]
-        list_target = original_edge.get_target_ids() if original_edge.get_target_ids() is not None and len(original_edge.get_target_ids()) > 0 else [None]
-
-        # make sure each list has unique items
+        # get source and target lists with unique items
+        list_source = original_edge.get_original_source_ids() if original_edge.get_original_source_ids() is not None and len(original_edge.get_original_source_ids()) > 0 else []
+        list_target = original_edge.get_original_target_ids() if original_edge.get_original_target_ids() is not None and len(original_edge.get_original_target_ids()) > 0 else []
         list_source = list(set(list_source))
         list_target = list(set(list_target))
+    
+        # TODO - get the normalized list
+        # TODO - get the descendant list
+        list_temp = []
+        for item in list_source:
+            if not item in list_temp:
+                subject_curie_name, subject_curie_list = get_curie_synonyms(item, prefix_list=list_ontology_prefix, type_name='subject', log=True)
+                list_temp += subject_curie_list
+                subject_curie_list = trim_disease_list_to_what_is_in_the_db(subject_curie_list, SET_CACHED_PHENOTYPES)
+                for curie in subject_curie_list:
+                    original_edge.add_source_normalized_id(curie, item)
+            else:
+                logger.info("skip source curie since already in list: {}".format(item))
+        list_temp = []
+        for item in list_target:
+            if not item in list_temp:
+                target_curie_name, target_curie_list = get_curie_synonyms(item, prefix_list=list_ontology_prefix, type_name='target', log=True)
+                target_curie_list = trim_disease_list_to_what_is_in_the_db(target_curie_list, SET_CACHED_PHENOTYPES)
+                for curie in target_curie_list:
+                    original_edge.add_target_normalized_id(curie, item)
+            else:
+                logger.info("skip target curie since already in list: {}".format(item))
 
-        # for each combination, create a new request model object
-        for sitem in list_source:
-            for titem in list_target:
-                new_edge = GeneticsModel(edge, sourceNode, targetNode, source_id=sitem, target_id=titem)
+        # TODO - trim the lists to unique values
+        # should be done by map with key as sql input curies
+        # TODO - trim the lists to what we have in cache
+
+        # add new object to result list
+        results.append(original_edge)
+
+        # log
+        logger.info("query with normalized source list: {}".format(original_edge.get_map_source_normalized_id().keys()))
+        logger.info("query with normalized target list: {}".format(original_edge.get_map_target_normalized_id().keys()))
+        logger.info("query with source count: {} and target count: {}".format(len(original_edge.get_map_source_normalized_id()), len(original_edge.get_map_target_normalized_id())))
+
+        # split the source and target ids
+        # list_source = original_edge.get_source_ids() if original_edge.get_source_ids() is not None and len(original_edge.get_source_ids()) > 0 else [None]
+        # list_target = original_edge.get_target_ids() if original_edge.get_target_ids() is not None and len(original_edge.get_target_ids()) > 0 else [None]
+
+        # # make sure each list has unique items
+        # list_source = list(set(list_source))
+        # list_target = list(set(list_target))
+
+        # # for each combination, create a new request model object
+        # for sitem in list_source:
+        #     for titem in list_target:
+        #         new_edge = GeneticsModel(edge, sourceNode, targetNode, source_id=sitem, target_id=titem)
                 
-                # add to the list
-                results.append(new_edge)
+        #         # add to the list
+        #         results.append(new_edge)
 
     # return
     return results
@@ -467,79 +508,80 @@ def query(request_body):  # noqa: E501
         # only allow small queries
         if len(request_input) > MAX_SIZE_ID_LIST:
             logger.error("too big request, asking for {} combinations".format(len(request_input)))
-            return ({"status": 507, "title": "Quesry too large", "detail": "Query too large, exceeds the {} subject/object combination size".format(MAX_SIZE_ID_LIST), "type": "about:blank" }, 507)
+            return ({"status": 507, "title": "Query too large", "detail": "Query too large, exceeds the {} subject/object combination size".format(MAX_SIZE_ID_LIST), "type": "about:blank" }, 507)
 
  
         for web_request_object in request_input:
             # log
             logger.info("running query for web query object: {}\n".format(web_request_object))
 
-            # get the normalized curies
-            # keep track of whether result came in for this curie; returns name from NN and synonym curie list
-            subject_curie_name, subject_curie_list = get_curie_synonyms(web_request_object.get_source_id(), prefix_list=list_ontology_prefix, type_name='subject', log=True)
-            target_curie_name, target_curie_list = get_curie_synonyms(web_request_object.get_target_id(), prefix_list=list_ontology_prefix, type_name='target', log=True)
+            # NOTE - now done in request oebject building
+            # # get the normalized curies
+            # # keep track of whether result came in for this curie; returns name from NN and synonym curie list
+            # subject_curie_name, subject_curie_list = get_curie_synonyms(web_request_object.get_source_id(), prefix_list=list_ontology_prefix, type_name='subject', log=True)
+            # target_curie_name, target_curie_list = get_curie_synonyms(web_request_object.get_target_id(), prefix_list=list_ontology_prefix, type_name='target', log=True)
 
-            # trim source/target lists to what we have in db
-            subject_curie_list = trim_disease_list_to_what_is_in_the_db(subject_curie_list, SET_CACHED_PHENOTYPES)
-            target_curie_list = trim_disease_list_to_what_is_in_the_db(target_curie_list, SET_CACHED_PHENOTYPES)
+            # # trim source/target lists to what we have in db
+            # subject_curie_list = trim_disease_list_to_what_is_in_the_db(subject_curie_list, SET_CACHED_PHENOTYPES)
+            # target_curie_list = trim_disease_list_to_what_is_in_the_db(target_curie_list, SET_CACHED_PHENOTYPES)
 
             # queries
-            found_results_already = False
-            for source_curie in subject_curie_list:
-                for target_curie in target_curie_list:
-                    # only run next normalized curie in list if there were no other results, or else will get duplicate results
+            # NOTE - implemented batch subject/target input
+            # for source_curie in subject_curie_list:
+            #     for target_curie in target_curie_list:
+            #         # only run next normalized curie in list if there were no other results, or else will get duplicate results
 
-                    # TODO - might have to implement uniqueness on the PK returned (use set); took out duplicate check
-                    # if not found_results_already:   # TODO - might not be needed anymore since ncats NN and each disease/phenotype entry should only have one curie in the DB
-                    # set the normalized curie for the call
-                    web_request_object.set_source_normalized_id(source_curie)
-                    web_request_object.set_target_normalized_id(target_curie)
-                    queries = qbuilder.get_queries(web_request_object)
+            # TODO - might have to implement uniqueness on the PK returned (use set); took out duplicate check
+            # if not found_results_already:   # TODO - might not be needed anymore since ncats NN and each disease/phenotype entry should only have one curie in the DB
+            # set the normalized curie for the call
+            # web_request_object.set_source_normalized_id(source_curie)
+            # web_request_object.set_target_normalized_id(target_curie)
+            queries = qbuilder.get_queries(web_request_object)
 
-                    # if results
-                    if len(queries) > 0:
-                        found_results_already = True
-                        for i in range(0, len(queries)):
-                            sql_object = queries[i]
-                            # print("running query: {}\n".format(sql_object))
-                            cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
-                            results = cursor.fetchall()
-                            # print("result of type {} is {}".format(type(results), results))
-                            if results:
-                                for record in results:
-                                    edgeID    = record[0]
-                                    if web_request_object.get_source_id() is not None:
-                                        sourceID  = web_request_object.get_source_id()
-                                    else:
-                                        sourceID  = record[1]
+            # if results
+            if len(queries) > 0:
+                found_results_already = True
+                for i in range(0, len(queries)):
+                    sql_object = queries[i]
+                    print("running query: {}\n".format(sql_object))
+                    cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
+                    results = cursor.fetchall()
+                    # print("result of type {} is {}".format(type(results), results))
+                    if results:
+                        for record in results:
+                            edgeID    = record[0]
+                            sourceID  = record[1]
+                            targetID  = record[2]
+                            originalSourceID  = record[1]
+                            originalTargetID  = record[2]
 
-                                    if web_request_object.get_target_id() is not None:
-                                        targetID  = web_request_object.get_target_id()
-                                    else:
-                                        targetID  = record[2]
+                            # find original source/target IDs
+                            if web_request_object.get_map_source_normalized_id().get(sourceID):
+                                originalSourceID  = web_request_object.get_map_source_normalized_id().get(sourceID)
 
-                                    # sourceID  = record[1]
-                                    # targetID  = record[2]
-                                    score     = record[3]
-                                    scoreType = record[4]
-                                    sourceName = record[5]
-                                    targetName = record[6]
-                                    edgeType = record[7]
-                                    sourceType = record[8]
-                                    targetType = record[9]
-                                    studyTypeId = record[10]
-                                    publications = record[11]
-                                    score_translator = record[12]
+                            if web_request_object.get_map_target_normalized_id().get(sourceID):
+                                originalTargetID  = web_request_object.get_map_target_normalized_id().get(targetID)
 
-                                    # build the result objects
-                                    source_node = NodeOuput(curie=sourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
-                                    target_node = NodeOuput(curie=targetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
-                                    output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
-                                        score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, 
-                                        publication_ids=publications, score_translator=score_translator)
+                            score     = record[3]
+                            scoreType = record[4]
+                            sourceName = record[5]
+                            targetName = record[6]
+                            edgeType = record[7]
+                            sourceType = record[8]
+                            targetType = record[9]
+                            studyTypeId = record[10]
+                            publications = record[11]
+                            score_translator = record[12]
 
-                                    # add to the results list
-                                    genetics_results.append(output_edge)
+                            # build the result objects
+                            source_node = NodeOuput(curie=originalSourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
+                            target_node = NodeOuput(curie=originalTargetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
+                            output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
+                                score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, 
+                                publication_ids=publications, score_translator=score_translator)
+
+                            # add to the results list
+                            genetics_results.append(output_edge)
 
         # close the connection
         cnx.close()
