@@ -536,56 +536,61 @@ def query(request_body):  # noqa: E501
             # set the normalized curie for the call
             # web_request_object.set_source_normalized_id(source_curie)
             # web_request_object.set_target_normalized_id(target_curie)
-            queries = qbuilder.get_queries(web_request_object)
+            # make sure it is not an unbounded query (that we have matched with at leat one source/target)
+            if len(web_request_object.get_list_source_id()) > 0 or len(web_request_object.get_list_target_id()) > 0:
+                queries = qbuilder.get_queries(web_request_object)
 
-            # if results
-            if len(queries) > 0:
-                found_results_already = True
-                for i in range(0, len(queries)):
-                    sql_object = queries[i]
-                    print("running query: {}\n".format(sql_object))
-                    cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
-                    results = cursor.fetchall()
-                    # print("result of type {} is {}".format(type(results), results))
-                    if results:
-                        for record in results:
-                            edgeID    = record[0]
-                            sourceID  = record[1]
-                            targetID  = record[2]
-                            originalSourceID  = record[1]
-                            originalTargetID  = record[2]
+                # if results
+                if len(queries) > 0:
+                    found_results_already = True
+                    for i in range(0, len(queries)):
+                        sql_object = queries[i]
+                        logger.info("running query: {}\n".format(sql_object))
+                        cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
+                        results = cursor.fetchall()
+                        # print("result of type {} is {}".format(type(results), results))
+                        if results:
+                            for record in results:
+                                edgeID    = record[0]
+                                sourceID  = record[1]
+                                targetID  = record[2]
+                                originalSourceID  = record[1]
+                                originalTargetID  = record[2]
 
-                            # find original source/target IDs
-                            if web_request_object.get_map_source_normalized_id().get(sourceID):
-                                originalSourceID  = web_request_object.get_map_source_normalized_id().get(sourceID)
+                                # find original source/target IDs
+                                if web_request_object.get_map_source_normalized_id().get(sourceID):
+                                    originalSourceID  = web_request_object.get_map_source_normalized_id().get(sourceID)
 
-                            if web_request_object.get_map_target_normalized_id().get(sourceID):
-                                originalTargetID  = web_request_object.get_map_target_normalized_id().get(targetID)
+                                if web_request_object.get_map_target_normalized_id().get(sourceID):
+                                    originalTargetID  = web_request_object.get_map_target_normalized_id().get(targetID)
 
-                            score     = record[3]
-                            scoreType = record[4]
-                            sourceName = record[5]
-                            targetName = record[6]
-                            edgeType = record[7]
-                            sourceType = record[8]
-                            targetType = record[9]
-                            studyTypeId = record[10]
-                            publications = record[11]
-                            score_translator = record[12]
+                                score     = record[3]
+                                scoreType = record[4]
+                                sourceName = record[5]
+                                targetName = record[6]
+                                edgeType = record[7]
+                                sourceType = record[8]
+                                targetType = record[9]
+                                studyTypeId = record[10]
+                                publications = record[11]
+                                score_translator = record[12]
 
-                            # build the result objects
-                            source_node = NodeOuput(curie=originalSourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
-                            target_node = NodeOuput(curie=originalTargetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
-                            output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
-                                score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, 
-                                publication_ids=publications, score_translator=score_translator)
+                                # build the result objects
+                                source_node = NodeOuput(curie=originalSourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
+                                target_node = NodeOuput(curie=originalTargetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
+                                output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
+                                    score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, 
+                                    publication_ids=publications, score_translator=score_translator)
 
-                            # add to the results list
-                            genetics_results.append(output_edge)
+                                # add to the results list
+                                genetics_results.append(output_edge)
+                    
+            else:
+                logger.info("no source/target inputs that we have, so skip")
 
         # log
         logger.info("query return edge count: {}".format(len(genetics_results)))
-        
+
         # close the connection
         cnx.close()
 
