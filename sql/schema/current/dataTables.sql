@@ -58,3 +58,17 @@ alter table comb_node_ontology add added_by_study_id int(3);
 -- 20210817 - increase disease name
 alter table comb_node_ontology modify node_code varchar(500) not null;
 
+
+
+
+-- curie cache table
+drop table if exists comb_cache_curie;
+create table comb_cache_curie (
+  id                        int not null auto_increment primary key,
+  node_curie_id             varchar(100) not null,
+  node_name                 varchar(1000),
+  node_synonym_id           varchar(100) not null,
+  date_created              datetime DEFAULT CURRENT_TIMESTAMP
+);
+alter table comb_cache_curie add index comb_cac_cur_idx (node_curie_id);
+
