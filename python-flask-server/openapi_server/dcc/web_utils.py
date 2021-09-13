@@ -563,9 +563,9 @@ def query(request_body):  # noqa: E501
 
                                 if web_request_object.get_map_target_normalized_id().get(targetID):
                                     originalTargetID  = web_request_object.get_map_target_normalized_id().get(targetID)
-                                else:
-                                    logger.info(web_request_object.get_map_target_normalized_id())
-                                logger.info("original: {}, converted: {}".format(targetID, originalTargetID))
+                                # else:
+                                #     logger.info(web_request_object.get_map_target_normalized_id())
+                                # logger.info("original: {}, converted: {}".format(targetID, originalTargetID))
 
                                 score     = record[3]
                                 scoreType = record[4]
