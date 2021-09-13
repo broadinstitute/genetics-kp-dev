@@ -173,6 +173,22 @@ def add_in_more_than(sql, term, is_first=True):
     # return
     return temp
 
+def add_in_more_than_equals(sql, term, is_first=True):
+    ''' add in less than clause to the sql '''
+    temp = str(sql)
+
+    # add in where if necessary
+    if is_first:
+        temp = temp + " where " 
+    else:
+        temp = temp + " and "
+
+    # add in the condition
+    temp = temp + str(term) + " >= %s "
+
+    # return
+    return temp
+
 # def get_magma_gene_phenotype_query(web_query_object):
 #     ''' takes in GeneticsModel and returns a DbQueryObject object if applicable, None otherwise '''
 #     # initialize sql string
@@ -331,8 +347,8 @@ def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue,
     # add in score lower bound if score type is p_value 
     if score_type is not None:
         if score_type == dcc_utils.attribute_probability:
-            sql_string = add_in_more_than(sql_string, "ed.score", False)
-            param_list.append(1.1)
+            sql_string = add_in_more_than_equals(sql_string, "ed.score", False)
+            param_list.append(0.15)
 
     # add in source id if given
     # if web_query_object.get_source_id() is not None:
