@@ -466,6 +466,10 @@ def query(request_body):  # noqa: E501
     # verify all operations asked for are supported
     if request_body.get("workflow") and len(request_body.get("workflow")) > 0:
         logger.info("got workflow: {}".format(request_body.get("workflow")))
+        for item in request_body.get("workflow"):
+            workflow_item = item.get('id')
+            if workflow_item != 'lookup':
+                return ({"status": 400, "title": "Workflow {} not implemented".format(workflow_item), "detail": "Workflow {} not implemented".format(workflow_item), "type": "about:blank" }, 400)
     else:
         logger.info("no workflow specified")
 
@@ -508,7 +512,7 @@ def query(request_body):  # noqa: E501
         # only allow small queries
         if len(request_input) > MAX_SIZE_ID_LIST:
             logger.error("too big request, asking for {} combinations".format(len(request_input)))
-            return ({"status": 507, "title": "Query too large", "detail": "Query too large, exceeds the {} subject/object combination size".format(MAX_SIZE_ID_LIST), "type": "about:blank" }, 507)
+            return ({"status": 413, "title": "Query payload too large", "detail": "Query payload too large, exceeds the {} subject/object combination size".format(MAX_SIZE_ID_LIST), "type": "about:blank" }, 413)
 
  
         for web_request_object in request_input:
