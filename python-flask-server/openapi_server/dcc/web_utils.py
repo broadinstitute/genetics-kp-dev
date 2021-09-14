@@ -596,6 +596,7 @@ def query(request_body):  # noqa: E501
                 logger.info("no source/target inputs that we have, so skip")
 
         # log
+        logger.info("for query \n{}".format(request_body))
         logger.info("query return edge count: {}".format(len(genetics_results)))
 
         # close the connection
