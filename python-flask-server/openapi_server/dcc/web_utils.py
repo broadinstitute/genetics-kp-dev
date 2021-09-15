@@ -422,11 +422,11 @@ def build_results(results_list, query_graph):
             attributes.append(provenance_child)
 
         # add in the pvalue/probability if applicable
+        attributes.append(Attribute(original_attribute_name='probability', value=edge_element.score_translator, attribute_type_id='biolink:probability'))
         if edge_element.score is not None:
             # OLD - pre score translator data
             # if edge_element.score_type == 'biolink:probability':
             #     attributes.append(Attribute(original_attribute_name='probability', value=edge_element.score, attribute_type_id=edge_element.score_type))
-            attributes.append(Attribute(original_attribute_name='probability', value=edge_element.score_translator, attribute_type_id='biolink:probability'))
 
             # add p_value or classification if available
             if edge_element.score_type == 'biolink:classification':
@@ -575,6 +575,7 @@ def query(request_body):  # noqa: E501
                         cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
                         results = cursor.fetchall()
                         # print("result of type {} is {}".format(type(results), results))
+                        logger.info("for query got result count of: {}".format(len(results)))
                         if results:
                             for record in results:
                                 edgeID    = record[0]
