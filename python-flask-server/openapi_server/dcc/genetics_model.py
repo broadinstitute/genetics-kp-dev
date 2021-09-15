@@ -16,7 +16,7 @@ class GeneticsModel():
         self.target_type = target_type
         self.map_source_normalized_id = map_source_normalized_id
         self.map_target_normalized_id = map_target_normalized_id
-        logger.info("created {} with source {} and target {}\n".format(edge, source, target))
+        # logger.info("created {} with source {} and target {}\n".format(edge, source, target))
 
     def get_edge(self):
         return self.edge

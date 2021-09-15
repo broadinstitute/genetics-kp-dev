@@ -26,6 +26,8 @@ logger = get_logger(__name__)
 
 # constants
 list_ontology_prefix = ['UMLS', 'NCIT', 'MONDO', 'EFO', 'NCBIGene', 'GO', 'HP', 'MESH']
+list_ontology_prefix_avoid = ['FMA', 'CHEMBL.TARGET', 'CHEMBL.COMPOUND', 'PUBCHEM.COMPOUND', 'UNII', 'CHEBI', 'DRUGBANK', 'CAS', 'DrugCentral', 'KEGG.COMPOUND', 'INCHIKEY', 'GTOPDB']
+
 # infores
 PROVENANCE_INFORES_KP_GENETICS='infores:genetics-data-provider'
 PROVENANCE_INFORES_CLINVAR='infores:clinvar'
@@ -328,6 +330,22 @@ def get_request_elements(body):
         list_source = list(set(list_source))
         list_target = list(set(list_target))
     
+        # filter out the ontologies we don't service
+        list_temp = []
+        for item in list_source:
+            if item.split(':')[0] not in list_ontology_prefix_avoid:
+                list_temp.append(item)
+            else:
+                logger.info("skipping non serviced source: {}".format(item))
+        list_source = list_temp
+        list_temp = []
+        for item in list_target:
+            if item.split(':')[0] not in list_ontology_prefix_avoid:
+                list_temp.append(item)
+            else:
+                logger.info("skipping non serviced target: {}".format(item))
+        list_target = list_temp
+
         # TODO - get the normalized list
         # TODO - get the descendant list
         list_temp = []
@@ -405,11 +423,15 @@ def build_results(results_list, query_graph):
 
         # add in the pvalue/probability if applicable
         if edge_element.score is not None:
-            if edge_element.score_type == 'biolink:probability':
-                attributes.append(Attribute(original_attribute_name='probability', value=edge_element.score, attribute_type_id=edge_element.score_type))
-            elif edge_element.score_type == 'biolink:classification':
+            # OLD - pre score translator data
+            # if edge_element.score_type == 'biolink:probability':
+            #     attributes.append(Attribute(original_attribute_name='probability', value=edge_element.score, attribute_type_id=edge_element.score_type))
+            attributes.append(Attribute(original_attribute_name='probability', value=edge_element.score_translator, attribute_type_id='biolink:probability'))
+
+            # add p_value or classification if available
+            if edge_element.score_type == 'biolink:classification':
                 attributes.append(Attribute(original_attribute_name='classification', value=edge_element.score, attribute_type_id=edge_element.score_type))
-            else:
+            elif edge_element.score_type == 'biolink:p_value':
                 attributes.append(Attribute(original_attribute_name='pValue', value=edge_element.score, attribute_type_id=edge_element.score_type))
             # print("added attributes: {}".format(attributes))
 
@@ -517,7 +539,7 @@ def query(request_body):  # noqa: E501
  
         for web_request_object in request_input:
             # log
-            logger.info("running query for web query object: {}\n".format(web_request_object))
+            # logger.info("running query for web query object: {}\n".format(web_request_object))
 
             # NOTE - now done in request oebject building
             # # get the normalized curies

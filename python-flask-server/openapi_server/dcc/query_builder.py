@@ -88,18 +88,23 @@ def get_queries(web_query_object):
 
     # loop through the queries and get the sql to run
     for item in query_list:
+        # OLD - pre ordering by score_translator
         # get all the p_values, sorted best first
-        sql_object = get_node_edge_score(item, score_type=dcc_utils.attribute_pvalue, return_ascending=True)
-        if sql_object is not None:
-            sql_list.append(sql_object)
+        # sql_object = get_node_edge_score(item, score_type=dcc_utils.attribute_pvalue, return_ascending=True)
+        # if sql_object is not None:
+        #     sql_list.append(sql_object)
 
-        # get all the probabilities, sorted best first
-        sql_object = get_node_edge_score(item, score_type=dcc_utils.attribute_probability, return_ascending=False)
-        if sql_object is not None:
-            sql_list.append(sql_object)
+        # # get all the probabilities, sorted best first
+        # sql_object = get_node_edge_score(item, score_type=dcc_utils.attribute_probability, return_ascending=False)
+        # if sql_object is not None:
+        #     sql_list.append(sql_object)
 
-        # get all the clinvar/clingen data, sorted best first
-        sql_object = get_node_edge_score(item, score_type=dcc_utils.attribute_classification, return_ascending=False)
+        # # get all the clinvar/clingen data, sorted best first
+        # sql_object = get_node_edge_score(item, score_type=dcc_utils.attribute_classification, return_ascending=False)
+        # if sql_object is not None:
+        #     sql_list.append(sql_object)
+
+        sql_object = get_node_edge_score(item, score_type=dcc_utils.attribute_score_translator, return_ascending=True)
         if sql_object is not None:
             sql_list.append(sql_object)
 
@@ -289,11 +294,19 @@ def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue,
     #         where ed.source_code = so.node_code and ed.target_code = ta.node_code and ed.edge_type_id = ted.type_id and so.node_type_id = tso.type_id and ta.node_type_id = tta.type_id \
     #         and ed.score_type_id = sco_type.type_id and ed.source_type_id = so.node_type_id and ed.target_type_id = ta.node_type_id "
 
-    sql_string = "select concat(ed.edge_id, so.ontology_id, ta.ontology_id), so.ontology_id, ta.ontology_id, ed.score, sco_type.type_name, \
-            so.node_name, ta.node_name, ted.type_name, tso.type_name, tta.type_name, ed.study_id, ed.publication_ids, ed.score_translator \
-        from comb_edge_node ed, comb_node_ontology so, comb_node_ontology ta, comb_lookup_type ted, comb_lookup_type tso, comb_lookup_type tta, comb_lookup_type sco_type \
-        where ed.edge_type_id = ted.type_id and so.node_type_id = tso.type_id and ta.node_type_id = tta.type_id \
-        and ed.score_type_id = sco_type.type_id and ed.source_node_id = so.id and ed.target_node_id = ta.id "
+    # OLD - pre query ordered by score_translator
+    # sql_string = "select concat(ed.edge_id, so.ontology_id, ta.ontology_id), so.ontology_id, ta.ontology_id, ed.score, sco_type.type_name, \
+    #         so.node_name, ta.node_name, ted.type_name, tso.type_name, tta.type_name, ed.study_id, ed.publication_ids, ed.score_translator \
+    #     from comb_edge_node ed, comb_node_ontology so, comb_node_ontology ta, comb_lookup_type ted, comb_lookup_type tso, comb_lookup_type tta, comb_lookup_type sco_type \
+    #     where ed.edge_type_id = ted.type_id and so.node_type_id = tso.type_id and ta.node_type_id = tta.type_id \
+    #     and ed.score_type_id = sco_type.type_id and ed.source_node_id = so.id and ed.target_node_id = ta.id "
+
+    if score_type == dcc_utils.attribute_score_translator:
+        sql_string = "select concat(ed.edge_id, so.ontology_id, ta.ontology_id), so.ontology_id, ta.ontology_id, ed.score, sco_type.type_name, \
+                so.node_name, ta.node_name, ted.type_name, tso.type_name, tta.type_name, ed.study_id, ed.publication_ids, ed.score_translator \
+            from comb_edge_node ed, comb_node_ontology so, comb_node_ontology ta, comb_lookup_type ted, comb_lookup_type tso, comb_lookup_type tta, comb_lookup_type sco_type \
+            where ed.edge_type_id = ted.type_id and so.node_type_id = tso.type_id and ta.node_type_id = tta.type_id \
+            and ed.score_type_id = sco_type.type_id and ed.source_node_id = so.id and ed.target_node_id = ta.id "
 
     # replace sql string if using classification; substitute ed.score_text for ed.score
     if score_type == dcc_utils.attribute_classification:
@@ -331,24 +344,25 @@ def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue,
         sql_string = add_in_equals(sql_string, "tta.type_name", False)
         param_list.append(web_query_object.get_target_type())
 
-    # add in score type if given
-    if score_type is not None:
-        sql_string = add_in_equals(sql_string, "sco_type.type_name", False)
-        param_list.append(score_type)
+    # OLD - pre ordering by translator score
+    # # add in score type if given
+    # if score_type is not None:
+    #     sql_string = add_in_equals(sql_string, "sco_type.type_name", False)
+    #     param_list.append(score_type)
 
-    # add in score lower bound if score type is p_value 
-    if score_type is not None:
-        if score_type == dcc_utils.attribute_pvalue:
-            sql_string = add_in_less_than(sql_string, "ed.score", False)
-            param_list.append(0.0000025)
-            # TODO - use for testing
-            # param_list.append(0.0025)
+    # # add in score lower bound if score type is p_value 
+    # if score_type is not None:
+    #     if score_type == dcc_utils.attribute_pvalue:
+    #         sql_string = add_in_less_than(sql_string, "ed.score", False)
+    #         param_list.append(0.0000025)
+    #         # TODO - use for testing
+    #         # param_list.append(0.0025)
 
-    # add in score lower bound if score type is p_value 
-    if score_type is not None:
-        if score_type == dcc_utils.attribute_probability:
-            sql_string = add_in_more_than_equals(sql_string, "ed.score", False)
-            param_list.append(0.15)
+    # # add in score lower bound if score type is p_value 
+    # if score_type is not None:
+    #     if score_type == dcc_utils.attribute_probability:
+    #         sql_string = add_in_more_than_equals(sql_string, "ed.score", False)
+    #         param_list.append(0.15)
 
     # add in source id if given
     # if web_query_object.get_source_id() is not None:
@@ -375,11 +389,13 @@ def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue,
         sql_string = add_in_in(sql=sql_string, term="ta.ontology_id", list_input=list_input, is_first=False)
         param_list += list_input
 
+    # OLD - pre ordering by translator score
     # add order by at end
-    if return_ascending:
-        sql_string = sql_string + " order by ed.score"
-    else:
-        sql_string = sql_string + " order by ed.score"
+    # if return_ascending:
+    #     sql_string = sql_string + " order by ed.score"
+    # else:
+    #     sql_string = sql_string + " order by ed.score"
+    sql_string = sql_string + " order by ed.score_translator desc"
 
     # add limit
     if limit:

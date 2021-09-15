@@ -48,6 +48,7 @@ edge_disease_pathway = 'biolink:genetic_association'
 attribute_pvalue = 'biolink:p_value'
 attribute_probability = 'biolink:probability'
 attribute_classification = 'biolink:classification'
+attribute_score_translator = 'biolink:score'
 
 # list of accepted edge types
 accepted_edge_types = [edge_gene_disease, edge_disease_gene, edge_pathway_disease, edge_disease_pathway]
