@@ -575,7 +575,7 @@ def query(request_body):  # noqa: E501
                         cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
                         results = cursor.fetchall()
                         # print("result of type {} is {}".format(type(results), results))
-                        logger.info("for query got result count of: {}".format(len(results)))
+                        logger.info("for DB query got result count of: {}".format(len(results)))
                         if results:
                             for record in results:
                                 edgeID    = record[0]
@@ -620,7 +620,7 @@ def query(request_body):  # noqa: E501
 
         # log
         logger.info("for query \n{}".format(request_body))
-        logger.info("query return edge count: {}".format(len(genetics_results)))
+        logger.info("web query return total edge count: {}".format(len(genetics_results)))
 
         # close the connection
         cnx.close()

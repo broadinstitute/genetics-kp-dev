@@ -32,6 +32,9 @@ DB_USER = os.environ.get('DB_USER')
 DB_PASSWD = os.environ.get('DB_PASSWD')
 DB_SCHEMA = os.environ.get('DB_SCHEMA')
 
+# url settings
+TRAN_URL_NORMALIZER=os.environ.get('TRAN_URL_NORMALIZER')
+
 # node types
 node_gene ='biolink:Gene'
 node_disease = 'biolink:Disease'
@@ -153,7 +156,7 @@ def get_db_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False
     # get the data
     results = cursor.fetchall()
     if results and len(results) > 0:
-        logger.info("found curie synonyms results for: {} of size: {}".format(curie_input, len(results)))
+        logger.info("found DATABASE curie synonyms results for: {} of size: {}".format(curie_input, len(results)))
         for row in results:
             list_result.append(row[0])
 
@@ -183,16 +186,21 @@ def insert_curie_synonyms(curie_id, curie_name, list_synonyms, log=False):
     cnx.close()
 
     # log
-    logger.info("inserted synonyms for: {} of: {}".format(curie_id, list_synonyms))
+    logger.info("inserted DATABASE synonyms for: {} of: {}".format(curie_id, list_synonyms))
 
 
 def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
     ''' will call the curie normalizer and return the curie name and a list of only the matching prefixes from the prefix list provided '''
     ''' 20210729 - also added in descendant MONDO diseases '''
+    # initialize
     url_normalizer = "https://nodenormalization-sri.renci.org/1.1/get_normalized_nodes?conflate=true&curie={}"
     list_result = []
     curie_name = None
     prefix_disease_list = ['MONDO', 'EFO']
+
+    # get the normalizer url
+    if TRAN_URL_NORMALIZER:
+        url_normalizer = TRAN_URL_NORMALIZER + "?conflate=true&curie={}"
 
     # log
     if log:
@@ -233,7 +241,7 @@ def get_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False):
                     list_result.append(item['identifier'])
 
             if log:
-                logger.info("got curie synonym list result {}".format(list_result))
+                logger.info("got WEB SERVICE curie synonym list result {}".format(list_result))
 
 
         # loop through, if MONDO or EFO, look for descendants
