@@ -350,9 +350,12 @@ def get_request_elements(body):
         # TODO - get the descendant list
         list_temp = []
         for item in list_source:
+            # if curie already put in curie list, then no need to get synonyms/children
             if not item in list_temp:
                 subject_curie_name, subject_curie_list = get_curie_synonyms(item, prefix_list=list_ontology_prefix, type_name='subject', log=True)
                 list_temp += subject_curie_list
+
+                # trim curie list to what is in genepro (pulled in at start)
                 subject_curie_list = trim_disease_list_to_what_is_in_the_db(subject_curie_list, SET_CACHED_PHENOTYPES)
                 for curie in subject_curie_list:
                     original_edge.add_source_normalized_id(curie, item)
@@ -362,6 +365,8 @@ def get_request_elements(body):
         for item in list_target:
             if not item in list_temp:
                 target_curie_name, target_curie_list = get_curie_synonyms(item, prefix_list=list_ontology_prefix, type_name='target', log=True)
+
+                # trim curie list to what is in genepro (pulled in at start)
                 target_curie_list = trim_disease_list_to_what_is_in_the_db(target_curie_list, SET_CACHED_PHENOTYPES)
                 for curie in target_curie_list:
                     original_edge.add_target_normalized_id(curie, item)
@@ -620,7 +625,13 @@ def query(request_body):  # noqa: E501
 
         # log
         logger.info("for query \n{}".format(request_body))
-        logger.info("web query return total edge count: {}".format(len(genetics_results)))
+        num_source = 0
+        if web_request_object.get_original_source_ids():
+            num_source = len(web_request_object.get_original_source_ids())
+        num_target = 0
+        if web_request_object.get_original_target_ids():
+            num_target = len(web_request_object.get_original_target_ids())
+        logger.info("web query with source count: {} and target count: {} return total edge count: {}".format(num_source, num_target, len(genetics_results)))
 
         # close the connection
         cnx.close()
