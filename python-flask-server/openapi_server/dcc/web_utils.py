@@ -350,7 +350,7 @@ def get_request_elements(body):
         # TODO - get the descendant list
         list_temp = []
         for item in list_source:
-            # if curie already put in curie list, then no need to get synonyms/children
+            # if curie already put in curie list, then no need to get synonyms/children since it already has been searched
             if not item in list_temp:
                 subject_curie_name, subject_curie_list = get_curie_synonyms(item, prefix_list=list_ontology_prefix, type_name='subject', log=True)
                 list_temp += subject_curie_list
@@ -363,8 +363,10 @@ def get_request_elements(body):
                 logger.info("skip source curie since already in list: {}".format(item))
         list_temp = []
         for item in list_target:
+            # if curie already put in curie list, then no need to get synonyms/children
             if not item in list_temp:
                 target_curie_name, target_curie_list = get_curie_synonyms(item, prefix_list=list_ontology_prefix, type_name='target', log=True)
+                list_temp += target_curie_list
 
                 # trim curie list to what is in genepro (pulled in at start)
                 target_curie_list = trim_disease_list_to_what_is_in_the_db(target_curie_list, SET_CACHED_PHENOTYPES)

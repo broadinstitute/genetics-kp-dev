@@ -1,14 +1,27 @@
 
 # import relative libraries
-dir_code = "/home/javaprog/Code/"
-from logging import debug
-import sys
-sys.path.insert(0, dir_code + 'TranslatorWorkspace/GeneticsPro/python-flask-server/')
+# dir_code = "/home/javaprog/Code/"
+# from logging import debug
+# import sys
+# sys.path.insert(0, dir_code + 'TranslatorWorkspace/GeneticsPro/python-flask-server/')
 
 # imports
 import openapi_server.dcc.utils as dcc_utils
 from openapi_server.dcc.genetics_model import GeneticsModel
 import openapi_server.dcc.biolink_utils as bio_utils
+
+from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger, build_pubmed_ids
+import os
+
+# constants
+limit_db_results = 200
+DB_RESULTS_LIMIT = os.environ.get('DB_RESULTS_LIMIT')
+if DB_RESULTS_LIMIT:
+    limit_db_results = DB_RESULTS_LIMIT
+
+
+# get logger
+logger = get_logger(__name__)
 
 
 class DbQueryObject():
@@ -265,7 +278,7 @@ def add_in_more_than_equals(sql, term, is_first=True):
 #     # build the query object and returnget_magma_gene_query
 
 
-def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue, return_ascending=True, limit=1000):
+def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue, return_ascending=True, limit=limit_db_results):
     ''' takes in GeneticsModel and returns a DbQueryObject object if applicable, None otherwise '''
     # initialize sql string
     sql_string = None
