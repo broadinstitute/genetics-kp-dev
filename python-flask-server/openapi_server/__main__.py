@@ -27,7 +27,7 @@ app.add_api('openapi.yaml',
 
 def main():
     # config
-    network_port = os.environ.get('PORT')
+    network_port = os.environ.get('FLASK_PORT')
     app.run(port=network_port)
 
 

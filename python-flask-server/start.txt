@@ -1,4 +1,4 @@
-export PORT=7002
+export FLASK_PORT=7002
 
 export DB_HOST=localhost
 export DB_USER=user
