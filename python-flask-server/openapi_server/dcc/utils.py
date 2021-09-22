@@ -1,7 +1,7 @@
 import json
 import requests 
 from urllib.error import HTTPError
-from openapi_server.dcc.disease_utils import get_disease_descendants
+from openapi_server.dcc.disease_utils import get_disease_descendants, get_disease_descendants_from_list
 from openapi_server.dcc.db_utils import add_in_in
 import logging 
 import sys 
@@ -392,12 +392,35 @@ def get_web_normalized_curie_from_list(list_curie_id, prefix_list=None, log=Fals
     # return
     return list_result
 
+def insert_curie_db_synonyms_from_list(list_curie_tuples, log=False):
+    ''' will insert rows into the curie cache DB '''
+    # initialize
+    sql_insert = "insert into {}.comb_cache_curie (node_curie_id, node_name, node_synonym_id) values(%s, %s, %s)".format(DB_CACHE_SCHEMA)
+
+    # create the cursor
+    cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
+    cursor = cnx.cursor()
+
+    # insert the data
+    for item in list_curie_tuples:
+        cursor.execute(sql_insert, (item[0], None, item[1]))
+    cnx.commit()
+
+    # close the connection
+    cursor.close()
+    cnx.close()
+
+    # log
+    logger.info("inserted DATABASE synonyms for list of length: {}".format(len(list_curie_tuples)))
+
+
 def get_normalize_curies(list_curie_id, log=False):
     ''' will take in curies, then find synonym/descendants and return the expanded list as tuples (original, new) '''
     list_result = []
     list_db_cache = []
     list_web_query = []
     list_web_query_output = []
+    list_descendants = []
 
     # look in the database
     list_db_cache = get_db_cached_synonyms_from_list(list_curie_id, log=log)
@@ -410,11 +433,20 @@ def get_normalize_curies(list_curie_id, log=False):
     if len(list_web_query) > 0:
         # get the normalized curies
         list_web_query_output = get_web_normalized_curie_from_list(list_web_query, log=log)
+        if log:
+            logger.info("found curies web normalized: {}".format(list_web_query_output))
 
-        # get the descendants and add to normalized list, make unique
+        # get the descendants
+        list_descendants = get_disease_descendants_from_list(list_web_query, category="biolink:DiseaseOrPhenotypicFeature", log=log)
+        if log:
+            logger.info("found curies web descended: {}".format(list_descendants))
 
-
+        # add to normalized list, make unique
+        list_web_query_output += list_descendants
+        list_web_query_output = list(set(list_web_query_output))
+        
         # insert the ones not found in the database for future use
+        # insert_curie_db_synonyms_from_list(list_web_query_output, log=log)
 
     # combine the lists
     list_result = list_db_cache + list_web_query_output
