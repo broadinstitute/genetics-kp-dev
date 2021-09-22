@@ -4,6 +4,7 @@ import six
 import pymysql
 import copy
 import os
+import time 
 
 from openapi_server.models.message import Message
 from openapi_server.models.knowledge_graph import KnowledgeGraph
@@ -502,6 +503,9 @@ def query(request_body):  # noqa: E501
     else:
         logger.info("no workflow specified")
 
+    # tag start time
+    start = time.time()
+
     if connexion.request.is_json:
         # initialize
         # cnx = mysql.connector.connect(database='Translator', user='mvon')
@@ -640,6 +644,13 @@ def query(request_body):  # noqa: E501
 
         # build the response
         query_response = build_results(results_list=genetics_results, query_graph=query_graph)
+
+        # tag and print the time elapsed
+        end = time.time()
+        time_elapsed = end - start
+        logger.info("web query with source: {} and target: {} return total edge: {} in time: {}s".format(num_source, num_target, len(genetics_results), time_elapsed))
+
+        # return
         return query_response
 
     else :

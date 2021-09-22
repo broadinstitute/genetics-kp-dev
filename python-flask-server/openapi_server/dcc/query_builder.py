@@ -13,15 +13,15 @@ import openapi_server.dcc.biolink_utils as bio_utils
 from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger, build_pubmed_ids
 import os
 
+# get logger
+logger = get_logger(__name__)
+
 # constants
 limit_db_results = 200
 DB_RESULTS_LIMIT = os.environ.get('DB_RESULTS_LIMIT')
 if DB_RESULTS_LIMIT:
     limit_db_results = DB_RESULTS_LIMIT
-
-
-# get logger
-logger = get_logger(__name__)
+logger.info("using DB results limit of: {}".format(limit_db_results))
 
 
 class DbQueryObject():

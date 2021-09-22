@@ -30,7 +30,8 @@ logger = get_logger(__name__)
 DB_HOST = os.environ.get('DB_HOST')
 DB_USER = os.environ.get('DB_USER')
 DB_PASSWD = os.environ.get('DB_PASSWD')
-DB_SCHEMA = os.environ.get('DB_SCHEMA')
+DB_SCHEMA = os.environ.get('DB_SCHEMA') 
+DB_CACHE_SCHEMA = os.environ.get('DB_CACHE_SCHEMA') 
 
 # url settings
 TRAN_URL_NORMALIZER=os.environ.get('TRAN_URL_NORMALIZER')
@@ -150,7 +151,7 @@ def get_db_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False
     cursor = cnx.cursor()
 
     # query
-    sql_select = "select distinct node_synonym_id from translator_cache.comb_cache_curie where node_curie_id = %s"
+    sql_select = "select distinct node_synonym_id from {}.comb_cache_curie where node_curie_id = %s".format(DB_CACHE_SCHEMA)
     cursor.execute(sql_select, curie_input)
 
     # get the data
@@ -170,7 +171,7 @@ def get_db_curie_synonyms(curie_input, prefix_list=None, type_name='', log=False
 def insert_curie_synonyms(curie_id, curie_name, list_synonyms, log=False):
     ''' will insert rows into the curie cache DB '''
     # initialize
-    sql_insert = "insert into translator_cache.comb_cache_curie (node_curie_id, node_name, node_synonym_id) values(%s, %s, %s)"
+    sql_insert = "insert into {}.comb_cache_curie (node_curie_id, node_name, node_synonym_id) values(%s, %s, %s)".format(DB_CACHE_SCHEMA)
 
     # create the cursor
     cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
