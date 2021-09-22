@@ -2,6 +2,7 @@ import json
 import requests 
 from urllib.error import HTTPError
 from openapi_server.dcc.disease_utils import get_disease_descendants
+from openapi_server.dcc.db_utils import add_in_in
 import logging 
 import sys 
 import pymysql
@@ -294,5 +295,137 @@ def build_pubmed_ids(publications):
     # return
     return result
 
+def get_db_cached_synonyms_from_list(list_curie_id, log=False):
+    ''' get the curie synonym and descendant from the db cache; returns (original, new) tuple list '''
+    list_result = []
+    
+    # get the db connection 
+    cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
+    cursor = cnx.cursor()
+
+    # build the query
+    sql_select = "select node_curie_id, node_synonym_id from {}.comb_cache_curie ".format(DB_CACHE_SCHEMA)
+    sql_select = add_in_in(sql_select, "node_curie_id", list_curie_id, True)
+
+    # log
+    if log:
+        logger.info("got sql: {}".format(sql_select))
+
+    # execute the query
+    cursor.execute(sql_select, list_curie_id)
+
+    # get the data
+    # build the results
+    results = cursor.fetchall()
+    if results and len(results) > 0:
+        logger.info("found DATABASE curie synonyms results for: {} of size: {}".format(list_curie_id, len(results)))
+        for row in results:
+            list_result.append((row[0], row[1]))
+
+    # log
+    if log:
+        for item in list_result:
+            logger.info("found original/new DB cache result: {}".format(item)) 
+
+    # return
+    return list_result
+
+def make_post_web_service_call(url, json_payload, log=False):
+    ''' shared method to handle post calls/errors/results '''
+    json_result = {}
+
+    # make the post call
+    response = requests.post(url, json=json_payload)
+
+    # check
+    if response.status_code == 404:
+        logger.error("ERROR: got node normalizer error for url: {}".format(url_call))
+
+    else:
+        json_result = response.json()
+
+    # return
+    return json_result
+
+def get_web_normalized_curie_from_list(list_curie_id, prefix_list=None, log=False):
+    ''' will call the post batch normalizer and return list of (original/new) tuples '''
+    list_result = []
+    url_normalizer = "https://nodenormalization-sri.renci.org/get_normalized_nodes"
+    if TRAN_URL_NORMALIZER:
+        url_normalizer = TRAN_URL_NORMALIZER
+
+    # if provided no curie, return [None]
+    if list_curie_id is None:
+        # OLD - add in at leat None so that have one input when doing query building (as opposed top skipping query with no input)
+        # return curie_name, [None]
+        return list_result
+
+    # if ncbi or go, skip since that is our standard for genes/pathways
+
+    # call the normalizer
+    # query
+    payload = {"curies": list_curie_id, "conflate": True}
+    # response = requests.post(url_normalizer, json=payload)
+    # output_json = response.json()
+    output_json = make_post_web_service_call(url_normalizer, payload)
+
+    # parse the result
+    for key, value in output_json.items():
+        if key.split(':')[0] in ['NCBIGene', 'GO']:
+            logger.info("skip normalizing standard curie: {}".format(key))
+            list_result.append((key, key))
+
+        elif value is None:
+            # if no result, cache this curie as itself to av
+            list_result.append((key, key))
+
+        else:
+            for item in value.get('equivalent_identifiers'):
+                list_result.append((key, item.get('identifier')))
+
+    # log
+    logger.info("for input:{} got web normalized: {}".format(list_curie_id, list_result))
+    if log:
+        for item in list_result:
+            logger.info("found original/new web query result: {}".format(item)) 
+
+    # return
+    return list_result
+
+def get_normalize_curies(list_curie_id, log=False):
+    ''' will take in curies, then find synonym/descendants and return the expanded list as tuples (original, new) '''
+    list_result = []
+    list_db_cache = []
+    list_web_query = []
+    list_web_query_output = []
+
+    # look in the database
+    list_db_cache = get_db_cached_synonyms_from_list(list_curie_id, log=log)
+
+    # for the ones not found in the database, call out to the node normalizer/descendant servers
+    list_temp = [item[0] for item in list_db_cache]
+    list_web_query = list(set(list_curie_id) - set(list_temp))
+    if log:
+        logger.info("found curies that were not in db: {}".format(list_web_query))
+    if len(list_web_query) > 0:
+        # get the normalized curies
+        list_web_query_output = get_web_normalized_curie_from_list(list_web_query, log=log)
+
+        # get the descendants and add to normalized list, make unique
+
+
+        # insert the ones not found in the database for future use
+
+    # combine the lists
+    list_result = list_db_cache + list_web_query_output
+    
+    # return
+    return list_result
+
+
+
 if (__name__ == "__main__"):
-    pass    
+    # test the db cache lookup
+    list_input = ['MONDO:0000001', 'MONDO:0005790']
+    list_out = get_db_curie_synonyms(list_input, log=True)
+

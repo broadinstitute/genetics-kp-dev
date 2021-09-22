@@ -1,4 +1,5 @@
 
+from logging import log
 import connexion
 import six
 import pymysql
@@ -18,7 +19,7 @@ from openapi_server.models.attribute import Attribute
 
 from openapi_server import util
 
-from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger, build_pubmed_ids
+from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger, build_pubmed_ids, get_normalize_curies
 from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
 import openapi_server.dcc.query_builder as qbuilder
 
@@ -346,6 +347,16 @@ def get_request_elements(body):
             else:
                 logger.info("skipping non serviced target: {}".format(item))
         list_target = list_temp
+
+
+        # test the new normalizing function
+        logger.info("=====================================================")
+        logger.info("=====================================================")
+        logger.info("=====================================================")
+        test_source = get_normalize_curies(list_source, log=True)
+        logger.info("found new: {} for original: {}".format(len(test_source), len(list_source)))
+        logger.info("=====================================================")
+        logger.info("=====================================================")
 
         # TODO - get the normalized list
         # TODO - get the descendant list
