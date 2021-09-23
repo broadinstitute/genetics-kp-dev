@@ -133,6 +133,20 @@ def trim_disease_list_to_what_is_in_the_db(list_input, set_cache, debug=True):
     # return
     return list_result
 
+def trim_disease_list_tuple_to_what_is_in_the_db(list_input, set_cache, debug=True):
+    ''' will trim the list based on the list given; returns unique entries in the list '''
+    list_result = []
+
+    # trim the list
+    list_result = [item for item in list_input if (item[1] is None or 'Gene' in item[1] or 'GO' in item[1] or item[1] in set_cache)]
+
+    # log
+    if debug:
+        logger.info("for input list of {} - {} return cached result {} - {}".format(len(list_input), list_input, len(list_result), list_result))
+
+    # return
+    return list_result
+
 def query_post(request_body):  # noqa: E501
     """Query reasoner via one of several inputs
 
@@ -350,42 +364,56 @@ def get_request_elements(body):
 
 
         # test the new normalizing function
-        logger.info("=====================================================")
-        logger.info("=====================================================")
-        logger.info("=====================================================")
-        test_source = get_normalize_curies(list_source, log=True)
-        logger.info("found new: {} for original: {}".format(len(test_source), len(list_source)))
-        logger.info("=====================================================")
-        logger.info("=====================================================")
+        # logger.info("=====================================================")
+        # logger.info("=====================================================")
+        # logger.info("=====================================================")
+        # test_source = get_normalize_curies(list_source, log=True)
+        # logger.info("found new: {} for original: {}".format(len(test_source), len(list_source)))
+        # logger.info("=====================================================")
+        # logger.info("=====================================================")
 
         # TODO - get the normalized list
         # TODO - get the descendant list
-        list_temp = []
-        for item in list_source:
-            # if curie already put in curie list, then no need to get synonyms/children since it already has been searched
-            if not item in list_temp:
-                subject_curie_name, subject_curie_list = get_curie_synonyms(item, prefix_list=list_ontology_prefix, type_name='subject', log=True)
-                list_temp += subject_curie_list
+        subject_curie_list = get_normalize_curies(list_source, log=True)
+        # trim curie list to what is in genepro (pulled in at start)
+        subject_curie_list = trim_disease_list_tuple_to_what_is_in_the_db(subject_curie_list, SET_CACHED_PHENOTYPES)
+        for curie in subject_curie_list:
+            original_edge.add_source_normalized_id(curie[1], curie[0])
 
-                # trim curie list to what is in genepro (pulled in at start)
-                subject_curie_list = trim_disease_list_to_what_is_in_the_db(subject_curie_list, SET_CACHED_PHENOTYPES)
-                for curie in subject_curie_list:
-                    original_edge.add_source_normalized_id(curie, item)
-            else:
-                logger.info("skip source curie since already in list: {}".format(item))
-        list_temp = []
-        for item in list_target:
-            # if curie already put in curie list, then no need to get synonyms/children
-            if not item in list_temp:
-                target_curie_name, target_curie_list = get_curie_synonyms(item, prefix_list=list_ontology_prefix, type_name='target', log=True)
-                list_temp += target_curie_list
+        target_curie_list = get_normalize_curies(list_target, log=True)
+        # trim curie list to what is in genepro (pulled in at start)
+        target_curie_list = trim_disease_list_tuple_to_what_is_in_the_db(target_curie_list, SET_CACHED_PHENOTYPES)
+        # logger.info("target: {}".format(target_curie_list))
+        for curie in target_curie_list:
+            original_edge.add_target_normalized_id(curie[1], curie[0])
 
-                # trim curie list to what is in genepro (pulled in at start)
-                target_curie_list = trim_disease_list_to_what_is_in_the_db(target_curie_list, SET_CACHED_PHENOTYPES)
-                for curie in target_curie_list:
-                    original_edge.add_target_normalized_id(curie, item)
-            else:
-                logger.info("skip target curie since already in list: {}".format(item))
+
+        # list_temp = []
+        # for item in list_source:
+        #     # if curie already put in curie list, then no need to get synonyms/children since it already has been searched
+        #     if not item in list_temp:
+        #         subject_curie_name, subject_curie_list = get_curie_synonyms(item, prefix_list=list_ontology_prefix, type_name='subject', log=True)
+        #         list_temp += subject_curie_list
+
+        #         # trim curie list to what is in genepro (pulled in at start)
+        #         subject_curie_list = trim_disease_list_to_what_is_in_the_db(subject_curie_list, SET_CACHED_PHENOTYPES)
+        #         for curie in subject_curie_list:
+        #             original_edge.add_source_normalized_id(curie, item)
+        #     else:
+        #         logger.info("skip source curie since already in list: {}".format(item))
+        # list_temp = []
+        # for item in list_target:
+        #     # if curie already put in curie list, then no need to get synonyms/children
+        #     if not item in list_temp:
+        #         target_curie_name, target_curie_list = get_curie_synonyms(item, prefix_list=list_ontology_prefix, type_name='target', log=True)
+        #         list_temp += target_curie_list
+
+        #         # trim curie list to what is in genepro (pulled in at start)
+        #         target_curie_list = trim_disease_list_to_what_is_in_the_db(target_curie_list, SET_CACHED_PHENOTYPES)
+        #         for curie in target_curie_list:
+        #             original_edge.add_target_normalized_id(curie, item)
+        #     else:
+        #         logger.info("skip target curie since already in list: {}".format(item))
 
         # TODO - trim the lists to unique values
         # should be done by map with key as sql input curies

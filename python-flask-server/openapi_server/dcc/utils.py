@@ -299,33 +299,34 @@ def get_db_cached_synonyms_from_list(list_curie_id, log=False):
     ''' get the curie synonym and descendant from the db cache; returns (original, new) tuple list '''
     list_result = []
     
-    # get the db connection 
-    cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
-    cursor = cnx.cursor()
+    if len(list_curie_id) > 0:
+        # get the db connection 
+        cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
+        cursor = cnx.cursor()
 
-    # build the query
-    sql_select = "select node_curie_id, node_synonym_id from {}.comb_cache_curie ".format(DB_CACHE_SCHEMA)
-    sql_select = add_in_in(sql_select, "node_curie_id", list_curie_id, True)
+        # build the query
+        sql_select = "select node_curie_id, node_synonym_id from {}.comb_cache_curie ".format(DB_CACHE_SCHEMA)
+        sql_select = add_in_in(sql_select, "node_curie_id", list_curie_id, True)
 
-    # log
-    if log:
-        logger.info("got sql: {}".format(sql_select))
+        # log
+        if log:
+            logger.info("got sql: {}".format(sql_select))
 
-    # execute the query
-    cursor.execute(sql_select, list_curie_id)
+        # execute the query
+        cursor.execute(sql_select, list_curie_id)
 
-    # get the data
-    # build the results
-    results = cursor.fetchall()
-    if results and len(results) > 0:
-        logger.info("found DATABASE curie synonyms results for: {} of size: {}".format(list_curie_id, len(results)))
-        for row in results:
-            list_result.append((row[0], row[1]))
+        # get the data
+        # build the results
+        results = cursor.fetchall()
+        if results and len(results) > 0:
+            logger.info("found DATABASE curie synonyms results for: {} of size: {}".format(list_curie_id, len(results)))
+            for row in results:
+                list_result.append((row[0], row[1]))
 
-    # log
-    if log:
-        for item in list_result:
-            logger.info("found original/new DB cache result: {}".format(item)) 
+        # log
+        if log:
+            for item in list_result:
+                logger.info("found original/new DB cache result: {}".format(item)) 
 
     # return
     return list_result
@@ -422,34 +423,36 @@ def get_normalize_curies(list_curie_id, log=False):
     list_web_query_output = []
     list_descendants = []
 
-    # look in the database
-    list_db_cache = get_db_cached_synonyms_from_list(list_curie_id, log=log)
+    if list_curie_id and len(list_curie_id) > 0:
+        # look in the database
+        list_db_cache = get_db_cached_synonyms_from_list(list_curie_id, log=log)
 
-    # for the ones not found in the database, call out to the node normalizer/descendant servers
-    list_temp = [item[0] for item in list_db_cache]
-    list_web_query = list(set(list_curie_id) - set(list_temp))
-    if log:
-        logger.info("found curies that were not in db: {}".format(list_web_query))
-    if len(list_web_query) > 0:
-        # get the normalized curies
-        list_web_query_output = get_web_normalized_curie_from_list(list_web_query, log=log)
+        # for the ones not found in the database, call out to the node normalizer/descendant servers
+        list_temp = [item[0] for item in list_db_cache]
+        list_web_query = list(set(list_curie_id) - set(list_temp))
         if log:
-            logger.info("found curies web normalized: {}".format(list_web_query_output))
+            logger.info("found curies that were not in db: {}".format(list_web_query))
 
-        # get the descendants
-        list_descendants = get_disease_descendants_from_list(list_web_query, category="biolink:DiseaseOrPhenotypicFeature", log=log)
-        if log:
-            logger.info("found curies web descended: {}".format(list_descendants))
+        if len(list_web_query) > 0:
+            # get the normalized curies
+            list_web_query_output = get_web_normalized_curie_from_list(list_web_query, log=log)
+            if log:
+                logger.info("found curies web normalized: {}".format(list_web_query_output))
 
-        # add to normalized list, make unique
-        list_web_query_output += list_descendants
-        list_web_query_output = list(set(list_web_query_output))
-        
-        # insert the ones not found in the database for future use
-        # insert_curie_db_synonyms_from_list(list_web_query_output, log=log)
+            # get the descendants
+            list_descendants = get_disease_descendants_from_list(list_web_query, category="biolink:DiseaseOrPhenotypicFeature", log=log)
+            if log:
+                logger.info("found curies web descended: {}".format(list_descendants))
 
-    # combine the lists
-    list_result = list_db_cache + list_web_query_output
+            # add to normalized list, make unique
+            list_web_query_output += list_descendants
+            list_web_query_output = list(set(list_web_query_output))
+            
+            # insert the ones not found in the database for future use
+            insert_curie_db_synonyms_from_list(list_web_query_output, log=log)
+
+        # combine the lists
+        list_result = list_db_cache + list_web_query_output
     
     # return
     return list_result
