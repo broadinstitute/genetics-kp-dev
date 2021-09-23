@@ -374,13 +374,13 @@ def get_request_elements(body):
 
         # TODO - get the normalized list
         # TODO - get the descendant list
-        subject_curie_list = get_normalize_curies(list_source, log=True)
+        subject_curie_list = get_normalize_curies(list_source, log=False)
         # trim curie list to what is in genepro (pulled in at start)
         subject_curie_list = trim_disease_list_tuple_to_what_is_in_the_db(subject_curie_list, SET_CACHED_PHENOTYPES)
         for curie in subject_curie_list:
             original_edge.add_source_normalized_id(curie[1], curie[0])
 
-        target_curie_list = get_normalize_curies(list_target, log=True)
+        target_curie_list = get_normalize_curies(list_target, log=False)
         # trim curie list to what is in genepro (pulled in at start)
         target_curie_list = trim_disease_list_tuple_to_what_is_in_the_db(target_curie_list, SET_CACHED_PHENOTYPES)
         # logger.info("target: {}".format(target_curie_list))
