@@ -469,7 +469,8 @@ def build_results(results_list, query_graph):
             attributes.append(provenance_child)
 
         # add in the pvalue/probability if applicable
-        attributes.append(Attribute(original_attribute_name='probability', value=edge_element.score_translator, attribute_type_id='biolink:probability'))
+        if edge_element.score_translator:
+            attributes.append(Attribute(original_attribute_name='probability', value=edge_element.score_translator, attribute_type_id='biolink:probability'))
         if edge_element.score is not None:
             # OLD - pre score translator data
             # if edge_element.score_type == 'biolink:probability':
