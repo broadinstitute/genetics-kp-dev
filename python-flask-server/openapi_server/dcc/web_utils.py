@@ -137,8 +137,14 @@ def trim_disease_list_tuple_to_what_is_in_the_db(list_input, set_cache, debug=Tr
     ''' will trim the list based on the list given; returns unique entries in the list '''
     list_result = []
 
-    # trim the list
-    list_result = [item for item in list_input if (item[1] is None or 'Gene' in item[1] or 'GO' in item[1] or item[1] in set_cache)]
+    if list_input and len(list_input) > 0:
+        # trim the list
+        list_result = [item for item in list_input if (item[1] is None or 'Gene' in item[1] or 'GO' in item[1] or item[1] in set_cache)]
+
+        # BUG fix - if provide list but return none, mak sure to return at least one ro else will get unbounded query
+        # https://github.com/NCATSTranslator/minihackathons/issues/305
+        if len(list_result) < 1:
+            list_result.append(list_input[0])
 
     # log
     if debug:
