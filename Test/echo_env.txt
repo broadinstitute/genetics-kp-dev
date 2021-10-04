@@ -1,0 +1,3 @@
+echo $FLASK_PORT 
+echo $DB_USER
+echo $DB_SCHEMA
