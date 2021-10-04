@@ -4,8 +4,8 @@ LABEL author="Marc Duby, Broad Institute"
 LABEL description="The Flannick's Lab's TRAPI Genetics KP"
 
 # get/set the environment variables
-ARG FLASK_PORT=fl_port
-ENV FLASK_PORT ${FLASK_PORT}
+ARG fl_port
+ENV FLASK_PORT=${fl_port}
 
 # update the image
 RUN apk add --update git
