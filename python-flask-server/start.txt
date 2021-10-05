@@ -14,6 +14,6 @@ export TRAN_URL_NORMALIZER=https://nodenormalization-sri.renci.org/get_normalize
 
 # python3 -m openapi_server
 
-# gunicorn -w 2 --bind 0.0.0.0:$PORT openapi_server.__main__:app --timeout 3600 --log-file $TRAN_LOG_FILE --capture-output --access-logfile $TRAN_ACCESS_LOG_FILE
+# gunicorn -w 2 --bind 0.0.0.0:$FLASK_PORT openapi_server.__main__:app --timeout 3600 --log-file $TRAN_LOG_FILE --capture-output --access-logfile $TRAN_ACCESS_LOG_FILE
 
-gunicorn -w 2 --bind 0.0.0.0:$PORT openapi_server.__main__:app --timeout 3600 --log-file $TRAN_LOG_FILE --capture-output
+gunicorn -w 2 --bind 0.0.0.0:$FLASK_PORT openapi_server.__main__:app --timeout 3600 --log-file $TRAN_LOG_FILE --capture-output
