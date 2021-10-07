@@ -65,6 +65,8 @@ create table comb_ontology_type (
   url                       varchar(4000),
   description               varchar(4000)
 );
+alter table comb_ontology_type add prefix varchar(10);
+
 
 insert into comb_ontology_type (ontology_id, ontology_name) values(1, 'NCBI Gene');
 insert into comb_ontology_type (ontology_id, ontology_name) values(2, 'MONDO disease/phenotype');
@@ -75,6 +77,14 @@ insert into comb_ontology_type (ontology_id, ontology_name) values(6, 'HP diseas
 insert into comb_ontology_type (ontology_id, ontology_name) values(7, 'NCIT disease/phenotype');
 -- 20210908 - adding MESH
 insert into comb_ontology_type (ontology_id, ontology_name) values(8, 'MESH disease/phenotype');
-
+-- add prefixes
+update comb_ontology_type set prefix='NCBIGene' where ontology_id = 1;
+update comb_ontology_type set prefix='MONDO' where ontology_id = 2;
+update comb_ontology_type set prefix='EFO' where ontology_id = 3;
+update comb_ontology_type set prefix='GO' where ontology_id = 4;
+update comb_ontology_type set prefix='UMLS' where ontology_id = 5;
+update comb_ontology_type set prefix='HP' where ontology_id = 6;
+update comb_ontology_type set prefix='NCIT' where ontology_id = 7;
+update comb_ontology_type set prefix='MESH' where ontology_id = 8;
 
 

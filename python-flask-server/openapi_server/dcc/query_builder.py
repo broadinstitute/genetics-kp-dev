@@ -1,13 +1,27 @@
 
 # import relative libraries
-dir_code = "/home/javaprog/Code/"
-import sys
-sys.path.insert(0, dir_code + 'TranslatorWorkspace/GeneticsPro/python-flask-server/')
+# dir_code = "/home/javaprog/Code/"
+# from logging import debug
+# import sys
+# sys.path.insert(0, dir_code + 'TranslatorWorkspace/GeneticsPro/python-flask-server/')
 
 # imports
 import openapi_server.dcc.utils as dcc_utils
 from openapi_server.dcc.genetics_model import GeneticsModel
 import openapi_server.dcc.biolink_utils as bio_utils
+
+from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger, build_pubmed_ids
+import os
+
+# get logger
+logger = get_logger(__name__)
+
+# constants
+limit_db_results = 200
+DB_RESULTS_LIMIT = os.environ.get('DB_RESULTS_LIMIT')
+if DB_RESULTS_LIMIT:
+    limit_db_results = DB_RESULTS_LIMIT
+logger.info("using DB results limit of: {}".format(limit_db_results))
 
 
 class DbQueryObject():
@@ -56,13 +70,13 @@ def expand_queries(web_query_object, debug=False):
         object_list.append(GeneticsModel(edge=web_query_object.get_edge,
                 source=web_query_object.get_source(),
                 target=web_query_object.get_target(),
-                source_id=web_query_object.get_source_id(),
-                target_id=web_query_object.get_target_id(),
+                list_source_id=web_query_object.get_list_source_id(),
+                list_target_id=web_query_object.get_list_target_id(),
                 edge_type=predicate,
                 source_type=subject_type,
                 target_type=object_type,
-                source_normalized_id=web_query_object.get_source_normalized_id(),
-                target_normalized_id=web_query_object.get_target_normalized_id()))
+                map_source_normalized_id=web_query_object.get_map_source_normalized_id(),
+                map_target_normalized_id=web_query_object.get_map_target_normalized_id()))
 
     # return
     return object_list
@@ -87,18 +101,23 @@ def get_queries(web_query_object):
 
     # loop through the queries and get the sql to run
     for item in query_list:
+        # OLD - pre ordering by score_translator
         # get all the p_values, sorted best first
-        sql_object = get_node_edge_score(item, score_type=dcc_utils.attribute_pvalue, return_ascending=True)
-        if sql_object is not None:
-            sql_list.append(sql_object)
+        # sql_object = get_node_edge_score(item, score_type=dcc_utils.attribute_pvalue, return_ascending=True)
+        # if sql_object is not None:
+        #     sql_list.append(sql_object)
 
-        # get all the probabilities, sorted best first
-        sql_object = get_node_edge_score(item, score_type=dcc_utils.attribute_probability, return_ascending=False)
-        if sql_object is not None:
-            sql_list.append(sql_object)
+        # # get all the probabilities, sorted best first
+        # sql_object = get_node_edge_score(item, score_type=dcc_utils.attribute_probability, return_ascending=False)
+        # if sql_object is not None:
+        #     sql_list.append(sql_object)
 
-        # get all the clinvar/clingen data, sorted best first
-        sql_object = get_node_edge_score(item, score_type=dcc_utils.attribute_classification, return_ascending=False)
+        # # get all the clinvar/clingen data, sorted best first
+        # sql_object = get_node_edge_score(item, score_type=dcc_utils.attribute_classification, return_ascending=False)
+        # if sql_object is not None:
+        #     sql_list.append(sql_object)
+
+        sql_object = get_node_edge_score(item, score_type=dcc_utils.attribute_score_translator, return_ascending=True)
         if sql_object is not None:
             sql_list.append(sql_object)
 
@@ -117,6 +136,25 @@ def add_in_equals(sql, term, is_first=True):
 
     # add in the condition
     temp = temp + str(term) + " = %s "
+
+    # return
+    return temp
+
+def add_in_in(sql, term, list_input, is_first=True):
+    ''' add in and clause to the sql '''
+    temp = str(sql)
+
+    # add in where if necessary
+    if is_first:
+        temp = temp + " where " 
+    else:
+        temp = temp + " and "
+
+    # build the in sql
+    in_sql = ", ".join(list(map(lambda item: '%s', list_input)))
+
+    # add in the condition
+    temp = temp + str(term) + " in ({}) ".format(in_sql)
 
     # return
     return temp
@@ -153,78 +191,94 @@ def add_in_more_than(sql, term, is_first=True):
     # return
     return temp
 
-def get_magma_gene_phenotype_query(web_query_object):
-    ''' takes in GeneticsModel and returns a DbQueryObject object if applicable, None otherwise '''
-    # initialize sql string
-    sql_string = None
-    param_list = []
+def add_in_more_than_equals(sql, term, is_first=True):
+    ''' add in less than clause to the sql '''
+    temp = str(sql)
 
-    # test the gene to disease tuple
-    if web_query_object.get_edge_type() == dcc_utils.edge_gene_disease and web_query_object.get_source_type() == dcc_utils.node_gene:
-        sql_string = "select concat('magma_gene_', mg.id) as id, mg.ncbi_id, mg.phenotype_ontology_id, mg.p_value, mg.gene, mg.phenotype, \
-            '" + dcc_utils.edge_gene_disease + "', '" + dcc_utils.node_gene + "', mg.biolink_category  \
-            from magma_gene_phenotype mg where mg.p_value < 0.025 "
+    # add in where if necessary
+    if is_first:
+        temp = temp + " where " 
     else:
-        return None
+        temp = temp + " and "
 
-    # add in target type if given
-    if web_query_object.get_target_type() is not None:
-        sql_string = add_in_equals(sql_string, "mg.biolink_category", False)
-        param_list.append(web_query_object.get_target_type())
+    # add in the condition
+    temp = temp + str(term) + " >= %s "
 
-    # add in source id if given
-    if web_query_object.get_source_id() is not None:
-        sql_string = add_in_equals(sql_string, "mg.ncbi_id", False)
-        param_list.append(web_query_object.get_source_id())
+    # return
+    return temp
 
-    # add in target id if given
-    if web_query_object.get_target_id() is not None:
-        sql_string = add_in_equals(sql_string, "mg.phenotype_ontology_id", False)
-        param_list.append(web_query_object.get_target_id())
+# def get_magma_gene_phenotype_query(web_query_object):
+#     ''' takes in GeneticsModel and returns a DbQueryObject object if applicable, None otherwise '''
+#     # initialize sql string
+#     sql_string = None
+#     param_list = []
 
-    # add order by at end
-    sql_string = sql_string + " ORDER by mg.p_value ASC"
+#     # test the gene to disease tuple
+#     if web_query_object.get_edge_type() == dcc_utils.edge_gene_disease and web_query_object.get_source_type() == dcc_utils.node_gene:
+#         sql_string = "select concat('magma_gene_', mg.id) as id, mg.ncbi_id, mg.phenotype_ontology_id, mg.p_value, mg.gene, mg.phenotype, \
+#             '" + dcc_utils.edge_gene_disease + "', '" + dcc_utils.node_gene + "', mg.biolink_category  \
+#             from magma_gene_phenotype mg where mg.p_value < 0.025 "
+#     else:
+#         return None
 
-    # build the query object and return
-    sql_object = DbQueryObject(sql_string, param_list)
-    return sql_object
+#     # add in target type if given
+#     if web_query_object.get_target_type() is not None:
+#         sql_string = add_in_equals(sql_string, "mg.biolink_category", False)
+#         param_list.append(web_query_object.get_target_type())
 
-def get_magma_phenotype_gene_query(web_query_object):
-    ''' takes in GeneticsModel and returns a DbQueryObject object if applicable, None otherwise '''
-    # initialize sql string
-    sql_string = None
-    param_list = []
+#     # add in source id if given
+#     if web_query_object.get_source_id() is not None:
+#         sql_string = add_in_equals(sql_string, "mg.ncbi_id", False)
+#         param_list.append(web_query_object.get_source_id())
 
-    if web_query_object.get_edge_type() == dcc_utils.edge_disease_gene and web_query_object.get_target_type() == dcc_utils.node_gene:
-        sql_string = "select concat('magma_gene_', mg.id) as id, mg.phenotype_ontology_id, mg.ncbi_id, mg.p_value, mg.phenotype, mg.gene, \
-            '" + dcc_utils.edge_disease_gene + "', mg.biolink_category, '" + dcc_utils.node_gene + "'  \
-            from magma_gene_phenotype mg where mg.p_value < 0.025 "
+#     # add in target id if given
+#     if web_query_object.get_target_id() is not None:
+#         sql_string = add_in_equals(sql_string, "mg.phenotype_ontology_id", False)
+#         param_list.append(web_query_object.get_target_id())
 
-    else:
-        return None
+#     # add order by at end
+#     sql_string = sql_string + " ORDER by mg.p_value ASC"
 
-    # add in source type if given
-    if web_query_object.get_source_type() is not None:
-        sql_string = add_in_equals(sql_string, "mg.biolink_category", False)
-        param_list.append(web_query_object.get_source_type())
+#     # build the query object and return
+#     sql_object = DbQueryObject(sql_string, param_list)
+#     return sql_object
 
-    # add in target id if given
-    if web_query_object.get_target_id() is not None:
-        sql_string = add_in_equals(sql_string, "mg.ncbi_id", False)
-        param_list.append(web_query_object.get_target_id())
+# def get_magma_phenotype_gene_query(web_query_object):
+#     ''' takes in GeneticsModel and returns a DbQueryObject object if applicable, None otherwise '''
+#     # initialize sql string
+#     sql_string = None
+#     param_list = []
 
-    # add in source id if given
-    if web_query_object.get_source_id() is not None:
-        sql_string = add_in_equals(sql_string, "mg.phenotype_ontology_id", False)
-        param_list.append(web_query_object.get_source_id())
+#     if web_query_object.get_edge_type() == dcc_utils.edge_disease_gene and web_query_object.get_target_type() == dcc_utils.node_gene:
+#         sql_string = "select concat('magma_gene_', mg.id) as id, mg.phenotype_ontology_id, mg.ncbi_id, mg.p_value, mg.phenotype, mg.gene, \
+#             '" + dcc_utils.edge_disease_gene + "', mg.biolink_category, '" + dcc_utils.node_gene + "'  \
+#             from magma_gene_phenotype mg where mg.p_value < 0.025 "
+
+#     else:
+#         return None
+
+#     # add in source type if given
+#     if web_query_object.get_source_type() is not None:
+#         sql_string = add_in_equals(sql_string, "mg.biolink_category", False)
+#         param_list.append(web_query_object.get_source_type())
+
+#     # add in target id if given
+#     if web_query_object.get_target_id() is not None:
+#         sql_string = add_in_equals(sql_string, "mg.ncbi_id", False)
+#         param_list.append(web_query_object.get_target_id())
+
+#     # add in source id if given
+#     if web_query_object.get_source_id() is not None:
+#         sql_string = add_in_equals(sql_string, "mg.phenotype_ontology_id", False)
+#         param_list.append(web_query_object.get_source_id())
         
-    # add order by at end
-    sql_string = sql_string + " ORDER by mg.p_value ASC"
+#     # add order by at end
+#     sql_string = sql_string + " ORDER by mg.p_value ASC"
 
-    # build the query object and returnget_magma_gene_query
+#     # build the query object and returnget_magma_gene_query
 
 
-def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue, return_ascending=True, limit=500):
+def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue, return_ascending=True, limit=limit_db_results):
     ''' takes in GeneticsModel and returns a DbQueryObject object if applicable, None otherwise '''
     # initialize sql string
     sql_string = None
@@ -253,11 +307,19 @@ def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue,
     #         where ed.source_code = so.node_code and ed.target_code = ta.node_code and ed.edge_type_id = ted.type_id and so.node_type_id = tso.type_id and ta.node_type_id = tta.type_id \
     #         and ed.score_type_id = sco_type.type_id and ed.source_type_id = so.node_type_id and ed.target_type_id = ta.node_type_id "
 
-    sql_string = "select concat(ed.edge_id, so.ontology_id, ta.ontology_id), so.ontology_id, ta.ontology_id, ed.score, sco_type.type_name, \
-            so.node_name, ta.node_name, ted.type_name, tso.type_name, tta.type_name, ed.study_id, ed.publication_ids, ed.score_translator \
-        from comb_edge_node ed, comb_node_ontology so, comb_node_ontology ta, comb_lookup_type ted, comb_lookup_type tso, comb_lookup_type tta, comb_lookup_type sco_type \
-        where ed.edge_type_id = ted.type_id and so.node_type_id = tso.type_id and ta.node_type_id = tta.type_id \
-        and ed.score_type_id = sco_type.type_id and ed.source_node_id = so.id and ed.target_node_id = ta.id "
+    # OLD - pre query ordered by score_translator
+    # sql_string = "select concat(ed.edge_id, so.ontology_id, ta.ontology_id), so.ontology_id, ta.ontology_id, ed.score, sco_type.type_name, \
+    #         so.node_name, ta.node_name, ted.type_name, tso.type_name, tta.type_name, ed.study_id, ed.publication_ids, ed.score_translator \
+    #     from comb_edge_node ed, comb_node_ontology so, comb_node_ontology ta, comb_lookup_type ted, comb_lookup_type tso, comb_lookup_type tta, comb_lookup_type sco_type \
+    #     where ed.edge_type_id = ted.type_id and so.node_type_id = tso.type_id and ta.node_type_id = tta.type_id \
+    #     and ed.score_type_id = sco_type.type_id and ed.source_node_id = so.id and ed.target_node_id = ta.id "
+
+    if score_type == dcc_utils.attribute_score_translator:
+        sql_string = "select concat(ed.edge_id, so.ontology_id, ta.ontology_id), so.ontology_id, ta.ontology_id, ed.score, sco_type.type_name, \
+                so.node_name, ta.node_name, ted.type_name, tso.type_name, tta.type_name, ed.study_id, ed.publication_ids, ed.score_translator \
+            from comb_edge_node ed, comb_node_ontology so, comb_node_ontology ta, comb_lookup_type ted, comb_lookup_type tso, comb_lookup_type tta, comb_lookup_type sco_type \
+            where ed.edge_type_id = ted.type_id and so.node_type_id = tso.type_id and ta.node_type_id = tta.type_id \
+            and ed.score_type_id = sco_type.type_id and ed.source_node_id = so.id and ed.target_node_id = ta.id "
 
     # replace sql string if using classification; substitute ed.score_text for ed.score
     if score_type == dcc_utils.attribute_classification:
@@ -295,47 +357,58 @@ def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue,
         sql_string = add_in_equals(sql_string, "tta.type_name", False)
         param_list.append(web_query_object.get_target_type())
 
-    # add in score type if given
-    if score_type is not None:
-        sql_string = add_in_equals(sql_string, "sco_type.type_name", False)
-        param_list.append(score_type)
+    # OLD - pre ordering by translator score
+    # # add in score type if given
+    # if score_type is not None:
+    #     sql_string = add_in_equals(sql_string, "sco_type.type_name", False)
+    #     param_list.append(score_type)
 
-    # add in score lower bound if score type is p_value 
-    if score_type is not None:
-        if score_type == dcc_utils.attribute_pvalue:
-            sql_string = add_in_less_than(sql_string, "ed.score", False)
-            param_list.append(0.0000025)
-            # TODO - use for testing
-            # param_list.append(0.0025)
+    # # add in score lower bound if score type is p_value 
+    # if score_type is not None:
+    #     if score_type == dcc_utils.attribute_pvalue:
+    #         sql_string = add_in_less_than(sql_string, "ed.score", False)
+    #         param_list.append(0.0000025)
+    #         # TODO - use for testing
+    #         # param_list.append(0.0025)
 
-    # add in score lower bound if score type is p_value 
-    if score_type is not None:
-        if score_type == dcc_utils.attribute_probability:
-            sql_string = add_in_more_than(sql_string, "ed.score", False)
-            param_list.append(1.1)
+    # # add in score lower bound if score type is p_value 
+    # if score_type is not None:
+    #     if score_type == dcc_utils.attribute_probability:
+    #         sql_string = add_in_more_than_equals(sql_string, "ed.score", False)
+    #         param_list.append(0.15)
 
     # add in source id if given
     # if web_query_object.get_source_id() is not None:
     #     sql_string = add_in_equals(sql_string, "so.ontology_id", False)
     #     param_list.append(web_query_object.get_source_id())
     # print("=====================================for normalized id {}".format(web_query_object.get_source_normalized_id()))
-    if web_query_object.get_source_normalized_id() is not None:
-        sql_string = add_in_equals(sql_string, "so.ontology_id", False)
-        param_list.append(web_query_object.get_source_normalized_id())
+    # if web_query_object.get_source_normalized_id() is not None:
+    #     sql_string = add_in_equals(sql_string, "so.ontology_id", False)
+    #     param_list.append(web_query_object.get_source_normalized_id())
+    if web_query_object.get_list_source_id():
+        list_input = web_query_object.get_list_source_id()
+        sql_string = add_in_in(sql=sql_string, term="so.ontology_id", list_input=list_input, is_first=False)
+        param_list += list_input
         
     # add in target id if given
     # if web_query_object.get_target_id() is not None:
     #     sql_string = add_in_equals(sql_string, "ta.ontology_id", False)
     #     param_list.append(web_query_object.get_target_id())
-    if web_query_object.get_target_normalized_id() is not None:
-        sql_string = add_in_equals(sql_string, "ta.ontology_id", False)
-        param_list.append(web_query_object.get_target_normalized_id())
+    # if web_query_object.get_target_normalized_id() is not None:
+    #     sql_string = add_in_equals(sql_string, "ta.ontology_id", False)
+    #     param_list.append(web_query_object.get_target_normalized_id())
+    if web_query_object.get_list_target_id():
+        list_input = web_query_object.get_list_target_id()
+        sql_string = add_in_in(sql=sql_string, term="ta.ontology_id", list_input=list_input, is_first=False)
+        param_list += list_input
 
+    # OLD - pre ordering by translator score
     # add order by at end
-    if return_ascending:
-        sql_string = sql_string + " order by ed.score"
-    else:
-        sql_string = sql_string + " order by ed.score"
+    # if return_ascending:
+    #     sql_string = sql_string + " order by ed.score"
+    # else:
+    #     sql_string = sql_string + " order by ed.score"
+    sql_string = sql_string + " order by ed.score_translator desc"
 
     # add limit
     if limit:

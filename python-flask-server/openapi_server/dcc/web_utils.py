@@ -1,9 +1,11 @@
 
+from logging import log
 import connexion
 import six
 import pymysql
 import copy
 import os
+import time 
 
 from openapi_server.models.message import Message
 from openapi_server.models.knowledge_graph import KnowledgeGraph
@@ -17,7 +19,7 @@ from openapi_server.models.attribute import Attribute
 
 from openapi_server import util
 
-from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger, build_pubmed_ids
+from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger, build_pubmed_ids, get_normalize_curies
 from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
 import openapi_server.dcc.query_builder as qbuilder
 
@@ -25,7 +27,9 @@ import openapi_server.dcc.query_builder as qbuilder
 logger = get_logger(__name__)
 
 # constants
-list_ontology_prefix = ['UMLS', 'NCIT', 'MONDO', 'EFO', 'NCBIGene', 'GO', 'HP']
+list_ontology_prefix = ['UMLS', 'NCIT', 'MONDO', 'EFO', 'NCBIGene', 'GO', 'HP', 'MESH']
+list_ontology_prefix_avoid = ['FMA', 'CHEMBL.TARGET', 'CHEMBL.COMPOUND', 'PUBCHEM.COMPOUND', 'UNII', 'CHEBI', 'DRUGBANK', 'CAS', 'DrugCentral', 'KEGG.COMPOUND', 'INCHIKEY', 'GTOPDB']
+
 # infores
 PROVENANCE_INFORES_KP_GENETICS='infores:genetics-data-provider'
 PROVENANCE_INFORES_CLINVAR='infores:clinvar'
@@ -124,7 +128,27 @@ def trim_disease_list_to_what_is_in_the_db(list_input, set_cache, debug=True):
 
     # log
     if debug:
-        logger.info("for input list of {} - {} return {} - {}".format(len(list_input), list_input, len(list_result), list_result))
+        logger.info("for input list of {} - {} return cached result {} - {}".format(len(list_input), list_input, len(list_result), list_result))
+
+    # return
+    return list_result
+
+def trim_disease_list_tuple_to_what_is_in_the_db(list_input, set_cache, debug=True):
+    ''' will trim the list based on the list given; returns unique entries in the list '''
+    list_result = []
+
+    if list_input and len(list_input) > 0:
+        # trim the list
+        list_result = [item for item in list_input if (item[1] is None or 'Gene' in item[1] or 'GO' in item[1] or item[1] in set_cache)]
+
+        # BUG fix - if provide list but return none, mak sure to return at least one ro else will get unbounded query
+        # https://github.com/NCATSTranslator/minihackathons/issues/305
+        if len(list_result) < 1:
+            list_result.append(list_input[0])
+
+    # log
+    if debug:
+        logger.info("for input list of {} - {} return cached result {} - {}".format(len(list_input), list_input, len(list_result), list_result))
 
     # return
     return list_result
@@ -319,23 +343,111 @@ def get_request_elements(body):
             targetNode['node_key'] = edge.get('object')
 
         # create the edge/node object from the original query
-        original_edge = GeneticsModel(edge, sourceNode, targetNode)
+        original_edge = GeneticsModel(edge=edge, source=sourceNode, target=targetNode, map_source_normalized_id={}, map_target_normalized_id={})
+        logger.info(original_edge)
 
-        # split the source and target ids
-        list_source = original_edge.get_source_ids() if original_edge.get_source_ids() is not None and len(original_edge.get_source_ids()) > 0 else [None]
-        list_target = original_edge.get_target_ids() if original_edge.get_target_ids() is not None and len(original_edge.get_target_ids()) > 0 else [None]
-
-        # make sure each list has unique items
+        # get source and target lists with unique items
+        list_source = original_edge.get_original_source_ids() if original_edge.get_original_source_ids() is not None and len(original_edge.get_original_source_ids()) > 0 else []
+        list_target = original_edge.get_original_target_ids() if original_edge.get_original_target_ids() is not None and len(original_edge.get_original_target_ids()) > 0 else []
         list_source = list(set(list_source))
         list_target = list(set(list_target))
+    
+        # filter out the ontologies we don't service
+        list_temp = []
+        for item in list_source:
+            if item.split(':')[0] not in list_ontology_prefix_avoid:
+                list_temp.append(item)
+            else:
+                logger.info("skipping non serviced source: {}".format(item))
+        list_source = list_temp
+        list_temp = []
+        for item in list_target:
+            if item.split(':')[0] not in list_ontology_prefix_avoid:
+                list_temp.append(item)
+            else:
+                logger.info("skipping non serviced target: {}".format(item))
+        list_target = list_temp
 
-        # for each combination, create a new request model object
-        for sitem in list_source:
-            for titem in list_target:
-                new_edge = GeneticsModel(edge, sourceNode, targetNode, source_id=sitem, target_id=titem)
+
+        # test the new normalizing function
+        # logger.info("=====================================================")
+        # logger.info("=====================================================")
+        # logger.info("=====================================================")
+        # test_source = get_normalize_curies(list_source, log=True)
+        # logger.info("found new: {} for original: {}".format(len(test_source), len(list_source)))
+        # logger.info("=====================================================")
+        # logger.info("=====================================================")
+
+        # TODO - get the normalized list
+        # TODO - get the descendant list
+        subject_curie_list = get_normalize_curies(list_source, log=False)
+        # trim curie list to what is in genepro (pulled in at start)
+        subject_curie_list = trim_disease_list_tuple_to_what_is_in_the_db(subject_curie_list, SET_CACHED_PHENOTYPES)
+        for curie in subject_curie_list:
+            original_edge.add_source_normalized_id(curie[1], curie[0])
+
+        target_curie_list = get_normalize_curies(list_target, log=False)
+        # trim curie list to what is in genepro (pulled in at start)
+        target_curie_list = trim_disease_list_tuple_to_what_is_in_the_db(target_curie_list, SET_CACHED_PHENOTYPES)
+        # logger.info("target: {}".format(target_curie_list))
+        for curie in target_curie_list:
+            original_edge.add_target_normalized_id(curie[1], curie[0])
+
+
+        # list_temp = []
+        # for item in list_source:
+        #     # if curie already put in curie list, then no need to get synonyms/children since it already has been searched
+        #     if not item in list_temp:
+        #         subject_curie_name, subject_curie_list = get_curie_synonyms(item, prefix_list=list_ontology_prefix, type_name='subject', log=True)
+        #         list_temp += subject_curie_list
+
+        #         # trim curie list to what is in genepro (pulled in at start)
+        #         subject_curie_list = trim_disease_list_to_what_is_in_the_db(subject_curie_list, SET_CACHED_PHENOTYPES)
+        #         for curie in subject_curie_list:
+        #             original_edge.add_source_normalized_id(curie, item)
+        #     else:
+        #         logger.info("skip source curie since already in list: {}".format(item))
+        # list_temp = []
+        # for item in list_target:
+        #     # if curie already put in curie list, then no need to get synonyms/children
+        #     if not item in list_temp:
+        #         target_curie_name, target_curie_list = get_curie_synonyms(item, prefix_list=list_ontology_prefix, type_name='target', log=True)
+        #         list_temp += target_curie_list
+
+        #         # trim curie list to what is in genepro (pulled in at start)
+        #         target_curie_list = trim_disease_list_to_what_is_in_the_db(target_curie_list, SET_CACHED_PHENOTYPES)
+        #         for curie in target_curie_list:
+        #             original_edge.add_target_normalized_id(curie, item)
+        #     else:
+        #         logger.info("skip target curie since already in list: {}".format(item))
+
+        # TODO - trim the lists to unique values
+        # should be done by map with key as sql input curies
+        # TODO - trim the lists to what we have in cache
+
+        # add new object to result list
+        results.append(original_edge)
+
+        # log
+        logger.info("query with normalized source list: {}".format(original_edge.get_map_source_normalized_id().keys()))
+        logger.info("query with normalized target list: {}".format(original_edge.get_map_target_normalized_id().keys()))
+        logger.info("query with source count: {} and target count: {}".format(len(original_edge.get_map_source_normalized_id()), len(original_edge.get_map_target_normalized_id())))
+
+        # split the source and target ids
+        # list_source = original_edge.get_source_ids() if original_edge.get_source_ids() is not None and len(original_edge.get_source_ids()) > 0 else [None]
+        # list_target = original_edge.get_target_ids() if original_edge.get_target_ids() is not None and len(original_edge.get_target_ids()) > 0 else [None]
+
+        # # make sure each list has unique items
+        # list_source = list(set(list_source))
+        # list_target = list(set(list_target))
+
+        # # for each combination, create a new request model object
+        # for sitem in list_source:
+        #     for titem in list_target:
+        #         new_edge = GeneticsModel(edge, sourceNode, targetNode, source_id=sitem, target_id=titem)
                 
-                # add to the list
-                results.append(new_edge)
+        #         # add to the list
+        #         results.append(new_edge)
 
     # return
     return results
@@ -363,12 +475,17 @@ def build_results(results_list, query_graph):
             attributes.append(provenance_child)
 
         # add in the pvalue/probability if applicable
+        if edge_element.score_translator:
+            attributes.append(Attribute(original_attribute_name='probability', value=edge_element.score_translator, attribute_type_id='biolink:probability'))
         if edge_element.score is not None:
-            if edge_element.score_type == 'biolink:probability':
-                attributes.append(Attribute(original_attribute_name='probability', value=edge_element.score, attribute_type_id=edge_element.score_type))
-            elif edge_element.score_type == 'biolink:classification':
+            # OLD - pre score translator data
+            # if edge_element.score_type == 'biolink:probability':
+            #     attributes.append(Attribute(original_attribute_name='probability', value=edge_element.score, attribute_type_id=edge_element.score_type))
+
+            # add p_value or classification if available
+            if edge_element.score_type == 'biolink:classification':
                 attributes.append(Attribute(original_attribute_name='classification', value=edge_element.score, attribute_type_id=edge_element.score_type))
-            else:
+            elif edge_element.score_type == 'biolink:p_value':
                 attributes.append(Attribute(original_attribute_name='pValue', value=edge_element.score, attribute_type_id=edge_element.score_type))
             # print("added attributes: {}".format(attributes))
 
@@ -425,8 +542,15 @@ def query(request_body):  # noqa: E501
     # verify all operations asked for are supported
     if request_body.get("workflow") and len(request_body.get("workflow")) > 0:
         logger.info("got workflow: {}".format(request_body.get("workflow")))
+        for item in request_body.get("workflow"):
+            workflow_item = item.get('id')
+            if workflow_item != 'lookup':
+                return ({"status": 400, "title": "Workflow {} not implemented".format(workflow_item), "detail": "Workflow {} not implemented".format(workflow_item), "type": "about:blank" }, 400)
     else:
         logger.info("no workflow specified")
+
+    # tag start time
+    start = time.time()
 
     if connexion.request.is_json:
         # initialize
@@ -467,85 +591,112 @@ def query(request_body):  # noqa: E501
         # only allow small queries
         if len(request_input) > MAX_SIZE_ID_LIST:
             logger.error("too big request, asking for {} combinations".format(len(request_input)))
-            return ({"status": 507, "title": "Quesry too large", "detail": "Query too large, exceeds the {} subject/object combination size".format(MAX_SIZE_ID_LIST), "type": "about:blank" }, 507)
+            return ({"status": 413, "title": "Query payload too large", "detail": "Query payload too large, exceeds the {} subject/object combination size".format(MAX_SIZE_ID_LIST), "type": "about:blank" }, 413)
 
  
         for web_request_object in request_input:
             # log
-            logger.info("running query for web query object: {}\n".format(web_request_object))
+            # logger.info("running query for web query object: {}\n".format(web_request_object))
 
-            # get the normalized curies
-            # keep track of whether result came in for this curie; returns name from NN and synonym curie list
-            subject_curie_name, subject_curie_list = get_curie_synonyms(web_request_object.get_source_id(), prefix_list=list_ontology_prefix, type_name='subject', log=True)
-            target_curie_name, target_curie_list = get_curie_synonyms(web_request_object.get_target_id(), prefix_list=list_ontology_prefix, type_name='target', log=True)
+            # NOTE - now done in request oebject building
+            # # get the normalized curies
+            # # keep track of whether result came in for this curie; returns name from NN and synonym curie list
+            # subject_curie_name, subject_curie_list = get_curie_synonyms(web_request_object.get_source_id(), prefix_list=list_ontology_prefix, type_name='subject', log=True)
+            # target_curie_name, target_curie_list = get_curie_synonyms(web_request_object.get_target_id(), prefix_list=list_ontology_prefix, type_name='target', log=True)
 
-            # trim source/target lists to what we have in db
-            subject_curie_list = trim_disease_list_to_what_is_in_the_db(subject_curie_list, SET_CACHED_PHENOTYPES)
-            target_curie_list = trim_disease_list_to_what_is_in_the_db(target_curie_list, SET_CACHED_PHENOTYPES)
+            # # trim source/target lists to what we have in db
+            # subject_curie_list = trim_disease_list_to_what_is_in_the_db(subject_curie_list, SET_CACHED_PHENOTYPES)
+            # target_curie_list = trim_disease_list_to_what_is_in_the_db(target_curie_list, SET_CACHED_PHENOTYPES)
 
             # queries
-            found_results_already = False
-            for source_curie in subject_curie_list:
-                for target_curie in target_curie_list:
-                    # only run next normalized curie in list if there were no other results, or else will get duplicate results
+            # NOTE - implemented batch subject/target input
+            # for source_curie in subject_curie_list:
+            #     for target_curie in target_curie_list:
+            #         # only run next normalized curie in list if there were no other results, or else will get duplicate results
 
-                    # TODO - might have to implement uniqueness on the PK returned (use set); took out duplicate check
-                    # if not found_results_already:   # TODO - might not be needed anymore since ncats NN and each disease/phenotype entry should only have one curie in the DB
-                    # set the normalized curie for the call
-                    web_request_object.set_source_normalized_id(source_curie)
-                    web_request_object.set_target_normalized_id(target_curie)
-                    queries = qbuilder.get_queries(web_request_object)
+            # TODO - might have to implement uniqueness on the PK returned (use set); took out duplicate check
+            # if not found_results_already:   # TODO - might not be needed anymore since ncats NN and each disease/phenotype entry should only have one curie in the DB
+            # set the normalized curie for the call
+            # web_request_object.set_source_normalized_id(source_curie)
+            # web_request_object.set_target_normalized_id(target_curie)
+            # make sure it is not an unbounded query (that we have matched with at leat one source/target)
+            if len(web_request_object.get_list_source_id()) > 0 or len(web_request_object.get_list_target_id()) > 0:
+                queries = qbuilder.get_queries(web_request_object)
 
-                    # if results
-                    if len(queries) > 0:
-                        found_results_already = True
-                        for i in range(0, len(queries)):
-                            sql_object = queries[i]
-                            # print("running query: {}\n".format(sql_object))
-                            cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
-                            results = cursor.fetchall()
-                            # print("result of type {} is {}".format(type(results), results))
-                            if results:
-                                for record in results:
-                                    edgeID    = record[0]
-                                    if web_request_object.get_source_id() is not None:
-                                        sourceID  = web_request_object.get_source_id()
-                                    else:
-                                        sourceID  = record[1]
+                # if results
+                if len(queries) > 0:
+                    found_results_already = True
+                    for i in range(0, len(queries)):
+                        sql_object = queries[i]
+                        logger.info("running query: {}\n".format(sql_object))
+                        cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
+                        results = cursor.fetchall()
+                        # print("result of type {} is {}".format(type(results), results))
+                        logger.info("for DB query got result count of: {}".format(len(results)))
+                        if results:
+                            for record in results:
+                                edgeID    = record[0]
+                                sourceID  = record[1]
+                                targetID  = record[2]
+                                originalSourceID  = record[1]
+                                originalTargetID  = record[2]
 
-                                    if web_request_object.get_target_id() is not None:
-                                        targetID  = web_request_object.get_target_id()
-                                    else:
-                                        targetID  = record[2]
+                                # find original source/target IDs
+                                if web_request_object.get_map_source_normalized_id().get(sourceID):
+                                    originalSourceID  = web_request_object.get_map_source_normalized_id().get(sourceID)
 
-                                    # sourceID  = record[1]
-                                    # targetID  = record[2]
-                                    score     = record[3]
-                                    scoreType = record[4]
-                                    sourceName = record[5]
-                                    targetName = record[6]
-                                    edgeType = record[7]
-                                    sourceType = record[8]
-                                    targetType = record[9]
-                                    studyTypeId = record[10]
-                                    publications = record[11]
-                                    score_translator = record[12]
+                                if web_request_object.get_map_target_normalized_id().get(targetID):
+                                    originalTargetID  = web_request_object.get_map_target_normalized_id().get(targetID)
+                                # else:
+                                #     logger.info(web_request_object.get_map_target_normalized_id())
+                                # logger.info("original: {}, converted: {}".format(targetID, originalTargetID))
 
-                                    # build the result objects
-                                    source_node = NodeOuput(curie=sourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
-                                    target_node = NodeOuput(curie=targetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
-                                    output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
-                                        score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, 
-                                        publication_ids=publications, score_translator=score_translator)
+                                score     = record[3]
+                                scoreType = record[4]
+                                sourceName = record[5]
+                                targetName = record[6]
+                                edgeType = record[7]
+                                sourceType = record[8]
+                                targetType = record[9]
+                                studyTypeId = record[10]
+                                publications = record[11]
+                                score_translator = record[12]
 
-                                    # add to the results list
-                                    genetics_results.append(output_edge)
+                                # build the result objects
+                                source_node = NodeOuput(curie=originalSourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
+                                target_node = NodeOuput(curie=originalTargetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
+                                output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
+                                    score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, 
+                                    publication_ids=publications, score_translator=score_translator)
+
+                                # add to the results list
+                                genetics_results.append(output_edge)
+                    
+            else:
+                logger.info("no source/target inputs that we have, so skip")
+
+        # log
+        logger.info("for query \n{}".format(request_body))
+        num_source = 0
+        if web_request_object.get_original_source_ids():
+            num_source = len(web_request_object.get_original_source_ids())
+        num_target = 0
+        if web_request_object.get_original_target_ids():
+            num_target = len(web_request_object.get_original_target_ids())
+        logger.info("web query with source count: {} and target count: {} return total edge count: {}".format(num_source, num_target, len(genetics_results)))
 
         # close the connection
         cnx.close()
 
         # build the response
         query_response = build_results(results_list=genetics_results, query_graph=query_graph)
+
+        # tag and print the time elapsed
+        end = time.time()
+        time_elapsed = end - start
+        logger.info("web query with source: {} and target: {} return total edge: {} in time: {}s".format(num_source, num_target, len(genetics_results), time_elapsed))
+
+        # return
         return query_response
 
     else :
