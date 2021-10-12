@@ -24,8 +24,8 @@ sudo docker build \
     --build-arg db_host=localhost \
     --build-arg db_user=root \
     --build-arg db_passwd=password \
-    --build-arg db_schema=tran_test_202108 \
-    --build-arg db_cache_schema=translator_cache \
+    --build-arg db_schema=genetics_kp_schema \
+    --build-arg db_cache_schema=genetics_kp_schema \
     --build-arg db_results_limit=150 \
     --build-arg tran_log_file=genepro.log \
     --build-arg tran_max_query_size=100000 \
