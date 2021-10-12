@@ -7,7 +7,22 @@ To deploy a dockerized version of this service, follow the following steps:
 * cd into the newly checked out directory; the two main files are
   * Dockerfile - provides the commands to build the docker image
   * build_docker.txt - provides the command options to build the docker image
-* modify the build_docker.txt script (or a copy of it) to set the following docker variables which are used by the Dockerfile
+* run the command below or modify the build_docker.txt script (or a copy of it) to set the following docker variables which are used by the Dockerfile
+```
+sudo docker build \
+    --build-arg fl_port=8090 \
+    --build-arg db_host=localhost \
+    --build-arg db_user=root \
+    --build-arg db_passwd=password \
+    --build-arg db_schema=tran_test_202108 \
+    --build-arg db_cache_schema=translator_cache \
+    --build-arg db_results_limit=150 \
+    --build-arg tran_log_file=genepro.log \
+    --build-arg tran_max_query_size=100000 \
+    --build-arg tran_url_normalizer=https://nodenormalization-sri.renci.org/get_normalized_nodes \
+    .
+
+```
   * fl_port - the network port that the application services
   * db_host - the Mysql database host
   * db_user - the Mysql database user name
@@ -18,8 +33,11 @@ To deploy a dockerized version of this service, follow the following steps:
   * tran_log_file - the location of the log file the application will log its messages to
   * tran_max_query_size - this indicates how big a query size the service will accept (recommended default is 100000)
   * tran_url_normalizer - the URL of the NCATS node normalizer service (default is https://nodenormalization-sri.renci.org/get_normalized_nodes)
-* build the docker image using the build_docker.txt file (. ./build_docker.txt)
-* deploy the docker image
+
+* deploy the docker image making sure to open up the application port
+```
+sudo docker run --rm -p 8090:8090 <docker_image_id>
+```
 
 # Data Available
 The Genetics KP provides the following data
