@@ -8,6 +8,16 @@ To deploy a dockerized version of this service, follow the following steps:
   * Dockerfile - provides the commands to build the docker image
   * build_docker.txt - provides the command options to build the docker image
 * run the command below or modify the build_docker.txt script (or a copy of it) to set the following docker variables which are used by the Dockerfile
+  * fl_port - the network port that the application services
+  * db_host - the Mysql database host
+  * db_user - the Mysql database user name
+  * db_passwd - the Mysql database user password
+  * db_schema - the Mysql database schema for the application
+  * db_cache_schema - the Mysql database schema for the application cache (default is the same as the regular schema)
+  * db_results_limit - the maximum limit of how many results the service will send back (default is 150)
+  * tran_log_file - the location of the log file the application will log its messages to
+  * tran_max_query_size - this indicates how big a query size the service will accept (recommended default is 100000)
+  * tran_url_normalizer - the URL of the NCATS node normalizer service (default is https://nodenormalization-sri.renci.org/get_normalized_nodes)
 ```
 sudo docker build \
     --build-arg fl_port=8090 \
@@ -23,17 +33,6 @@ sudo docker build \
     .
 
 ```
-  * fl_port - the network port that the application services
-  * db_host - the Mysql database host
-  * db_user - the Mysql database user name
-  * db_passwd - the Mysql database user password
-  * db_schema - the Mysql database schema for the application
-  * db_cache_schema - the Mysql database schema for the application cache (default is the same as the regular schema)
-  * db_results_limit - the maximum limit of how many results the service will send back (default is 150)
-  * tran_log_file - the location of the log file the application will log its messages to
-  * tran_max_query_size - this indicates how big a query size the service will accept (recommended default is 100000)
-  * tran_url_normalizer - the URL of the NCATS node normalizer service (default is https://nodenormalization-sri.renci.org/get_normalized_nodes)
-
 * deploy the docker image making sure to open up the application port
 ```
 sudo docker run --rm -p 8090:8090 <docker_image_id>
