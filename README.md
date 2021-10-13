@@ -27,7 +27,7 @@ sudo docker build \
     --build-arg db_schema=genetics_kp_schema \
     --build-arg db_cache_schema=genetics_kp_schema \
     --build-arg db_results_limit=150 \
-    --build-arg tran_log_file=genepro.log \
+    --build-arg tran_log_file=logs/genepro.log \
     --build-arg tran_max_query_size=100000 \
     --build-arg tran_url_normalizer=https://nodenormalization-sri.renci.org/get_normalized_nodes \
     .
@@ -35,7 +35,7 @@ sudo docker build \
 ```
 * deploy the docker image making sure to open up the application port
 ```
-sudo docker run --rm -p 8090:8090 <docker_image_id>
+sudo docker run --rm -p 8090:8090 -v <CONTAINER_LOG_DIR>:/home/CodeTest/GeneticsPro/python-flask-server/logs <DOCKER_IMAGE_ID>
 ```
 
 # Data Available
