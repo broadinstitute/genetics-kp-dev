@@ -2,8 +2,8 @@
 sudo docker build \
     --build-arg fl_port=8090 \
     --build-arg db_host=localhost \
-    --build-arg db_user=root \
-    --build-arg db_passwd=password \
+    --build-arg db_user=genetics-rds-admin \
+    --build-arg db_passwd=aocaik7Peib2eiquoosh \
     --build-arg db_schema=tran_test_202108 \
     --build-arg db_cache_schema=translator_cache \
     --build-arg db_results_limit=150 \
