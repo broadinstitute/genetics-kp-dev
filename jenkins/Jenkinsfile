@@ -84,14 +84,14 @@ pipeline {
             steps {
                 sshagent (credentials: ['0360ecc2-120b-49df-ad82-a1c53fa961d0']) {
                     dir(".") {
-                        sh 'git clone git@github.com:azadeheskandari/genetics-kp-dev.git'
+                        sh 'git clone -b gphp git@github.com:Sphinx-Automation/translator-ops.git'
                         configFileProvider([
-                            configFile(fileId: 'genetics-kp-ci-env', targetLocation: 'translator-ops/ops/geneticskp/.env')
+                            configFile(fileId: 'genetics-kp-ci-env', targetLocation: '/ops/geneticskp/.env')
                         ]){
                             withAWS(credentials:'aws-ifx-deploy') {
                                 sh '''
                                 aws --region ${AWS_REGION} eks update-kubeconfig --name ${KUBERNETES_CLUSTER_NAME}
-                                cd translator-ops/ops/geneticskp/
+                                cd /ops/geneticskp/
                                 /bin/bash deploy.sh
                                 '''
                             }
