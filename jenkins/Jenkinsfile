@@ -29,7 +29,7 @@ pipeline {
                         return !params.BUILD_VERSION
                     }
                     anyOf {
-                        changeset "genetics-kp-dev/*"
+                        changeset "*"
                         triggeredBy 'UserIdCause'
                     }
                 }
@@ -52,7 +52,7 @@ pipeline {
                         return !params.BUILD_VERSION
                     }
                     anyOf {
-                        changeset "genetics-kp-dev/*"
+                        changeset "*"
                         triggeredBy 'UserIdCause'
                     }
                 }
@@ -62,7 +62,7 @@ pipeline {
                     "IMAGE_NAME=translator-genetics-provider",
                     "BUILD_VERSION=" + (params.BUILD_VERSION ?: env.BUILD_VERSION)
                 ]) {
-                    dir("genetics-kp-dev/") {
+                    dir(".") {
                         script {
                              docker.build("${env.IMAGE_NAME}", "--build-arg SOURCE_FOLDER=./${BUILD_VERSION} --no-cache .")
 
@@ -77,13 +77,13 @@ pipeline {
         stage('Deploy') {
             when {
                 anyOf {
-                    changeset "genetics-kp-dev/*"
+                    changeset "*"
                     triggeredBy 'UserIdCause'
                 }
             }
             steps {
                 sshagent (credentials: ['917d2cc8-84fe-4faf-89e5-25ea6649be83']) {
-                    dir("genetics-kp-dev/") {
+                    dir(".") {
                         sh 'git clone --branch gpkp git@github.com:Sphinx-Automation/translator-ops.git'
                         configFileProvider([
                             configFile(fileId: 'genetics-kp-ci-env', targetLocation: 'translator-ops/ops/geneticskp/.env')
