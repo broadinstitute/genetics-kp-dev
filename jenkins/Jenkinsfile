@@ -84,7 +84,7 @@ pipeline {
             steps {
                 sshagent (credentials: ['917d2cc8-84fe-4faf-89e5-25ea6649be83']) {
                     dir(".") {
-                        sh 'git clone --branch gpkp git@github.com:Sphinx-Automation/translator-ops.git'
+                        sh 'git clone --branch gpkp git@github.com:azadeheskandari/genetics-kp-dev.git'
                         configFileProvider([
                             configFile(fileId: 'genetics-kp-ci-env', targetLocation: 'translator-ops/ops/geneticskp/.env')
                         ]){
