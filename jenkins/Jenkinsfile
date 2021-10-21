@@ -91,6 +91,7 @@ pipeline {
                             withAWS(credentials:'aws-ifx-deploy') {
                                 sh '''
                                 aws --region ${AWS_REGION} eks update-kubeconfig --name ${KUBERNETES_CLUSTER_NAME}
+                                cd translator-ops/ops/geneticskp/
                                 /bin/bash deploy.sh
                                 '''
                             }
