@@ -86,7 +86,7 @@ pipeline {
                     dir(".") {
                         sh 'git clone -b gpkp git@github.com:Sphinx-Automation/translator-ops.git'
                         configFileProvider([
-                            configFile(fileId: 'genetics-kp-ci-env', targetLocation: '.env')
+                            configFile(fileId: 'genetics-kp-ci-env', targetLocation: 'translator-ops/ops/geneticskp/.env')
                         ]){
                             withAWS(credentials:'aws-ifx-deploy') {
                                 sh '''
