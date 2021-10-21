@@ -11,7 +11,7 @@ RUN apk add --update bash
 RUN mkdir /home/CodeTest       
 RUN cd /home/CodeTest 
 # RUN git clone -b md_mysql_batch https://github.com/broadinstitute/genetics-kp-dev /home/CodeTest/GeneticsPro
-RUN git clone https://github.com/broadinstitute/genetics-kp-dev /home/CodeTest/GeneticsPro
+RUN git clone git@github.com:azadeheskandari/genetics-kp-dev.git /home/CodeTest/GeneticsPro
 RUN cd /home/CodeTest/GeneticsPro
 
 # install python libraries
