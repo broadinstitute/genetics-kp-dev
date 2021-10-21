@@ -1,6 +1,6 @@
 
 sudo docker build \
-    --build-arg fl_port=8090 \
+    --build-arg fl_port=8080 \
     --build-arg db_host=localhost \
     --build-arg db_user=genetics-rds-admin \
     --build-arg db_passwd=aocaik7Peib2eiquoosh \
