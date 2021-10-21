@@ -26,7 +26,7 @@ ARG fl_port
 ENV FLASK_PORT=8080
 
 ARG db_host
-ENV DB_HOST=localhost
+ENV DB_HOST=transltr-ci-rds-genetics-provider-mysql.ceyknq0yekb3.us-east-1.rds.amazonaws.com
 
 ARG db_user
 ENV DB_USER=genetics-rds-admin
