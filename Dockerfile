@@ -55,7 +55,7 @@ ENV TRAN_URL_NORMALIZER=$tran_url_normalizer
 EXPOSE $FLASK_PORT
 
 # create the logs directory
-RUN mkdir /home/CodeTest/GeneticsPro/python-flask-server/logs
+# RUN mkdir /home/CodeTest/GeneticsPro/python-flask-server/logs
 
 # set working directory
 # WORKDIR /home/CodeTest/GeneticsPro/python-flask-server
