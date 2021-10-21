@@ -21,8 +21,9 @@ RUN pip3 install connexion==2.7.0
 
 # get/set the environment variables
 # NOTE: set this below checkout code to speed up testing (can use cached tag for checkout)
+
 ARG fl_port
-ENV FLASK_PORT=$fl_port
+ENV FLASK_PORT=8080
 
 ARG db_host
 ENV DB_HOST=$db_host
