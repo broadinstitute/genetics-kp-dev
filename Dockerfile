@@ -11,7 +11,7 @@ RUN apk add --update bash
 RUN mkdir /home/CodeTest       
 RUN cd /home/CodeTest 
 # RUN git clone -b md_mysql_batch https://github.com/broadinstitute/genetics-kp-dev /home/CodeTest/GeneticsPro
-RUN git clone git@github.com:azadeheskandari/genetics-kp-dev.git /home/CodeTest/GeneticsPro
+RUN git clone https://github.com/broadinstitute/genetics-kp-dev /home/CodeTest/GeneticsPro
 RUN cd /home/CodeTest/GeneticsPro
 
 # install python libraries
@@ -62,6 +62,6 @@ EXPOSE $FLASK_PORT
 WORKDIR /home/CodeTest/GeneticsPro/python-flask-server
 
 # CMD cat /proc/version
-CMD gunicorn -w 2 --bind 0.0.0.0:$FLASK_PORT openapi_server.__main__:app --timeout 3600 --log-file $TRAN_LOG_FILE --capture-output
+CMD gunicorn -w 2 --bind 0.0.0.0:$FLASK_PORT openapi_server.__main__:app --timeout 3600
 # CMD . /home/CodeTest/GeneticsPro/Test/echo_env.txt
 
