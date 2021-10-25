@@ -71,15 +71,25 @@ pipeline {
                                          string(credentialsId: 'GENETICSPROVIDER_DB_CACHE_SCHEMA' , variable: 'GENETICSPROVIDER_CACHE_SCHEMA'),
                                          string(credentialsId: 'GENETICSPROVIDER_DB_RESULTS_LIMIT' , variable: 'GENETICSPROVIDER_DB_RESULTS_LIMIT'),
                                          string(credentialsId: 'GENETICSPROVIDER_TRAN_MAX_QUERY_SIZE' , variable: 'GENETICSPROVIDER_TRAN_MAX_QUERY_SIZE'),
-                                         string(credentialsId: 'GENETICSPROVIDER_TRAN_URL_NORMALIZER' , variable: 'GENETICSPROVIDER_TRAN_URL_NORMALIZER'),
-                                         string(credentialsId: 'GENETICSPROVIDER_ENVIRONMENT' , variable: 'GENETICSPROVIDER_ENVIRONMENT')])
+                                         string(credentialsId: 'GENETICSPROVIDER_TRAN_URL_NORMALIZER' , variable: 'GENETICSPROVIDER_TRAN_URL_NORMALIZER')]) {
                         script {
-                             docker.build("${env.IMAGE_NAME}", "--build-arg SOURCE_FOLDER=./${BUILD_VERSION} --no-cache .")
+                             sh "docker build -t ${env.IMAGE_NAME}, --build-arg SOURCE_FOLDER=./${BUILD_VERSION} --no-cache \
+                                     --build-arg fl_port=${GENETICSPROVIDER_FLASK_PORT} \
+                                     --build-arg db_host=${GENETICSPROVIDER_DB_HOST} \
+                                     --build-arg db_user=${GENETICSPROVIDER_DB_USER} \
+                                     --build-arg db_passwd=${GENETICSPROVIDER_DB_PASSWD} \
+                                     --build-arg db_schema=${GENETICSPROVIDER_DB_SCHEMA} \
+                                     --build-arg db_cache_schema=${GENETICSPROVIDER_DB_CACHE_SCHEMA} \
+                                     --build-arg db-results_limit=${GENETICSPROVIDER_DB_RESULTS_LIMIT} \
+                                     --build-arg tran_max_query_size=${GENETICSPROVIDER_TRAN_MAX_QUERY_SIZE} \
+                                     --build-arg tran_url_normalizer=${GENETICSPROVIDER_TRAN_URL_NORMALIZER}  . "
 
                                  docker.withRegistry('https://853771734544.dkr.ecr.us-east-1.amazonaws.com', 'ecr:us-east-1:ifx-jenkins-ci') {
                                      docker.image("${env.IMAGE_NAME}").push("${BUILD_VERSION}")
                             }
                         }
+
+                      } 
                     }
                 }
             }

@@ -23,34 +23,34 @@ RUN pip3 install connexion==2.7.0
 # NOTE: set this below checkout code to speed up testing (can use cached tag for checkout)
 
 ARG fl_port
-ENV FLASK_PORT=8080
+ENV FLASK_PORT=$fl_port
 
 ARG db_host
-ENV DB_HOST=transltr-ci-rds-genetics-provider-mysql.ceyknq0yekb3.us-east-1.rds.amazonaws.com
+ENV DB_HOST=$db_host
 
 ARG db_user
-ENV DB_USER=genetics-rds-admin
+ENV DB_USER=$db_user
 
 ARG db_passwd
-ENV DB_PASSWD=aocaik7Peib2eiquoosh
+ENV DB_PASSWD=$db_passwd
 
 ARG db_schema
-ENV DB_SCHEMA=genetics_kp_schema
+ENV DB_SCHEMA=$db_schema
 
 ARG db_cache_schema
-ENV DB_CACHE_SCHEMA=genetics_kp_schema
+ENV DB_CACHE_SCHEMA=$db_cache_schema
 
 ARG db_results_limit
-ENV DB_RESULTS_LIMIT=150
+ENV DB_RESULTS_LIMIT=$db_results_limit
 
 ARG tran_max_query_size
-ENV TRAN_MAX_QUERY_SIZE=100000
+ENV TRAN_MAX_QUERY_SIZE=$tran_max_query_size
 
 ARG tran_url_normalizer
-ENV TRAN_URL_NORMALIZER=https://nodenormalization-sri.renci.org/get_normalized_nodes
+ENV TRAN_URL_NORMALIZER=$tran_url_normalizer
 
 # expose the flask port
-EXPOSE 8080
+EXPOSE $FLASK_PORT
 
 # create the logs directory
 # RUN mkdir /home/CodeTest/GeneticsPro/python-flask-server/logs
@@ -60,6 +60,6 @@ EXPOSE 8080
 WORKDIR /home/CodeTest/GeneticsPro/python-flask-server
 
 # CMD cat /proc/version
-CMD gunicorn -w 2 --bind 0.0.0.0:8080 openapi_server.__main__:app --timeout 3600
+CMD gunicorn -w 2 --bind 0.0.0.0:$FLASK_PORT openapi_server.__main__:app --timeout 3600
 # CMD . /home/CodeTest/GeneticsPro/Test/echo_env.txt
 
