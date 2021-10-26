@@ -60,6 +60,6 @@ EXPOSE $FLASK_PORT
 WORKDIR /home/CodeTest/GeneticsPro/python-flask-server
 
 # CMD cat /proc/version
-CMD gunicorn -w 2 --bind 0.0.0.0:$FLASK_PORT openapi_server.__main__:app --timeout 3600
+CMD gunicorn -w 2 --bind 0.0.0.0:8080 openapi_server.__main__:app --timeout 3600
 # CMD . /home/CodeTest/GeneticsPro/Test/echo_env.txt
 
