@@ -22,7 +22,7 @@ RUN pip3 install connexion==2.7.0
 # expose the flask port
 EXPOSE $FLASK_PORT
 
-create the logs directory
+#create the logs directory
 RUN mkdir /home/CodeTest/GeneticsPro/python-flask-server/logs
 
 # set working directory
