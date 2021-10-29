@@ -23,5 +23,6 @@ jobs:
     - name: Test with pytest
       run: |
         pip install pytest
+        pip install requests
         export PYTHONPATH=python-flask-server
         pytest python-flask-server/tests/cloud/
