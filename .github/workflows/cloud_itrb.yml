@@ -25,4 +25,4 @@ jobs:
         pip install pytest
         export PYTHONPATH=python-flask-server
         cd python-flask-server
-        pytest
+        pytest tests/cloud/

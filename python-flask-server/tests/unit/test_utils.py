@@ -10,15 +10,13 @@ def test_get_curie_synonyms():
     # test curie that matches already
     curie = 'EFO:0000289'
     name, result = get_curie_synonyms(curie, ['EFO', 'MONDO'], log=False)
-    assert len(result) == 2
+    assert len(result) == 17
     assert curie in result
 
     # test no curie
     curie = None
     name, result = get_curie_synonyms(curie, ['EFO', 'MONDO'])
-    assert len(result) == 1
-    assert result[0] == curie
-    assert result[0] is None
+    assert len(result) == 0
 
     # test no curie
     curie = "NCIT:C122516"

@@ -30,7 +30,7 @@ class TestQueryController(BaseTestCase):
         # call the service
         response = self.client.open(
             # '/query',
-            '/genetics_provider/trapi/v1.1/query',
+            '/genetics_provider/trapi/v1.2/query',
             method='POST',
             data=json.dumps(request_body),
             content_type='application/json')

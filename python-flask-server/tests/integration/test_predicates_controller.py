@@ -20,7 +20,7 @@ class TestPredicatesController(BaseTestCase):
             # '/predicates',
             '/genetics_provider/trapi/v1.1/predicates',
             method='GET')
-        self.assert200(response,
+        self.assert404(response,
                        'Response body is : ' + response.data.decode('utf-8'))
 
 
