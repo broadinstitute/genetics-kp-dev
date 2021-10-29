@@ -24,4 +24,5 @@ jobs:
       run: |
         pip install pytest
         export PYTHONPATH=python-flask-server
-        ls
+        cd python-flask-server
+        pytest
