@@ -1,4 +1,4 @@
-name: Python application
+name: Test ITRB Cloud
 
 on: 
   push:
@@ -26,3 +26,4 @@ jobs:
         pip install requests
         export PYTHONPATH=python-flask-server
         pytest python-flask-server/tests/cloud/
+        pytest python-flask-server/tests/unit/
