@@ -1,8 +1,8 @@
-name: Test ITRB Cloud
+name: Test Unit Tests
 
 on: 
-  schedule:
-  - cron: '00 6,12,20 * * *'   # 3 times a day
+  push:
+    branches: [ master ]
 
 jobs:
   build:
@@ -25,4 +25,4 @@ jobs:
         pip install pytest
         pip install requests
         export PYTHONPATH=python-flask-server
-        pytest python-flask-server/tests/cloud/
+        pytest python-flask-server/tests/unit/test_biolink_utils.py
