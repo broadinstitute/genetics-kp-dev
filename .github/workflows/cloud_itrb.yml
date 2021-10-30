@@ -24,6 +24,7 @@ jobs:
       run: |
         pip install pytest
         pip install requests
+        pip install PyMySQL==0.10.1
         export PYTHONPATH=python-flask-server
         pytest python-flask-server/tests/cloud/
         pytest python-flask-server/tests/unit/
