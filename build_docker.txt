@@ -11,3 +11,4 @@ sudo docker build \
     --build-arg tran_max_query_size=100000 \
     --build-arg tran_url_normalizer=https://nodenormalization-sri.renci.org/get_normalized_nodes \
     .
+
