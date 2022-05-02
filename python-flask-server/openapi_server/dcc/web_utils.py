@@ -41,7 +41,7 @@ PROVENANCE_INFORES_GENEBASS='infores:genebass'
 PROVENANCE_AGGREGATOR_KP_GENETICS = Attribute(value = PROVENANCE_INFORES_KP_GENETICS,
     attribute_type_id = 'biolink:aggregator_knowledge_source',
     value_type_id = 'biolink:InformationResource',
-    value_url = 'https://translator.broadinstitute.org/genetics_provider/trapi/v1.1',
+    value_url = 'https://translator.broadinstitute.org/genetics_provider/trapi/v1.2',
     description = 'The Genetics Data Provider KP from NCATS Translator',
     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
 PROVENANCE_AGGREGATOR_CLINVAR = Attribute(value = PROVENANCE_INFORES_CLINVAR,

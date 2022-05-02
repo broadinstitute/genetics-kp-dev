@@ -1,0 +1,2127 @@
+{
+    "openapi": "3.0.2",
+    "info": {
+        "title": "Automat Textmining KP (trapi v-1.2.0)",
+        "version": "1.2.0-7",
+        "x-translator": {
+            "component": "KP",
+            "team": [
+                "Ranking Agent"
+            ],
+            "biolink-version": "1.8.2",
+            "infores": "infores:automat-text-mining-provider"
+        },
+        "contact": {
+            "email": "kebedey@renci.org",
+            "name": "Yaphet Kebede",
+            "x-id": "https://github.com/yaphetkg",
+            "x-role": "contributor"
+        },
+        "termsOfService": "http://robokop.renci.org:7055/tos?service_long=Automat Textmining KP&provider_long=RENCI",
+        "description": " A literature co-occurrence graph created by the Translator Text Mining KP.",
+        "x-trapi": {
+            "operation": [
+                "lookup",
+                "overlay_connect_knodes",
+                "annotate_nodes"
+            ],
+            "version": "1.2.0"
+        }
+    },
+    "servers": [
+        {
+            "description": "Default server",
+            "url": "https://automat.renci.org/textminingkp/1.2",
+            "x-maturity": "production",
+            "x-location": "RENCI"
+        }
+    ],
+    "tags": [
+        {
+            "name": "translator"
+        },
+        {
+            "name": "automat"
+        },
+        {
+            "name": "trapi"
+        }
+    ],
+    "paths": {
+        "/meta_knowledge_graph": {
+            "get": {
+                "tags": [
+                    "trapi"
+                ],
+                "summary": "Meta knowledge graph representation of this TRAPI web service.",
+                "description": "Returns meta knowledge graph representation of this TRAPI web service.",
+                "operationId": "get_meta_knowledge_graph_meta_knowledge_graph_get",
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/MetaKnowledgeGraph"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        },
+        "/query": {
+            "post": {
+                "tags": [
+                    "trapi"
+                ],
+                "summary": "Query reasoner via one of several inputs.",
+                "description": "Handle TRAPI request.",
+                "operationId": "reasoner_api_query_post",
+                "requestBody": {
+                    "content": {
+                        "application/json": {
+                            "schema": {
+                                "$ref": "#/components/schemas/ReasonerRequest"
+                            },
+                            "example": {
+                                "message": {
+                                    "query_graph": {
+                                        "nodes": {
+                                            "n0": {
+                                                "categories": [
+                                                    "biolink:Gene"
+                                                ]
+                                            },
+                                            "n1": {
+                                                "ids": [
+                                                    "MONDO:0004969"
+                                                ],
+                                                "categories": [
+                                                    "biolink:Disease"
+                                                ]
+                                            }
+                                        },
+                                        "edges": {
+                                            "e0": {
+                                                "subject": "n0",
+                                                "object": "n1",
+                                                "predicates": [
+                                                    "biolink:related_to"
+                                                ]
+                                            }
+                                        }
+                                    }
+                                },
+                                "workflow": [
+                                    {
+                                        "id": "lookup"
+                                    }
+                                ]
+                            }
+                        }
+                    },
+                    "required": true
+                },
+                "responses": {
+                    "200": {
+                        "description": "Successful Response",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/ReasonerRequest"
+                                }
+                            }
+                        }
+                    },
+                    "422": {
+                        "description": "Validation Error",
+                        "content": {
+                            "application/json": {
+                                "schema": {
+                                    "$ref": "#/components/schemas/HTTPValidationError"
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+    },
+    "components": {
+        "schemas": {
+            "AboveOrBelowEnum": {
+                "title": "AboveOrBelowEnum",
+                "enum": [
+                    "above",
+                    "below"
+                ],
+                "type": "string",
+                "description": "'above' or 'below'."
+            },
+            "AnnotateEdgesParameters": {
+                "title": "AnnotateEdgesParameters",
+                "type": "object",
+                "properties": {
+                    "attributes": {
+                        "title": "Attributes",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "AnnotateNodesParameters": {
+                "title": "AnnotateNodesParameters",
+                "type": "object",
+                "properties": {
+                    "attributes": {
+                        "title": "Attributes",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "AscOrDescEnum": {
+                "title": "AscOrDescEnum",
+                "enum": [
+                    "ascending",
+                    "descending"
+                ],
+                "type": "string",
+                "description": "'ascending' or 'descending'."
+            },
+            "Attribute": {
+                "title": "Attribute",
+                "required": [
+                    "attribute_type_id",
+                    "value"
+                ],
+                "type": "object",
+                "properties": {
+                    "attribute_type_id": {
+                        "title": "type",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/CURIE"
+                            }
+                        ]
+                    },
+                    "value": {
+                        "title": "value"
+                    },
+                    "value_type_id": {
+                        "title": "value_type_id",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/CURIE"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "original_attribute_name": {
+                        "title": "Original Attribute Name",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "value_url": {
+                        "title": "Value Url",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "attribute_source": {
+                        "title": "Attribute Source",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "description": {
+                        "title": "Description",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "attributes": {
+                        "title": "Attributes",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/SubAttribute"
+                        },
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false,
+                "description": "Node/edge attribute."
+            },
+            "BiolinkEntity": {
+                "title": "biolink entity",
+                "pattern": "^biolink:[A-Z][a-zA-Z]*$",
+                "type": "string",
+                "description": "Biolink entity."
+            },
+            "BiolinkPredicate": {
+                "title": "biolink predicate",
+                "pattern": "^biolink:[a-z][a-z_]*$",
+                "type": "string",
+                "description": "Biolink predicate."
+            },
+            "CURIE": {
+                "title": "CURIE",
+                "type": "string",
+                "description": "Compact URI."
+            },
+            "Edge": {
+                "title": "knowledge-graph edge",
+                "required": [
+                    "subject",
+                    "object"
+                ],
+                "type": "object",
+                "properties": {
+                    "subject": {
+                        "title": "subject node id",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/CURIE"
+                            }
+                        ]
+                    },
+                    "object": {
+                        "title": "object node id",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/CURIE"
+                            }
+                        ]
+                    },
+                    "predicate": {
+                        "title": "Predicate",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/BiolinkPredicate"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "attributes": {
+                        "title": "Attributes",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Attribute"
+                        },
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false,
+                "description": "Knowledge graph edge."
+            },
+            "EdgeBinding": {
+                "title": "edge binding",
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "knowledge graph id",
+                        "type": "string"
+                    },
+                    "attributes": {
+                        "title": "Attributes",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Attribute"
+                        },
+                        "nullable": true
+                    }
+                },
+                "description": "Edge binding.",
+                "example": {
+                    "id": "string"
+                }
+            },
+            "EnrichResultsParameters": {
+                "title": "EnrichResultsParameters",
+                "type": "object",
+                "properties": {
+                    "pvalue_threshold": {
+                        "title": "Pvalue Threshold",
+                        "maximum": 1.0,
+                        "minimum": 0.0,
+                        "type": "number",
+                        "default": "1e-06"
+                    },
+                    "qnode_keys": {
+                        "title": "Qnode Keys",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "FillParameters": {
+                "title": "FillParameters",
+                "type": "object",
+                "properties": {}
+            },
+            "FilterKgraphContinuousKedgeAttributeParameters": {
+                "title": "FilterKgraphContinuousKedgeAttributeParameters",
+                "required": [
+                    "edge_attribute",
+                    "threshold",
+                    "remove_above_or_below"
+                ],
+                "type": "object",
+                "properties": {
+                    "edge_attribute": {
+                        "title": "Edge Attribute",
+                        "type": "string"
+                    },
+                    "threshold": {
+                        "title": "Threshold",
+                        "type": "number"
+                    },
+                    "remove_above_or_below": {
+                        "$ref": "#/components/schemas/AboveOrBelowEnum"
+                    },
+                    "qedge_keys": {
+                        "title": "Qedge Keys",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "qnode_keys": {
+                        "title": "Qnode Keys",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                }
+            },
+            "FilterKgraphDiscreteKedgeAttributeParameters": {
+                "title": "FilterKgraphDiscreteKedgeAttributeParameters",
+                "required": [
+                    "edge_attribute"
+                ],
+                "type": "object",
+                "properties": {
+                    "edge_attribute": {
+                        "title": "Edge Attribute",
+                        "type": "string"
+                    },
+                    "remove_value": {
+                        "title": "Remove Value"
+                    },
+                    "qedge_keys": {
+                        "title": "Qedge Keys",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "qnode_keys": {
+                        "title": "Qnode Keys",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                }
+            },
+            "FilterKgraphDiscreteKnodeAttributeParameters": {
+                "title": "FilterKgraphDiscreteKnodeAttributeParameters",
+                "required": [
+                    "node_attribute"
+                ],
+                "type": "object",
+                "properties": {
+                    "node_attribute": {
+                        "title": "Node Attribute",
+                        "type": "string"
+                    },
+                    "remove_value": {
+                        "title": "Remove Value"
+                    },
+                    "qnode_keys": {
+                        "title": "Qnode Keys",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "FilterKgraphPercentileParameters": {
+                "title": "FilterKgraphPercentileParameters",
+                "required": [
+                    "edge_attribute"
+                ],
+                "type": "object",
+                "properties": {
+                    "edge_attribute": {
+                        "title": "Edge Attribute",
+                        "type": "string"
+                    },
+                    "threshold": {
+                        "title": "Threshold",
+                        "maximum": 100.0,
+                        "minimum": 0.0,
+                        "type": "number",
+                        "default": 95
+                    },
+                    "remove_above_or_below": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/AboveOrBelowEnum"
+                            }
+                        ],
+                        "default": "below"
+                    },
+                    "qedge_keys": {
+                        "title": "Qedge Keys",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "qnode_keys": {
+                        "title": "Qnode Keys",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                }
+            },
+            "FilterKgraphStdDevParameters": {
+                "title": "FilterKgraphStdDevParameters",
+                "required": [
+                    "edge_attribute"
+                ],
+                "type": "object",
+                "properties": {
+                    "edge_attribute": {
+                        "title": "Edge Attribute",
+                        "type": "string"
+                    },
+                    "plus_or_minus_std_dev": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/PlusOrMinusEnum"
+                            }
+                        ],
+                        "default": "plus"
+                    },
+                    "num_sigma": {
+                        "title": "Num Sigma",
+                        "minimum": 0.0,
+                        "type": "number",
+                        "default": 1
+                    },
+                    "remove_above_or_below": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/AboveOrBelowEnum"
+                            }
+                        ],
+                        "default": "below"
+                    },
+                    "qedge_keys": {
+                        "title": "Qedge Keys",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "qnode_keys": {
+                        "title": "Qnode Keys",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                }
+            },
+            "FilterKgraphTopNParameters": {
+                "title": "FilterKgraphTopNParameters",
+                "required": [
+                    "edge_attribute"
+                ],
+                "type": "object",
+                "properties": {
+                    "edge_attribute": {
+                        "title": "Edge Attribute",
+                        "type": "string"
+                    },
+                    "max_edges": {
+                        "title": "Max Edges",
+                        "maximum": 0.0,
+                        "type": "integer",
+                        "default": 50
+                    },
+                    "remove_top_or_bottom": {
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/TopOrBottomEnum"
+                            }
+                        ],
+                        "default": "top"
+                    },
+                    "qedge_keys": {
+                        "title": "Qedge Keys",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "qnode_keys": {
+                        "title": "Qnode Keys",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        },
+                        "default": []
+                    }
+                }
+            },
+            "FilterResultsTopNParameters": {
+                "title": "FilterResultsTopNParameters",
+                "required": [
+                    "max_results"
+                ],
+                "type": "object",
+                "properties": {
+                    "max_results": {
+                        "title": "Max Results",
+                        "minimum": 0.0,
+                        "type": "integer"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "HTTPValidationError": {
+                "title": "HTTPValidationError",
+                "type": "object",
+                "properties": {
+                    "detail": {
+                        "title": "Detail",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/ValidationError"
+                        }
+                    }
+                }
+            },
+            "KnowledgeGraph": {
+                "title": "knowledge graph",
+                "required": [
+                    "nodes",
+                    "edges"
+                ],
+                "type": "object",
+                "properties": {
+                    "nodes": {
+                        "title": "nodes",
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/Node"
+                        }
+                    },
+                    "edges": {
+                        "title": "edges",
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/Edge"
+                        }
+                    }
+                },
+                "description": "Knowledge graph."
+            },
+            "LogLevel": {
+                "$ref": "#/components/schemas/LogLevelEnum",
+                "title": "LogLevel",
+                "description": "Log level."
+            },
+            "LogLevelEnum": {
+                "title": "LogLevelEnum",
+                "enum": [
+                    "ERROR",
+                    "WARNING",
+                    "INFO",
+                    "DEBUG"
+                ],
+                "type": "string",
+                "description": "Log level."
+            },
+            "Message": {
+                "title": "message",
+                "type": "object",
+                "properties": {
+                    "query_graph": {
+                        "title": "query graph",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/QueryGraph"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "knowledge_graph": {
+                        "title": "knowledge graph",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/KnowledgeGraph"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "results": {
+                        "title": "list of results",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Result"
+                        },
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false,
+                "description": "Message."
+            },
+            "MetaAttribute": {
+                "title": "MetaAttribute",
+                "required": [
+                    "attribute_type_id"
+                ],
+                "type": "object",
+                "properties": {
+                    "attribute_type_id": {
+                        "$ref": "#/components/schemas/CURIE"
+                    },
+                    "attribute_source": {
+                        "title": "Attribute Source",
+                        "type": "string"
+                    },
+                    "original_attribute_names": {
+                        "title": "Original Attribute Names",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "constraint_use": {
+                        "title": "Constraint Use",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "constraint_name": {
+                        "title": "Constraint Name",
+                        "type": "string"
+                    }
+                },
+                "description": "MetaAttribute."
+            },
+            "MetaEdge": {
+                "title": "MetaEdge",
+                "required": [
+                    "subject",
+                    "predicate",
+                    "object"
+                ],
+                "type": "object",
+                "properties": {
+                    "subject": {
+                        "$ref": "#/components/schemas/BiolinkEntity"
+                    },
+                    "predicate": {
+                        "$ref": "#/components/schemas/BiolinkPredicate"
+                    },
+                    "object": {
+                        "$ref": "#/components/schemas/BiolinkEntity"
+                    },
+                    "attributes": {
+                        "title": "Attributes",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MetaAttribute"
+                        }
+                    }
+                },
+                "additionalProperties": false
+            },
+            "MetaKnowledgeGraph": {
+                "title": "MetaKnowledgeGraph",
+                "required": [
+                    "nodes",
+                    "edges"
+                ],
+                "type": "object",
+                "properties": {
+                    "nodes": {
+                        "title": "Nodes",
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/MetaNode"
+                        }
+                    },
+                    "edges": {
+                        "title": "Edges",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MetaEdge"
+                        }
+                    }
+                }
+            },
+            "MetaNode": {
+                "title": "MetaNode",
+                "required": [
+                    "id_prefixes"
+                ],
+                "type": "object",
+                "properties": {
+                    "id_prefixes": {
+                        "title": "Id Prefixes",
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "attributes": {
+                        "title": "Attributes",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/MetaAttribute"
+                        }
+                    }
+                },
+                "additionalProperties": false
+            },
+            "Node": {
+                "title": "knowledge-graph node",
+                "type": "object",
+                "properties": {
+                    "categories": {
+                        "title": "categories",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BiolinkEntity"
+                        },
+                        "nullable": true
+                    },
+                    "name": {
+                        "title": "Name",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "attributes": {
+                        "title": "Attributes",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/Attribute"
+                        },
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false,
+                "description": "Knowledge graph node.",
+                "example": {
+                    "category": "string"
+                }
+            },
+            "NodeBinding": {
+                "title": "node binding",
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "title": "knowledge graph id",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/CURIE"
+                            }
+                        ]
+                    }
+                },
+                "description": "Node binding.",
+                "example": {
+                    "id": "x:string"
+                }
+            },
+            "Operation": {
+                "title": "Operation",
+                "anyOf": [
+                    {
+                        "$ref": "#/components/schemas/OperationAnnotate"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationAnnotateEdges"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationAnnotateNodes"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationBind"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationCompleteResults"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationEnrichResults"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationFill"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationFilterKgraph"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationFilterKgraphContinuousKedgeAttribute"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationFilterKgraphDiscreteKedgeAttribute"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationFilterKgraphDiscreteKnodeAttribute"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationFilterKgraphOrphans"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationFilterKgraphPercentile"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationFilterKgraphStdDev"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationFilterKgraphTopN"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationFilterResults"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationFilterResultsTopN"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationLookup"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationOverlay"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationOverlayComputeJaccard"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationOverlayComputeNgd"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationOverlayConnectKnodes"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationOverlayFisherExactTest"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationRestate"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationScore"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationSortResults"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationSortResultsEdgeAttribute"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationSortResultsNodeAttribute"
+                    },
+                    {
+                        "$ref": "#/components/schemas/OperationSortResultsScore"
+                    }
+                ]
+            },
+            "OperationAnnotate": {
+                "title": "OperationAnnotate",
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/annotate"
+                    },
+                    "parameters": {
+                        "title": "Parameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationAnnotateEdges": {
+                "title": "OperationAnnotateEdges",
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/annotate_edges"
+                    },
+                    "parameters": {
+                        "$ref": "#/components/schemas/AnnotateEdgesParameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationAnnotateNodes": {
+                "title": "OperationAnnotateNodes",
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/annotate_nodes"
+                    },
+                    "parameters": {
+                        "$ref": "#/components/schemas/AnnotateNodesParameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationBind": {
+                "title": "OperationBind",
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/bind"
+                    },
+                    "parameters": {
+                        "title": "Parameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationCompleteResults": {
+                "title": "OperationCompleteResults",
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/complete_results"
+                    },
+                    "parameters": {
+                        "title": "Parameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationEnrichResults": {
+                "title": "OperationEnrichResults",
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/enrich_results"
+                    },
+                    "parameters": {
+                        "$ref": "#/components/schemas/EnrichResultsParameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationFill": {
+                "title": "OperationFill",
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/fill"
+                    },
+                    "parameters": {
+                        "$ref": "#/components/schemas/FillParameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationFilterKgraph": {
+                "title": "OperationFilterKgraph",
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/filter_kgraph"
+                    },
+                    "parameters": {
+                        "title": "Parameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationFilterKgraphContinuousKedgeAttribute": {
+                "title": "OperationFilterKgraphContinuousKedgeAttribute",
+                "required": [
+                    "id",
+                    "parameters"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/filter_kgraph_continuous_kedge_attribute"
+                    },
+                    "parameters": {
+                        "$ref": "#/components/schemas/FilterKgraphContinuousKedgeAttributeParameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationFilterKgraphDiscreteKedgeAttribute": {
+                "title": "OperationFilterKgraphDiscreteKedgeAttribute",
+                "required": [
+                    "id",
+                    "parameters"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/filter_kgraph_discrete_kedge_attribute"
+                    },
+                    "parameters": {
+                        "$ref": "#/components/schemas/FilterKgraphDiscreteKedgeAttributeParameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationFilterKgraphDiscreteKnodeAttribute": {
+                "title": "OperationFilterKgraphDiscreteKnodeAttribute",
+                "required": [
+                    "id",
+                    "parameters"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/filter_kgraph_discrete_knode_attribute"
+                    },
+                    "parameters": {
+                        "$ref": "#/components/schemas/FilterKgraphDiscreteKnodeAttributeParameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationFilterKgraphOrphans": {
+                "title": "OperationFilterKgraphOrphans",
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/filter_kgraph_orphans"
+                    },
+                    "parameters": {
+                        "title": "Parameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationFilterKgraphPercentile": {
+                "title": "OperationFilterKgraphPercentile",
+                "required": [
+                    "id",
+                    "parameters"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/filter_kgraph_percentile"
+                    },
+                    "parameters": {
+                        "$ref": "#/components/schemas/FilterKgraphPercentileParameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationFilterKgraphStdDev": {
+                "title": "OperationFilterKgraphStdDev",
+                "required": [
+                    "id",
+                    "parameters"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/filter_kgraph_std_dev"
+                    },
+                    "parameters": {
+                        "$ref": "#/components/schemas/FilterKgraphStdDevParameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationFilterKgraphTopN": {
+                "title": "OperationFilterKgraphTopN",
+                "required": [
+                    "id",
+                    "parameters"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/filter_kgraph_top_n"
+                    },
+                    "parameters": {
+                        "$ref": "#/components/schemas/FilterKgraphTopNParameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationFilterResults": {
+                "title": "OperationFilterResults",
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/filter_results"
+                    },
+                    "parameters": {
+                        "title": "Parameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationFilterResultsTopN": {
+                "title": "OperationFilterResultsTopN",
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/filter_results_top_n"
+                    },
+                    "parameters": {
+                        "$ref": "#/components/schemas/FilterResultsTopNParameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationLookup": {
+                "title": "OperationLookup",
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/lookup"
+                    },
+                    "parameters": {
+                        "title": "Parameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationOverlay": {
+                "title": "OperationOverlay",
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/overlay"
+                    },
+                    "parameters": {
+                        "title": "Parameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationOverlayComputeJaccard": {
+                "title": "OperationOverlayComputeJaccard",
+                "required": [
+                    "id",
+                    "parameters"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/overlay_compute_jaccard"
+                    },
+                    "parameters": {
+                        "$ref": "#/components/schemas/OverlayComputeJaccardParameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationOverlayComputeNgd": {
+                "title": "OperationOverlayComputeNgd",
+                "required": [
+                    "id",
+                    "parameters"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/overlay_compute_ngd"
+                    },
+                    "parameters": {
+                        "$ref": "#/components/schemas/OverlayComputeNgdParameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationOverlayConnectKnodes": {
+                "title": "OperationOverlayConnectKnodes",
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/overlay_connect_knodes"
+                    },
+                    "parameters": {
+                        "title": "Parameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationOverlayFisherExactTest": {
+                "title": "OperationOverlayFisherExactTest",
+                "required": [
+                    "id",
+                    "parameters"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/overlay_fisher_exact_test"
+                    },
+                    "parameters": {
+                        "$ref": "#/components/schemas/OverlayFisherExactTestParameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationRestate": {
+                "title": "OperationRestate",
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/restate"
+                    },
+                    "parameters": {
+                        "title": "Parameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationScore": {
+                "title": "OperationScore",
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/score"
+                    },
+                    "parameters": {
+                        "title": "Parameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationSortResults": {
+                "title": "OperationSortResults",
+                "required": [
+                    "id"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/sort_results"
+                    },
+                    "parameters": {
+                        "title": "Parameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationSortResultsEdgeAttribute": {
+                "title": "OperationSortResultsEdgeAttribute",
+                "required": [
+                    "id",
+                    "parameters"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/sort_results_edge_attribute"
+                    },
+                    "parameters": {
+                        "$ref": "#/components/schemas/SortResultsEdgeAttributeParameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationSortResultsNodeAttribute": {
+                "title": "OperationSortResultsNodeAttribute",
+                "required": [
+                    "id",
+                    "parameters"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/sort_results_node_attribute"
+                    },
+                    "parameters": {
+                        "$ref": "#/components/schemas/SortResultsNodeAttributeParameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "OperationSortResultsScore": {
+                "title": "OperationSortResultsScore",
+                "required": [
+                    "id",
+                    "parameters"
+                ],
+                "type": "object",
+                "properties": {
+                    "id": {
+                        "$ref": "#/components/schemas/sort_results_score"
+                    },
+                    "parameters": {
+                        "$ref": "#/components/schemas/SortResultsScoreParameters"
+                    }
+                },
+                "additionalProperties": false
+            },
+            "Operator": {
+                "title": "Operator",
+                "enum": [
+                    "==",
+                    ">",
+                    "<",
+                    "matches"
+                ],
+                "type": "string",
+                "description": "Operator."
+            },
+            "OverlayComputeJaccardParameters": {
+                "title": "OverlayComputeJaccardParameters",
+                "required": [
+                    "intermediate_node_key",
+                    "end_node_keys",
+                    "virtual_relation_label"
+                ],
+                "type": "object",
+                "properties": {
+                    "intermediate_node_key": {
+                        "title": "Intermediate Node Key",
+                        "type": "string"
+                    },
+                    "end_node_keys": {
+                        "title": "End Node Keys",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "virtual_relation_label": {
+                        "title": "Virtual Relation Label",
+                        "type": "string"
+                    }
+                }
+            },
+            "OverlayComputeNgdParameters": {
+                "title": "OverlayComputeNgdParameters",
+                "required": [
+                    "qnode_keys",
+                    "virtual_relation_label"
+                ],
+                "type": "object",
+                "properties": {
+                    "qnode_keys": {
+                        "title": "Qnode Keys",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "virtual_relation_label": {
+                        "title": "Virtual Relation Label",
+                        "type": "string"
+                    }
+                }
+            },
+            "OverlayFisherExactTestParameters": {
+                "title": "OverlayFisherExactTestParameters",
+                "required": [
+                    "subject_qnode_key",
+                    "object_qnode_key",
+                    "virtual_relation_label"
+                ],
+                "type": "object",
+                "properties": {
+                    "subject_qnode_key": {
+                        "title": "Subject Qnode Key",
+                        "type": "string"
+                    },
+                    "object_qnode_key": {
+                        "title": "Object Qnode Key",
+                        "type": "string"
+                    },
+                    "virtual_relation_label": {
+                        "title": "Virtual Relation Label",
+                        "type": "string"
+                    },
+                    "rel_edge_key": {
+                        "title": "Rel Edge Key",
+                        "type": "string"
+                    }
+                }
+            },
+            "PlusOrMinusEnum": {
+                "title": "PlusOrMinusEnum",
+                "enum": [
+                    "plus",
+                    "minus"
+                ],
+                "type": "string",
+                "description": "'plus' or 'minus'."
+            },
+            "QEdge": {
+                "title": "query-graph edge",
+                "required": [
+                    "subject",
+                    "object"
+                ],
+                "type": "object",
+                "properties": {
+                    "subject": {
+                        "title": "subject node id",
+                        "type": "string"
+                    },
+                    "object": {
+                        "title": "object node id",
+                        "type": "string"
+                    },
+                    "predicates": {
+                        "title": "predicates",
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BiolinkPredicate"
+                        },
+                        "nullable": true
+                    },
+                    "constraints": {
+                        "title": "constraints",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/QueryConstraint"
+                        },
+                        "default": []
+                    }
+                },
+                "description": "Query edge."
+            },
+            "QNode": {
+                "title": "query-graph node",
+                "type": "object",
+                "properties": {
+                    "ids": {
+                        "title": "ids",
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/CURIE"
+                        },
+                        "nullable": true
+                    },
+                    "categories": {
+                        "title": "categories",
+                        "minItems": 1,
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/BiolinkEntity"
+                        },
+                        "nullable": true
+                    },
+                    "is_set": {
+                        "title": "Is Set",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "constraints": {
+                        "title": "constraints",
+                        "type": "array",
+                        "items": {
+                            "$ref": "#/components/schemas/QueryConstraint"
+                        },
+                        "default": []
+                    }
+                },
+                "description": "Query node."
+            },
+            "QueryConstraint": {
+                "title": "QueryConstraint",
+                "required": [
+                    "name",
+                    "id",
+                    "operator",
+                    "value"
+                ],
+                "type": "object",
+                "properties": {
+                    "name": {
+                        "title": "name",
+                        "type": "string",
+                        "nullable": false
+                    },
+                    "id": {
+                        "title": "id",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/CURIE"
+                            }
+                        ],
+                        "nullable": false
+                    },
+                    "not": {
+                        "title": "not",
+                        "type": "boolean",
+                        "default": false
+                    },
+                    "operator": {
+                        "title": "operator",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Operator"
+                            }
+                        ]
+                    },
+                    "value": {
+                        "title": "value"
+                    },
+                    "unit_id": {
+                        "title": "unit_id"
+                    },
+                    "unit_name": {
+                        "title": "unit_name"
+                    }
+                },
+                "additionalProperties": false,
+                "description": "QNode or QEdge constraint."
+            },
+            "QueryGraph": {
+                "title": "simple query graph",
+                "required": [
+                    "nodes",
+                    "edges"
+                ],
+                "type": "object",
+                "properties": {
+                    "nodes": {
+                        "title": "dict of nodes",
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/QNode"
+                        }
+                    },
+                    "edges": {
+                        "title": "dict of edges",
+                        "type": "object",
+                        "additionalProperties": {
+                            "$ref": "#/components/schemas/QEdge"
+                        }
+                    }
+                },
+                "description": "Query graph."
+            },
+            "ReasonerRequest": {
+                "title": "query",
+                "required": [
+                    "message"
+                ],
+                "type": "object",
+                "properties": {
+                    "message": {
+                        "title": "message",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/Message"
+                            }
+                        ]
+                    },
+                    "log_level": {
+                        "title": "log_level",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/LogLevel"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "workflow": {
+                        "$ref": "#/components/schemas/Workflow"
+                    }
+                },
+                "description": "Request.",
+                "x-body-name": "request_body"
+            },
+            "Result": {
+                "title": "result",
+                "required": [
+                    "node_bindings",
+                    "edge_bindings"
+                ],
+                "type": "object",
+                "properties": {
+                    "node_bindings": {
+                        "title": "list of node bindings",
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/NodeBinding"
+                            }
+                        }
+                    },
+                    "edge_bindings": {
+                        "title": "list of edge bindings",
+                        "type": "object",
+                        "additionalProperties": {
+                            "type": "array",
+                            "items": {
+                                "$ref": "#/components/schemas/EdgeBinding"
+                            }
+                        }
+                    },
+                    "score": {
+                        "title": "Score",
+                        "type": "number",
+                        "format": "float"
+                    }
+                },
+                "description": "Result."
+            },
+            "SortResultsEdgeAttributeParameters": {
+                "title": "SortResultsEdgeAttributeParameters",
+                "required": [
+                    "edge_attribute",
+                    "ascending_or_descending"
+                ],
+                "type": "object",
+                "properties": {
+                    "edge_attribute": {
+                        "title": "Edge Attribute",
+                        "type": "string"
+                    },
+                    "ascending_or_descending": {
+                        "$ref": "#/components/schemas/AscOrDescEnum"
+                    },
+                    "qedge_keys": {
+                        "title": "Qedge Keys",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "SortResultsNodeAttributeParameters": {
+                "title": "SortResultsNodeAttributeParameters",
+                "required": [
+                    "node_attribute",
+                    "ascending_or_descending"
+                ],
+                "type": "object",
+                "properties": {
+                    "node_attribute": {
+                        "title": "Node Attribute",
+                        "type": "string"
+                    },
+                    "ascending_or_descending": {
+                        "$ref": "#/components/schemas/AscOrDescEnum"
+                    },
+                    "qnode_keys": {
+                        "title": "Qnode Keys",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    }
+                }
+            },
+            "SortResultsScoreParameters": {
+                "title": "SortResultsScoreParameters",
+                "required": [
+                    "ascending_or_descending"
+                ],
+                "type": "object",
+                "properties": {
+                    "ascending_or_descending": {
+                        "$ref": "#/components/schemas/AscOrDescEnum"
+                    }
+                }
+            },
+            "SubAttribute": {
+                "title": "SubAttribute",
+                "required": [
+                    "attribute_type_id",
+                    "value"
+                ],
+                "type": "object",
+                "properties": {
+                    "attribute_type_id": {
+                        "title": "type",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/CURIE"
+                            }
+                        ]
+                    },
+                    "value": {
+                        "title": "value"
+                    },
+                    "value_type_id": {
+                        "title": "value_type_id",
+                        "allOf": [
+                            {
+                                "$ref": "#/components/schemas/CURIE"
+                            }
+                        ],
+                        "nullable": true
+                    },
+                    "original_attribute_name": {
+                        "title": "Original Attribute Name",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "value_url": {
+                        "title": "Value Url",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "attribute_source": {
+                        "title": "Attribute Source",
+                        "type": "string",
+                        "nullable": true
+                    },
+                    "description": {
+                        "title": "Description",
+                        "type": "string",
+                        "nullable": true
+                    }
+                },
+                "additionalProperties": false,
+                "description": "Attribute subattribute."
+            },
+            "TopOrBottomEnum": {
+                "title": "TopOrBottomEnum",
+                "enum": [
+                    "top",
+                    "bottom"
+                ],
+                "type": "string",
+                "description": "'top' or 'bottom'."
+            },
+            "ValidationError": {
+                "title": "ValidationError",
+                "required": [
+                    "loc",
+                    "msg",
+                    "type"
+                ],
+                "type": "object",
+                "properties": {
+                    "loc": {
+                        "title": "Location",
+                        "type": "array",
+                        "items": {
+                            "type": "string"
+                        }
+                    },
+                    "msg": {
+                        "title": "Message",
+                        "type": "string"
+                    },
+                    "type": {
+                        "title": "Error Type",
+                        "type": "string"
+                    }
+                }
+            },
+            "Workflow": {
+                "title": "Workflow",
+                "type": "array",
+                "items": {
+                    "$ref": "#/components/schemas/Operation"
+                }
+            },
+            "annotate": {
+                "title": "annotate",
+                "enum": [
+                    "annotate"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "annotate_edges": {
+                "title": "annotate_edges",
+                "enum": [
+                    "annotate_edges"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "annotate_nodes": {
+                "title": "annotate_nodes",
+                "enum": [
+                    "annotate_nodes"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "bind": {
+                "title": "bind",
+                "enum": [
+                    "bind"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "complete_results": {
+                "title": "complete_results",
+                "enum": [
+                    "complete_results"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "enrich_results": {
+                "title": "enrich_results",
+                "enum": [
+                    "enrich_results"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "fill": {
+                "title": "fill",
+                "enum": [
+                    "fill"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "filter_kgraph": {
+                "title": "filter_kgraph",
+                "enum": [
+                    "filter_kgraph"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "filter_kgraph_continuous_kedge_attribute": {
+                "title": "filter_kgraph_continuous_kedge_attribute",
+                "enum": [
+                    "filter_kgraph_continuous_kedge_attribute"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "filter_kgraph_discrete_kedge_attribute": {
+                "title": "filter_kgraph_discrete_kedge_attribute",
+                "enum": [
+                    "filter_kgraph_discrete_kedge_attribute"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "filter_kgraph_discrete_knode_attribute": {
+                "title": "filter_kgraph_discrete_knode_attribute",
+                "enum": [
+                    "filter_kgraph_discrete_knode_attribute"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "filter_kgraph_orphans": {
+                "title": "filter_kgraph_orphans",
+                "enum": [
+                    "filter_kgraph_orphans"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "filter_kgraph_percentile": {
+                "title": "filter_kgraph_percentile",
+                "enum": [
+                    "filter_kgraph_percentile"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "filter_kgraph_std_dev": {
+                "title": "filter_kgraph_std_dev",
+                "enum": [
+                    "filter_kgraph_std_dev"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "filter_kgraph_top_n": {
+                "title": "filter_kgraph_top_n",
+                "enum": [
+                    "filter_kgraph_top_n"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "filter_results": {
+                "title": "filter_results",
+                "enum": [
+                    "filter_results"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "filter_results_top_n": {
+                "title": "filter_results_top_n",
+                "enum": [
+                    "filter_results_top_n"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "lookup": {
+                "title": "lookup",
+                "enum": [
+                    "lookup"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "overlay": {
+                "title": "overlay",
+                "enum": [
+                    "overlay"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "overlay_compute_jaccard": {
+                "title": "overlay_compute_jaccard",
+                "enum": [
+                    "overlay_compute_jaccard"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "overlay_compute_ngd": {
+                "title": "overlay_compute_ngd",
+                "enum": [
+                    "overlay_compute_ngd"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "overlay_connect_knodes": {
+                "title": "overlay_connect_knodes",
+                "enum": [
+                    "overlay_connect_knodes"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "overlay_fisher_exact_test": {
+                "title": "overlay_fisher_exact_test",
+                "enum": [
+                    "overlay_fisher_exact_test"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "restate": {
+                "title": "restate",
+                "enum": [
+                    "restate"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "score": {
+                "title": "score",
+                "enum": [
+                    "score"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "sort_results": {
+                "title": "sort_results",
+                "enum": [
+                    "sort_results"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "sort_results_edge_attribute": {
+                "title": "sort_results_edge_attribute",
+                "enum": [
+                    "sort_results_edge_attribute"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "sort_results_node_attribute": {
+                "title": "sort_results_node_attribute",
+                "enum": [
+                    "sort_results_node_attribute"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            },
+            "sort_results_score": {
+                "title": "sort_results_score",
+                "enum": [
+                    "sort_results_score"
+                ],
+                "type": "string",
+                "description": "An enumeration."
+            }
+        }
+    }
+}

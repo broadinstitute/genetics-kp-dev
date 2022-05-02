@@ -1,0 +1,15 @@
+export FLASK_PORT=7003
+
+export DB_HOST=localhost
+export DB_USER=root
+export DB_PASSWD=somepassword
+export DB_SCHEMA=someschema
+export DB_CACHE_SCHEMA=someschema
+export DB_RESULTS_LIMIT=150
+
+export TRAN_LOG_FILE=genepro.log
+export TRAN_ACCESS_LOG_FILE=geneproAccess.log
+export TRAN_MAX_QUERY_SIZE=1000
+export TRAN_URL_NORMALIZER=https://nodenormalization-sri.renci.org/get_normalized_nodes
+
+python3 -m openapi_server
