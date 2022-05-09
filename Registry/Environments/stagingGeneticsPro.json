@@ -10,7 +10,7 @@
             "url": "http://www.apache.org/licenses/LICENSE-2.0.html"
         },
         "termsOfService": "https://github.com/broadinstitute/genetics-kp-dev/blob/master/LICENSE",
-        "title": "Genetics KP",
+        "title": "Genetics KP - Staging",
         "version": "1.2.0",
         "x-translator": {
             "biolink-version": "2.1.0",
