@@ -82,7 +82,7 @@ pipeline {
                 }
             }
             steps {
-                sshagent (credentials: ['labshare-svc']) {
+                sshagent (credentials: ['Github-adesina']) {
                     dir(".") {
                         sh 'git clone -b OM-6165 git@github.com:Sphinx-Automation/translator-ops.git'
                         configFileProvider([
