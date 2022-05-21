@@ -353,20 +353,27 @@ def get_request_elements(body):
         list_target = list(set(list_target))
     
         # filter out the ontologies we don't service
-        list_temp = []
-        for item in list_source:
-            if item.split(':')[0] not in list_ontology_prefix_avoid:
-                list_temp.append(item)
-            else:
-                logger.info("skipping non serviced source: {}".format(item))
-        list_source = list_temp
-        list_temp = []
-        for item in list_target:
-            if item.split(':')[0] not in list_ontology_prefix_avoid:
-                list_temp.append(item)
-            else:
-                logger.info("skipping non serviced target: {}".format(item))
-        list_target = list_temp
+        # BUG: https://github.com/broadinstitute/genetics-kp-dev/issues/26
+        # -- if source or target is only one id, don't bother filtering; if do end up filtering ID, will get unbounded incorrect query
+        if len(list_source) > 1:
+            list_temp = []
+            for item in list_source:
+                if item.split(':')[0] not in list_ontology_prefix_avoid:
+                    list_temp.append(item)
+                else:
+                    logger.info("skipping non serviced source: {}".format(item))
+            list_source = list_temp
+
+        # BUG: https://github.com/broadinstitute/genetics-kp-dev/issues/26
+        # -- if source or target is only one id, don't bother filtering
+        if len(list_target) > 1:
+            list_temp = []
+            for item in list_target:
+                if item.split(':')[0] not in list_ontology_prefix_avoid:
+                    list_temp.append(item)
+                else:
+                    logger.info("skipping non serviced target: {}".format(item))
+            list_target = list_temp
 
 
         # test the new normalizing function
@@ -378,8 +385,8 @@ def get_request_elements(body):
         # logger.info("=====================================================")
         # logger.info("=====================================================")
 
-        # TODO - get the normalized list
-        # TODO - get the descendant list
+        # get the normalized list
+        # get the descendant list
         subject_curie_list = get_normalize_curies(list_source, log=False)
         # trim curie list to what is in genepro (pulled in at start)
         subject_curie_list = trim_disease_list_tuple_to_what_is_in_the_db(subject_curie_list, SET_CACHED_PHENOTYPES)
@@ -554,10 +561,6 @@ def query(request_body):  # noqa: E501
 
     if connexion.request.is_json:
         # initialize
-        # cnx = mysql.connector.connect(database='Translator', user='mvon')
-        # cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
-        # cnx = pymysql.connect(host='localhost', port=3306, database='tran_genepro', user='root', password='this is no password')
-        # cnx = pymysql.connect(host='localhost', port=3306, database='tran_test_202108', user='root', password='yoyoma')
         cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
         cursor = cnx.cursor()
         genetics_results = []
@@ -578,8 +581,6 @@ def query(request_body):  # noqa: E501
             return ({"status": 503, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 503)
         else:
             logger.info("single hop query requested, supported")
-
-
 
         # takenNodes = {}
         # takenEdges = {}
@@ -619,6 +620,7 @@ def query(request_body):  # noqa: E501
             # set the normalized curie for the call
             # web_request_object.set_source_normalized_id(source_curie)
             # web_request_object.set_target_normalized_id(target_curie)
+
             # make sure it is not an unbounded query (that we have matched with at leat one source/target)
             if len(web_request_object.get_list_source_id()) > 0 or len(web_request_object.get_list_target_id()) > 0:
                 queries = qbuilder.get_queries(web_request_object)

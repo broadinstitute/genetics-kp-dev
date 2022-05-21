@@ -62,7 +62,7 @@ def query_service(url, query):
     try: 
         response = requests.post(url, json=query).json()
     except (RuntimeError, TypeError, NameError, ValueError):
-        print('ERROR: query_service - REST query or decoding JSON has failed')
+        logger.error('ERROR: disease_utils.query_service - trapi REST query or decoding JSON has failed')
 
     # return
     return response
@@ -95,10 +95,12 @@ def get_disease_descendants(disease_id, category=None, debug=False):
     return list_diseases
 
 def get_disease_descendants_from_list(list_curie_id, category=None, log=False):
-    ''' will query the trapi v1.1 ontology kp and return the descendant diseases, will return list of (original, new) tuples '''
+    ''' 
+    will query the trapi ontology kp and return the descendant diseases, will return list of (original, new) tuples 
+    '''
     # initialize
     list_result = []
-    list_filtered = [item for item in list_curie_id if item.split(':')[0] in ['EFO', 'MONDO']]
+    list_filtered = [item for item in list_curie_id if item.split(':')[0] in ['EFO', 'MONDO', 'GO']]
     json_query = build_query(predicate="biolink:subclass_of", subject_category=category, object_category=category, subject_id=None, object_id=list_filtered)
 
     # print result
@@ -106,7 +108,7 @@ def get_disease_descendants_from_list(list_curie_id, category=None, log=False):
         logger.info("reduced efo/mondo input descendant list from: {} to: {}".format(list_curie_id, list_filtered))
 
     if len(list_filtered) > 0:
-        logger.info("the query is: \n{}".format(json.dumps(json_query, indent=2)))
+        logger.info("the trapi query is: \n{}".format(json.dumps(json_query, indent=2)))
 
         # query the KP and get the results
         json_response = query_service(URL_ONTOLOGY_KP, json_query)

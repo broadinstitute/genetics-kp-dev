@@ -394,7 +394,9 @@ def get_web_normalized_curie_from_list(list_curie_id, prefix_list=None, log=Fals
     return list_result
 
 def insert_curie_db_synonyms_from_list(list_curie_tuples, log=False):
-    ''' will insert rows into the curie cache DB '''
+    ''' 
+    will insert curie descendant ID rows into the curie translation cache DB 
+    '''
     # initialize
     sql_insert = "insert into {}.comb_cache_curie (node_curie_id, node_name, node_synonym_id) values(%s, %s, %s)".format(DB_CACHE_SCHEMA)
 
@@ -416,7 +418,9 @@ def insert_curie_db_synonyms_from_list(list_curie_tuples, log=False):
 
 
 def get_normalize_curies(list_curie_id, log=False):
-    ''' will take in curies, then find synonym/descendants and return the expanded list as tuples (original, new) '''
+    ''' 
+    will take in curies, then find synonym/descendants and return the expanded list as tuples (original, new) 
+    '''
     list_result = []
     list_db_cache = []
     list_web_query = []
@@ -440,7 +444,7 @@ def get_normalize_curies(list_curie_id, log=False):
                 logger.info("found curies web normalized: {}".format(list_web_query_output))
 
             # get the descendants
-            list_descendants = get_disease_descendants_from_list(list_web_query, category="biolink:DiseaseOrPhenotypicFeature", log=log)
+            list_descendants = get_disease_descendants_from_list(list_web_query, category=None, log=log)
             if log:
                 logger.info("found curies web descended: {}".format(list_descendants))
 
