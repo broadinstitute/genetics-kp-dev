@@ -28,7 +28,7 @@ class TestAsyncqueryController(BaseTestCase):
             headers=headers,
             data=json.dumps(request_body),
             content_type='application/json')
-        self.assert200(response,
+        self.assert400(response,
                        'Response body is : ' + response.data.decode('utf-8'))
 
 
