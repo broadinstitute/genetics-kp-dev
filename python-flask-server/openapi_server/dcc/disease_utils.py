@@ -11,7 +11,8 @@ handler = logging.StreamHandler(sys.stdout)
 logger = logging.getLogger(__name__)
 
 # constants
-URL_ONTOLOGY_KP = "https://stars-app.renci.org/sparql-kp/query"
+# URL_ONTOLOGY_KP = "https://stars-app.renci.org/sparql-kp/query"
+URL_ONTOLOGY_KP = "https://ontology-kp.apps.renci.org/query"
 
 # methods
 def build_query(predicate, subject_category, subject_id, object_category, object_id):
