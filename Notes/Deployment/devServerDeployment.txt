@@ -1,0 +1,12 @@
+
+
+
+
+
+20220520 - fix https://github.com/broadinstitute/genetics-kp-dev/issues/26
+- before
+  - commit 557b1e05da6649bad4a028bd414d13b3451d0530 (HEAD -> md_mysql_batch, origin/md_mysql_batch)
+- after
+  - commit 3b3be43fa002d91ae72833aec3bfe42c8deeaef9 (HEAD -> master, origin/master, origin/HEAD)
+
+

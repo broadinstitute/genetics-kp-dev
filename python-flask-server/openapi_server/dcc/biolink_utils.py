@@ -19,6 +19,9 @@ file_blank_query = file_prepend + '/Data/Broad/Translator/Client/blankGeneRelate
 # singleton class to keep translations in memory, avoid repeated file reading
 # see https://www.geeksforgeeks.org/singleton-method-python-design-patterns/
 class BiolinkAncestrySingleton:
+    '''
+    class holds the predicate map that is supported and the ancestry data generated from biolink ancestry
+    '''
   
     __shared_instance = 'biolink_ancestry'
   
@@ -242,7 +245,10 @@ def get_query_parts(query_json):
     return sub, obj, pred 
 
 def get_all_overlap_queries(ancestor_map, predicate_json, query_json):
-    ''' returns the intersection of the predicates and expanded query list '''
+    ''' 
+    returns the intersection of the predicates and expanded query list 
+    @deprecated
+    '''
     # get the parts of the query
     sub, obj, pred = get_query_parts(query_json)
 

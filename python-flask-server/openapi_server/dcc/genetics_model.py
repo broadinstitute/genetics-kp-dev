@@ -6,6 +6,7 @@ logger = get_logger(__name__)
 class GeneticsModel():
     ''' class to encapsulate the web query object values '''
     def __init__(self, edge, source, target, list_source_id=None, list_target_id=None, map_source_normalized_id={}, map_target_normalized_id={}, edge_type=None, source_type=None, target_type=None):
+        # the original objects
         self.edge = edge
         self.source = source
         self.target = target 
@@ -14,6 +15,8 @@ class GeneticsModel():
         self.edge_type = edge_type
         self.source_type = source_type
         self.target_type = target_type
+
+        # maps will be the new ID as key, the original provided ID (from which the new is derived) is the value
         self.map_source_normalized_id = map_source_normalized_id
         self.map_target_normalized_id = map_target_normalized_id
         # logger.info("created {} with source {} and target {}\n".format(edge, source, target))
