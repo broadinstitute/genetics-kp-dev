@@ -39,10 +39,10 @@ class BiolinkAncestrySingleton:
         else:
             print("reading BiolinkAncestrySingleton data")
             # read the biolink translations file
-            with open('biolinkAncestry.json') as json_file:
+            with open('conf/biolinkAncestry.json') as json_file:
                 # read the map
                 self.ancestry_map = json.load(json_file)
-            with open('predicates.json') as json_file:
+            with open('conf/predicates.json') as json_file:
                 # read the map
                 self.predicate_map = json.load(json_file)
 
@@ -149,7 +149,10 @@ def get_node_map():
     return map_node
 
 def create_predicate_triple_list():
-    ''' create a list query triples of all accepted queries for the given predicate '''
+    ''' 
+    create a list query triples of all accepted queries for the given predicate 
+    returns the hard coded non inferenced predicate/node tripes
+    '''
     query_list = []
 
     # get the list
