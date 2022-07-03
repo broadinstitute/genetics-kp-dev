@@ -566,12 +566,8 @@ def query(request_body):  # noqa: E501
     else:
         logger.info("no workflow specified")
 
-    # tag start time
-    start = time.time()
-
     if connexion.request.is_json:
         # initialize
-        genetics_results = []
         query_response = {}
 
         # verify the json
@@ -590,124 +586,111 @@ def query(request_body):  # noqa: E501
         else:
             logger.info("single hop query requested, supported")
 
-        # takenNodes = {}
-        # takenEdges = {}
-
-        # build the interim data structure
-        request_input = get_request_elements(body)
-        logger.info("got request input {}".format(request_input))
-
-        # only allow small queries
-        if len(request_input) > MAX_SIZE_ID_LIST:
-            logger.error("too big request, asking for {} combinations".format(len(request_input)))
-            return ({"status": 413, "title": "Query payload too large", "detail": "Query payload too large, exceeds the {} subject/object combination size".format(MAX_SIZE_ID_LIST), "type": "about:blank" }, 413)
-
-        # only open web connection when have passed validation of request
-        cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
-        cursor = cnx.cursor()
-
-        for web_request_object in request_input:
-            # log
-            # logger.info("running query for web query object: {}\n".format(web_request_object))
-
-            # NOTE - now done in request oebject building
-            # # get the normalized curies
-            # # keep track of whether result came in for this curie; returns name from NN and synonym curie list
-            # subject_curie_name, subject_curie_list = get_curie_synonyms(web_request_object.get_source_id(), prefix_list=list_ontology_prefix, type_name='subject', log=True)
-            # target_curie_name, target_curie_list = get_curie_synonyms(web_request_object.get_target_id(), prefix_list=list_ontology_prefix, type_name='target', log=True)
-
-            # # trim source/target lists to what we have in db
-            # subject_curie_list = trim_disease_list_to_what_is_in_the_db(subject_curie_list, SET_CACHED_PHENOTYPES)
-            # target_curie_list = trim_disease_list_to_what_is_in_the_db(target_curie_list, SET_CACHED_PHENOTYPES)
-
-            # queries
-            # NOTE - implemented batch subject/target input
-            # for source_curie in subject_curie_list:
-            #     for target_curie in target_curie_list:
-            #         # only run next normalized curie in list if there were no other results, or else will get duplicate results
-
-            # TODO - might have to implement uniqueness on the PK returned (use set); took out duplicate check
-            # if not found_results_already:   # TODO - might not be needed anymore since ncats NN and each disease/phenotype entry should only have one curie in the DB
-            # set the normalized curie for the call
-            # web_request_object.set_source_normalized_id(source_curie)
-            # web_request_object.set_target_normalized_id(target_curie)
-
-            # make sure it is not an unbounded query (that we have matched with at leat one source/target)
-            if len(web_request_object.get_list_source_id()) > 0 or len(web_request_object.get_list_target_id()) > 0:
-                queries = qbuilder.get_queries(web_request_object)
-
-                # if results
-                if len(queries) > 0:
-                    found_results_already = True
-                    for i in range(0, len(queries)):
-                        sql_object = queries[i]
-                        logger.info("running query: {}\n".format(sql_object))
-                        cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
-                        results = cursor.fetchall()
-                        # print("result of type {} is {}".format(type(results), results))
-                        logger.info("for DB query got result count of: {}".format(len(results)))
-                        if results:
-                            for record in results:
-                                edgeID    = record[0]
-                                sourceID  = record[1]
-                                targetID  = record[2]
-                                originalSourceID  = record[1]
-                                originalTargetID  = record[2]
-
-                                # find original source/target IDs
-                                if web_request_object.get_map_source_normalized_id().get(sourceID):
-                                    originalSourceID  = web_request_object.get_map_source_normalized_id().get(sourceID)
-
-                                if web_request_object.get_map_target_normalized_id().get(targetID):
-                                    originalTargetID  = web_request_object.get_map_target_normalized_id().get(targetID)
-                                # else:
-                                #     logger.info(web_request_object.get_map_target_normalized_id())
-                                # logger.info("original: {}, converted: {}".format(targetID, originalTargetID))
-
-                                score     = record[3]
-                                scoreType = record[4]
-                                sourceName = record[5]
-                                targetName = record[6]
-                                edgeType = record[7]
-                                sourceType = record[8]
-                                targetType = record[9]
-                                studyTypeId = record[10]
-                                publications = record[11]
-                                score_translator = record[12]
-
-                                # build the result objects
-                                source_node = NodeOuput(curie=originalSourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
-                                target_node = NodeOuput(curie=originalTargetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
-                                output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
-                                    score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, 
-                                    publication_ids=publications, score_translator=score_translator)
-
-                                # add to the results list
-                                genetics_results.append(output_edge)
-                    
-            else:
-                logger.info("no source/target inputs that we have, so skip")
-
-        # log
-        logger.info("for query \n{}".format(request_body))
-        num_source = 0
-        if web_request_object.get_original_source_ids():
-            num_source = len(web_request_object.get_original_source_ids())
-        num_target = 0
-        if web_request_object.get_original_target_ids():
-            num_target = len(web_request_object.get_original_target_ids())
-        logger.info("web query with source count: {} and target count: {} return total edge count: {}".format(num_source, num_target, len(genetics_results)))
-
-        # close the connection
-        cnx.close()
+        # NOTE - split here based on get creative query; need to do this before expanding IDs based on ontology
+        if is_query_creative(body):
+            logger.info("query is CREATIVE")
+        else:
+            logger.info("query is LOOKUP")
 
         # build the response
-        query_response = build_results(results_list=genetics_results, query_graph=query_graph)
+        query_response = sub_query_lookup(body, query_graph, request_body)
 
-        # tag and print the time elapsed
-        end = time.time()
-        time_elapsed = end - start
-        logger.info("web query with source: {} and target: {} return total edge: {} in time: {}s".format(num_source, num_target, len(genetics_results), time_elapsed))
+
+        # # build the interim data structure 
+        # # NOTE - also expand the ID list based on ontology ancestry
+        # request_input = get_request_elements(body)
+        # logger.info("got request input {}".format(request_input))
+
+        # # only allow small queries
+        # if len(request_input) > MAX_SIZE_ID_LIST:
+        #     logger.error("too big request, asking for {} combinations".format(len(request_input)))
+        #     return ({"status": 413, "title": "Query payload too large", "detail": "Query payload too large, exceeds the {} subject/object combination size".format(MAX_SIZE_ID_LIST), "type": "about:blank" }, 413)
+
+        # # only open web connection when have passed validation of request
+        # cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
+        # cursor = cnx.cursor()
+
+        # for web_request_object in request_input:
+        #     # log
+        #     # logger.info("running query for web query object: {}\n".format(web_request_object))
+
+        #     # queries
+        #     # NOTE - implemented batch subject/target input - done in the batch sql structure
+
+        #     # TODO - might have to implement uniqueness on the PK returned (use set); took out duplicate check
+        #     # if not found_results_already:   # TODO - might not be needed anymore since ncats NN and each disease/phenotype entry should only have one curie in the DB
+
+        #     # make sure it is not an unbounded query (that we have matched with at leat one source/target)
+        #     if len(web_request_object.get_list_source_id()) > 0 or len(web_request_object.get_list_target_id()) > 0:
+        #         queries = qbuilder.get_queries(web_request_object)
+
+        #         # if results
+        #         if len(queries) > 0:
+        #             found_results_already = True
+        #             for i in range(0, len(queries)):
+        #                 sql_object = queries[i]
+        #                 logger.info("running query: {}\n".format(sql_object))
+        #                 cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
+        #                 results = cursor.fetchall()
+        #                 # print("result of type {} is {}".format(type(results), results))
+        #                 logger.info("for DB query got result count of: {}".format(len(results)))
+        #                 if results:
+        #                     for record in results:
+        #                         edgeID    = record[0]
+        #                         sourceID  = record[1]
+        #                         targetID  = record[2]
+        #                         originalSourceID  = record[1]
+        #                         originalTargetID  = record[2]
+
+        #                         # find original source/target IDs
+        #                         if web_request_object.get_map_source_normalized_id().get(sourceID):
+        #                             originalSourceID  = web_request_object.get_map_source_normalized_id().get(sourceID)
+
+        #                         if web_request_object.get_map_target_normalized_id().get(targetID):
+        #                             originalTargetID  = web_request_object.get_map_target_normalized_id().get(targetID)
+        #                         # else:
+        #                         #     logger.info(web_request_object.get_map_target_normalized_id())
+        #                         # logger.info("original: {}, converted: {}".format(targetID, originalTargetID))
+
+        #                         score     = record[3]
+        #                         scoreType = record[4]
+        #                         sourceName = record[5]
+        #                         targetName = record[6]
+        #                         edgeType = record[7]
+        #                         sourceType = record[8]
+        #                         targetType = record[9]
+        #                         studyTypeId = record[10]
+        #                         publications = record[11]
+        #                         score_translator = record[12]
+
+        #                         # build the result objects
+        #                         source_node = NodeOuput(curie=originalSourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
+        #                         target_node = NodeOuput(curie=originalTargetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
+        #                         output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
+        #                             score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, 
+        #                             publication_ids=publications, score_translator=score_translator)
+
+        #                         # add to the results list
+        #                         genetics_results.append(output_edge)
+                    
+        #     else:
+        #         logger.info("no source/target inputs that we have, so skip")
+
+        # # log
+        # logger.info("for query \n{}".format(request_body))
+        # num_source = 0
+        # if web_request_object.get_original_source_ids():
+        #     num_source = len(web_request_object.get_original_source_ids())
+        # num_target = 0
+        # if web_request_object.get_original_target_ids():
+        #     num_target = len(web_request_object.get_original_target_ids())
+        # logger.info("web query with source count: {} and target count: {} return total edge count: {}".format(num_source, num_target, len(genetics_results)))
+
+        # # close the connection
+        # cnx.close()
+
+        # # build the response
+        # query_response = build_results(results_list=genetics_results, query_graph=query_graph)
 
         # return
         return query_response
@@ -716,3 +699,143 @@ def query(request_body):  # noqa: E501
         # return error
         return({"status": 400, "title": "body content not JSON", "detail": "Required body content is not JSON", "type": "about:blank"}, 400)
 
+
+def sub_query_lookup(body, query_graph, request_body, log=False):
+    '''
+    deal with a lookup query
+    '''
+    # initialize
+    genetics_results = []
+
+    # tag start time
+    start = time.time()
+
+    # build the interim data structure 
+    # NOTE - also expand the ID list based on ontology ancestry
+    request_input = get_request_elements(body)
+    logger.info("got request input {}".format(request_input))
+
+    # only allow small queries
+    if len(request_input) > MAX_SIZE_ID_LIST:
+        logger.error("too big request, asking for {} combinations".format(len(request_input)))
+        return ({"status": 413, "title": "Query payload too large", "detail": "Query payload too large, exceeds the {} subject/object combination size".format(MAX_SIZE_ID_LIST), "type": "about:blank" }, 413)
+
+    # only open web connection when have passed validation of request
+    cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
+    cursor = cnx.cursor()
+
+    for web_request_object in request_input:
+        # log
+        # logger.info("running query for web query object: {}\n".format(web_request_object))
+
+        # queries
+        # NOTE - implemented batch subject/target input - done in the batch sql structure
+
+        # TODO - might have to implement uniqueness on the PK returned (use set); took out duplicate check
+        # if not found_results_already:   # TODO - might not be needed anymore since ncats NN and each disease/phenotype entry should only have one curie in the DB
+
+        # make sure it is not an unbounded query (that we have matched with at leat one source/target)
+        if len(web_request_object.get_list_source_id()) > 0 or len(web_request_object.get_list_target_id()) > 0:
+            queries = qbuilder.get_queries(web_request_object)
+
+            # if results
+            if len(queries) > 0:
+                found_results_already = True
+                for i in range(0, len(queries)):
+                    sql_object = queries[i]
+                    logger.info("running query: {}\n".format(sql_object))
+                    cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
+                    results = cursor.fetchall()
+                    # print("result of type {} is {}".format(type(results), results))
+                    logger.info("for DB query got result count of: {}".format(len(results)))
+                    if results:
+                        for record in results:
+                            edgeID    = record[0]
+                            sourceID  = record[1]
+                            targetID  = record[2]
+                            originalSourceID  = record[1]
+                            originalTargetID  = record[2]
+
+                            # find original source/target IDs
+                            if web_request_object.get_map_source_normalized_id().get(sourceID):
+                                originalSourceID  = web_request_object.get_map_source_normalized_id().get(sourceID)
+
+                            if web_request_object.get_map_target_normalized_id().get(targetID):
+                                originalTargetID  = web_request_object.get_map_target_normalized_id().get(targetID)
+                            # else:
+                            #     logger.info(web_request_object.get_map_target_normalized_id())
+                            # logger.info("original: {}, converted: {}".format(targetID, originalTargetID))
+
+                            score     = record[3]
+                            scoreType = record[4]
+                            sourceName = record[5]
+                            targetName = record[6]
+                            edgeType = record[7]
+                            sourceType = record[8]
+                            targetType = record[9]
+                            studyTypeId = record[10]
+                            publications = record[11]
+                            score_translator = record[12]
+
+                            # build the result objects
+                            source_node = NodeOuput(curie=originalSourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
+                            target_node = NodeOuput(curie=originalTargetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
+                            output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
+                                score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, 
+                                publication_ids=publications, score_translator=score_translator)
+
+                            # add to the results list
+                            genetics_results.append(output_edge)
+                
+        else:
+            logger.info("no source/target inputs that we have, so skip")
+
+    # log
+    logger.info("for query \n{}".format(request_body))
+    num_source = 0
+    if web_request_object.get_original_source_ids():
+        num_source = len(web_request_object.get_original_source_ids())
+    num_target = 0
+    if web_request_object.get_original_target_ids():
+        num_target = len(web_request_object.get_original_target_ids())
+    logger.info("web query with source count: {} and target count: {} return total edge count: {}".format(num_source, num_target, len(genetics_results)))
+
+    # close the connection
+    cnx.close()
+
+    # build the response
+    query_response = build_results(results_list=genetics_results, query_graph=query_graph)
+
+    # tag and print the time elapsed
+    end = time.time()
+    time_elapsed = end - start
+    logger.info("LOOKUP web query with source: {} and target: {} return total edge: {} in time: {}s".format(num_source, num_target, len(genetics_results), time_elapsed))
+
+    # return
+    return query_response
+
+def is_query_creative(json_body, log=False):
+    '''
+    will determine if a query is creative based on the 'inferred' knowledge_type flag on the edge
+    '''
+    # initialize
+    is_inferred = False
+    str_inferred = 'inferred'
+
+    # look at the edge knowledge type
+    map_edges = json_body.get('message').get('query_graph').get('edges')
+    if map_edges:
+        for edge in map_edges.values():
+            knowledge_type = edge.get('knowledge_type')
+            if knowledge_type: 
+                if isinstance(knowledge_type, str):
+                    if knowledge_type == str_inferred:
+                        is_inferred = True
+                        break
+                elif isinstance(knowledge_type, list):
+                    if knowledge_type.contains(str_inferred):
+                        is_inferred = True
+                        break
+
+    # return
+    return is_inferred
