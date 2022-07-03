@@ -1,0 +1,77 @@
+
+
+
+2022 - creative tasks
+- tasks
+  - download drugs for all 20k genes
+  - filter on whether query is inferred
+  - 
+
+
+
+20220629 - questions for david k
+Hi David,
+The genetics KP team is working to put together a getCreative() server to answer the drug-treats-disease query and 
+had a few questions on this effort:
+- we want to verify this is OK. I know ARAs were the only targeted services, but our KP pretty close to having it implemented
+- who do we contact to be included/registered to respond to the query
+- is the disease list that was passed around still in effect? We'll be including all diseases we have data for, but can focus on loading data that is missing
+- is tomorrow 06/30 the deadline, or Tuesday 07/05 when testing will start?
+Again, if there is anyone else I should be interfacing with about this, please let me know.
+I assume the docs on this effort are whatever I can glean from the OPS/workflow and Architecture call agendas
+Thanks
+
+
+20220629 - data cleanup
+- tasks 
+  - make sure all the go pathways are in the node tables
+  - add the reactome pathways into the node table
+
+mysql> select count(*) from tran_upkeep.data_pathway_genes;
++----------+
+| count(*) |
++----------+
+|   930423 |
++----------+
+1 row in set (0.07 sec)
+
+mysql> select count(id) from comb_pathway_gene;
++-----------+
+| count(id) |
++-----------+
+|    530546 |
++-----------+
+1 row in set (0.06 sec)
+
+
+
+20220628 - creative game plan
+- tasks
+  + generate and run flask 
+  + add query by pathways 
+  + add query genes from pathways 
+  + add gene pValue cutoff query
+  - add gene/pathway table by id (for speed)
+  - load gene/drug data
+  
+  - build results 
+  - load 202206 gene data 
+  - aggregator pathway job 
+  - load 202206 pathway data
+
+
+20220614 - meety with jason
+- for creative effort
+    - load 202206 aggregator data
+    - pathway aggregator process
+    - pathway similarity 
+    - get creative 
+    - ask david about their jaccard 
+
+  - cutoffs
+    - 10e-6 genes, 0.05 pathways
+
+- debrief
+  - do aras use go 
+  - try tests with changing pvalues 
+  - 

@@ -546,6 +546,16 @@ def query(request_body):  # noqa: E501
 
     :rtype: Response
     """
+
+    '''
+    WORKFLOW:
+    - query is verified for correctness and if can be serviced by KP
+    - the subject/object IDs are then expanded
+    - database connection started
+    - in the query building, the predicates triples are expanded to what is serviced by the KP
+    - the queries are run in sequence and the results appended to a list
+    - the list is used to build the results in trapi result format
+    '''
     # verify all operations asked for are supported
     if request_body.get("workflow") and len(request_body.get("workflow")) > 0:
         logger.info("got workflow: {}".format(request_body.get("workflow")))
@@ -561,8 +571,6 @@ def query(request_body):  # noqa: E501
 
     if connexion.request.is_json:
         # initialize
-        cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
-        cursor = cnx.cursor()
         genetics_results = []
         query_response = {}
 
@@ -594,7 +602,10 @@ def query(request_body):  # noqa: E501
             logger.error("too big request, asking for {} combinations".format(len(request_input)))
             return ({"status": 413, "title": "Query payload too large", "detail": "Query payload too large, exceeds the {} subject/object combination size".format(MAX_SIZE_ID_LIST), "type": "about:blank" }, 413)
 
- 
+        # only open web connection when have passed validation of request
+        cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
+        cursor = cnx.cursor()
+
         for web_request_object in request_input:
             # log
             # logger.info("running query for web query object: {}\n".format(web_request_object))
