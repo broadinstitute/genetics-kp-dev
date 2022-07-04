@@ -310,7 +310,11 @@ def queryOld(request_body):  # noqa: E501
 
 
 def get_request_elements(body):
-    """ translates the json into a neutral format """
+    """ 
+    translates the json into a neutral format 
+    input: trapi json
+    output: list of 1? element
+    """
     # initialize
     results = []
     edge_map = body['message']['query_graph']['edges']
@@ -378,11 +382,8 @@ def get_request_elements(body):
 
         # test the new normalizing function
         # logger.info("=====================================================")
-        # logger.info("=====================================================")
-        # logger.info("=====================================================")
         # test_source = get_normalize_curies(list_source, log=True)
         # logger.info("found new: {} for original: {}".format(len(test_source), len(list_source)))
-        # logger.info("=====================================================")
         # logger.info("=====================================================")
 
         # get the normalized list
@@ -400,38 +401,6 @@ def get_request_elements(body):
         for curie in target_curie_list:
             original_edge.add_target_normalized_id(curie[1], curie[0])
 
-
-        # list_temp = []
-        # for item in list_source:
-        #     # if curie already put in curie list, then no need to get synonyms/children since it already has been searched
-        #     if not item in list_temp:
-        #         subject_curie_name, subject_curie_list = get_curie_synonyms(item, prefix_list=list_ontology_prefix, type_name='subject', log=True)
-        #         list_temp += subject_curie_list
-
-        #         # trim curie list to what is in genepro (pulled in at start)
-        #         subject_curie_list = trim_disease_list_to_what_is_in_the_db(subject_curie_list, SET_CACHED_PHENOTYPES)
-        #         for curie in subject_curie_list:
-        #             original_edge.add_source_normalized_id(curie, item)
-        #     else:
-        #         logger.info("skip source curie since already in list: {}".format(item))
-        # list_temp = []
-        # for item in list_target:
-        #     # if curie already put in curie list, then no need to get synonyms/children
-        #     if not item in list_temp:
-        #         target_curie_name, target_curie_list = get_curie_synonyms(item, prefix_list=list_ontology_prefix, type_name='target', log=True)
-        #         list_temp += target_curie_list
-
-        #         # trim curie list to what is in genepro (pulled in at start)
-        #         target_curie_list = trim_disease_list_to_what_is_in_the_db(target_curie_list, SET_CACHED_PHENOTYPES)
-        #         for curie in target_curie_list:
-        #             original_edge.add_target_normalized_id(curie, item)
-        #     else:
-        #         logger.info("skip target curie since already in list: {}".format(item))
-
-        # TODO - trim the lists to unique values
-        # should be done by map with key as sql input curies
-        # TODO - trim the lists to what we have in cache
-
         # add new object to result list
         results.append(original_edge)
 
@@ -439,22 +408,6 @@ def get_request_elements(body):
         logger.info("query with normalized source list: {}".format(original_edge.get_map_source_normalized_id().keys()))
         logger.info("query with normalized target list: {}".format(original_edge.get_map_target_normalized_id().keys()))
         logger.info("query with source count: {} and target count: {}".format(len(original_edge.get_map_source_normalized_id()), len(original_edge.get_map_target_normalized_id())))
-
-        # split the source and target ids
-        # list_source = original_edge.get_source_ids() if original_edge.get_source_ids() is not None and len(original_edge.get_source_ids()) > 0 else [None]
-        # list_target = original_edge.get_target_ids() if original_edge.get_target_ids() is not None and len(original_edge.get_target_ids()) > 0 else [None]
-
-        # # make sure each list has unique items
-        # list_source = list(set(list_source))
-        # list_target = list(set(list_target))
-
-        # # for each combination, create a new request model object
-        # for sitem in list_source:
-        #     for titem in list_target:
-        #         new_edge = GeneticsModel(edge, sourceNode, targetNode, source_id=sitem, target_id=titem)
-                
-        #         # add to the list
-        #         results.append(new_edge)
 
     # return
     return results
@@ -587,7 +540,8 @@ def query(request_body):  # noqa: E501
             logger.info("single hop query requested, supported")
 
         # NOTE - split here based on get creative query; need to do this before expanding IDs based on ontology
-        if is_query_creative(body):
+        is_creative_query = is_query_creative(body)
+        if is_creative_query:
             logger.info("query is CREATIVE")
         else:
             logger.info("query is LOOKUP")
@@ -720,10 +674,8 @@ def sub_query_lookup(body, query_graph, request_body, log=False):
         logger.error("too big request, asking for {} combinations".format(len(request_input)))
         return ({"status": 413, "title": "Query payload too large", "detail": "Query payload too large, exceeds the {} subject/object combination size".format(MAX_SIZE_ID_LIST), "type": "about:blank" }, 413)
 
-    # only open web connection when have passed validation of request
-    cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
-    cursor = cnx.cursor()
-
+    # log
+    logger.info("looping through queries for web query object list: {}\n".format(request_input))
     for web_request_object in request_input:
         # log
         # logger.info("running query for web query object: {}\n".format(web_request_object))
@@ -741,6 +693,10 @@ def sub_query_lookup(body, query_graph, request_body, log=False):
             # if results
             if len(queries) > 0:
                 found_results_already = True
+                # only open web connection when have passed validation of request
+                cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
+                cursor = cnx.cursor()
+
                 for i in range(0, len(queries)):
                     sql_object = queries[i]
                     logger.info("running query: {}\n".format(sql_object))
@@ -787,21 +743,22 @@ def sub_query_lookup(body, query_graph, request_body, log=False):
                             # add to the results list
                             genetics_results.append(output_edge)
                 
+                # close the connection
+                cnx.close()
+
         else:
             logger.info("no source/target inputs that we have, so skip")
 
-    # log
-    logger.info("for query \n{}".format(request_body))
-    num_source = 0
-    if web_request_object.get_original_source_ids():
-        num_source = len(web_request_object.get_original_source_ids())
-    num_target = 0
-    if web_request_object.get_original_target_ids():
-        num_target = len(web_request_object.get_original_target_ids())
-    logger.info("web query with source count: {} and target count: {} return total edge count: {}".format(num_source, num_target, len(genetics_results)))
+        # log
+        logger.info("for query \n{}".format(request_body))
+        num_source = 0
+        if web_request_object.get_original_source_ids():
+            num_source = len(web_request_object.get_original_source_ids())
+        num_target = 0
+        if web_request_object.get_original_target_ids():
+            num_target = len(web_request_object.get_original_target_ids())
+        logger.info("web query with source count: {} and target count: {} return total edge count: {}".format(num_source, num_target, len(genetics_results)))
 
-    # close the connection
-    cnx.close()
 
     # build the response
     query_response = build_results(results_list=genetics_results, query_graph=query_graph)
