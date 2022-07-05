@@ -19,6 +19,7 @@ from openapi_server.models.attribute import Attribute
 
 from openapi_server import util
 
+from openapi_server.dcc.creative_model import CreativeResult, CreativeEdge, CreativeNode
 from openapi_server.dcc.trapi_utils import build_results, build_results_creative
 from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger, build_pubmed_ids, get_normalize_curies
 from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
@@ -129,7 +130,7 @@ def trim_disease_list_to_what_is_in_the_db(list_input, set_cache, debug=True):
 
     # log
     if debug:
-        logger.info("for input list of {} - {} return cached result {} - {}".format(len(list_input), list_input, len(list_result), list_result))
+        logger.info("for input list of {} - {} return cached in DB result {} - {}".format(len(list_input), list_input, len(list_result), list_result))
 
     # return
     return list_result
@@ -498,88 +499,106 @@ def sub_query_creative(body, query_graph, request_body, log=False):
 
     # log
     logger.info("looping through queries for CREATIVE web query object list: {}\n".format(request_input))
-    # for web_request_object in request_input:
-    #     # log
-    #     # logger.info("running query for web query object: {}\n".format(web_request_object))
+    for web_request_object in request_input:
+        # log
+        # logger.info("running query for web query object: {}\n".format(web_request_object))
 
-    #     # queries
-    #     # NOTE - implemented batch subject/target input - done in the batch sql structure
+        # make sure it is not an unbounded query (that we have matched with at leat one source/target)
+        if len(web_request_object.get_list_source_id()) > 0 or len(web_request_object.get_list_target_id()) > 0:
+            queries = qbuilder.build_creative_query(web_request_object, log=True)
 
-    #     # TODO - might have to implement uniqueness on the PK returned (use set); took out duplicate check
-    #     # if not found_results_already:   # TODO - might not be needed anymore since ncats NN and each disease/phenotype entry should only have one curie in the DB
+            # if results
+            if len(queries) > 0:
+                found_results_already = True
+                # only open web connection when have passed validation of request
+                cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD, cursorclass=pymysql.cursors.DictCursor)
+                cursor = cnx.cursor()
 
-    #     # make sure it is not an unbounded query (that we have matched with at leat one source/target)
-    #     if len(web_request_object.get_list_source_id()) > 0 or len(web_request_object.get_list_target_id()) > 0:
-    #         queries = qbuilder.get_queries(web_request_object)
+                for i in range(0, len(queries)):
+                    sql_object = queries[i]
+                    logger.info("running query: {}\n".format(sql_object))
+                    cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
+                    list_db_results = cursor.fetchall()
+                    # print("result of type {} is {}".format(type(results), results))
+                    logger.info("for DB query got result count of: {}".format(len(list_db_results)))
 
-    #         # if results
-    #         if len(queries) > 0:
-    #             found_results_already = True
-    #             # only open web connection when have passed validation of request
-    #             cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
-    #             cursor = cnx.cursor()
 
-    #             for i in range(0, len(queries)):
-    #                 sql_object = queries[i]
-    #                 logger.info("running query: {}\n".format(sql_object))
-    #                 cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
-    #                 results = cursor.fetchall()
-    #                 # print("result of type {} is {}".format(type(results), results))
-    #                 logger.info("for DB query got result count of: {}".format(len(results)))
-    #                 if results:
-    #                     for record in results:
-    #                         edgeID    = record[0]
-    #                         sourceID  = record[1]
-    #                         targetID  = record[2]
-    #                         originalSourceID  = record[1]
-    #                         originalTargetID  = record[2]
+# select concat(path_disease.id, '_', gene_disease.id, '_', drug_gene.id, '_', pathway_gene.id) as result_id,
+#     pathway.ontology_id as pathway, pathway.node_name as pathway_name, 
+#     gene.ontology_id as gene, gene.node_name as gene_name,
+#     disease.ontology_id as disease, disease.node_name as disease_name,
+#     path_disease.score as pathway_score, gene_disease.score as gene_score, 
+#     drug_gene.drug_ontology_id as drug, drug_gene.drug_name, drug_gene.drug_category_biolink_id as drug_category,
+#     drug_gene.predicate_biolink_id as gene_drug_predicate,
+#     drug_gene.id as drug_gene_row_id, gene_disease.id as gene_disease_row_id, 
+#     pathway_gene.id as path_gene_row_id, path_disease.id as path_disease_row_id
+                    if list_db_results:
+                        for db_record in list_db_results:
+                            # logger.info("record: {}".format(db_record))
+                            pathway = CreativeNode(db_record['pathway'], db_record['pathway_name'], 'biolink:Pathway', 'pathway', 'path')
+                            gene = CreativeNode(db_record['gene'], db_record['gene_name'], 'biolink:Gene', 'gene', 'gene')
+                            disease = CreativeNode(db_record['disease'], db_record['disease_name'], 'biolink:Disease', 'disease', 'dise')
+                            drug = CreativeNode(db_record['drug'], db_record['drug_name'], db_record['drug_category'], 'drug', 'drug')
+                            drug_gene = CreativeEdge(db_record['drug_gene_row_id'], drug, gene, db_record['gene_drug_predicate'], None)
+                            gene_disease = CreativeEdge(db_record['gene_disease_row_id'], gene, disease, 'biolink:genetic_association', db_record['gene_score'])
+                            pathway_gene = CreativeEdge(db_record['path_gene_row_id'], pathway, gene, 'biolink:has_part', None)
+                            pathway_disease = CreativeEdge(db_record['path_disease_row_id'], pathway, disease, 'biolink:genetic_association', db_record['pathway_score'])
+                            creative_result = CreativeResult(db_record['result_id'], gene, pathway, disease, drug, pathway_gene, gene_disease, pathway_disease, drug_gene)
 
-    #                         # find original source/target IDs
-    #                         if web_request_object.get_map_source_normalized_id().get(sourceID):
-    #                             originalSourceID  = web_request_object.get_map_source_normalized_id().get(sourceID)
+    # def __int__(self, row_id, gene, pathway, disease, drug, pathway_gene, gene_disease, pathway_disease, drug_gene):
 
-    #                         if web_request_object.get_map_target_normalized_id().get(targetID):
-    #                             originalTargetID  = web_request_object.get_map_target_normalized_id().get(targetID)
-    #                         # else:
-    #                         #     logger.info(web_request_object.get_map_target_normalized_id())
-    #                         # logger.info("original: {}, converted: {}".format(targetID, originalTargetID))
+                            # edgeID    = record[0]
+                            # sourceID  = record[1]
+                            # targetID  = record[2]
+                            # originalSourceID  = record[1]
+                            # originalTargetID  = record[2]
 
-    #                         score     = record[3]
-    #                         scoreType = record[4]
-    #                         sourceName = record[5]
-    #                         targetName = record[6]
-    #                         edgeType = record[7]
-    #                         sourceType = record[8]
-    #                         targetType = record[9]
-    #                         studyTypeId = record[10]
-    #                         publications = record[11]
-    #                         score_translator = record[12]
+                            # # find original source/target IDs
+                            # if web_request_object.get_map_source_normalized_id().get(sourceID):
+                            #     originalSourceID  = web_request_object.get_map_source_normalized_id().get(sourceID)
 
-    #                         # build the result objects
-    #                         source_node = NodeOuput(curie=originalSourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
-    #                         target_node = NodeOuput(curie=originalTargetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
-    #                         output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
-    #                             score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, 
-    #                             publication_ids=publications, score_translator=score_translator)
+                            # if web_request_object.get_map_target_normalized_id().get(targetID):
+                            #     originalTargetID  = web_request_object.get_map_target_normalized_id().get(targetID)
+                            # # else:
+                            # #     logger.info(web_request_object.get_map_target_normalized_id())
+                            # # logger.info("original: {}, converted: {}".format(targetID, originalTargetID))
 
-    #                         # add to the results list
-    #                         genetics_results.append(output_edge)
+                            # score     = record[3]
+                            # scoreType = record[4]
+                            # sourceName = record[5]
+                            # targetName = record[6]
+                            # edgeType = record[7]
+                            # sourceType = record[8]
+                            # targetType = record[9]
+                            # studyTypeId = record[10]
+                            # publications = record[11]
+                            # score_translator = record[12]
+
+                            # # build the result objects
+                            # source_node = NodeOuput(curie=originalSourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
+                            # target_node = NodeOuput(curie=originalTargetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
+                            # output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
+                            #     score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, 
+                            #     publication_ids=publications, score_translator=score_translator)
+
+                            # add to the results list
+                            genetics_results.append(creative_result)
                 
-    #             # close the connection
-    #             cnx.close()
+                # close the connection
+                cnx.close()
 
-    #     else:
-    #         logger.info("no source/target inputs that we have, so skip")
+        else:
+            logger.info("no source/target inputs that we have, so skip")
 
-    #     # log
-    #     logger.info("for query \n{}".format(request_body))
-    #     num_source = 0
-    #     if web_request_object.get_original_source_ids():
-    #         num_source = len(web_request_object.get_original_source_ids())
-    #     num_target = 0
-    #     if web_request_object.get_original_target_ids():
-    #         num_target = len(web_request_object.get_original_target_ids())
-    #     logger.info("CREATIVE web query with source count: {} and target count: {} return total edge count: {}".format(num_source, num_target, len(genetics_results)))
+        # log
+        logger.info("for query \n{}".format(request_body))
+        num_source = 0
+        if web_request_object.get_original_source_ids():
+            num_source = len(web_request_object.get_original_source_ids())
+        num_target = 0
+        if web_request_object.get_original_target_ids():
+            num_target = len(web_request_object.get_original_target_ids())
+        logger.info("CREATIVE web query with source count: {} and target count: {} return total result count: {}".format(num_source, num_target, len(genetics_results)))
 
 
     # # build the response

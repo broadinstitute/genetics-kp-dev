@@ -18,7 +18,7 @@ class CreativeEdge:
         self.edge_id = str(row_id) + '_' + subject.id + '_' + target.id
 
 class CreativeResult:
-    def __int__(self, row_id, gene, pathway, disease, drug, pathway_gene, gene_disease, pathway_disease, drug_gene):
+    def __init__(self, row_id, gene, pathway, disease, drug, pathway_gene, gene_disease, pathway_disease, drug_gene):
         self.row_id = row_id
         self.gene: CreativeNode = gene
         self.disease: CreativeNode = disease

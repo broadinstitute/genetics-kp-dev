@@ -5,12 +5,14 @@
 - tasks
   + download drugs for all 20k genes
   + filter on whether query is inferred
-  - translate input based on creative
-  - backup affects drug data
+  + translate input based on creative
+  + backup affects drug data
   - download regulates drugs
-  - build drug query
-  - build app query
+  + build drug query
+  + build app query
+  - build neutral result format
   - load drug data into schema
+  - build trapi result
   - test 
 
 
