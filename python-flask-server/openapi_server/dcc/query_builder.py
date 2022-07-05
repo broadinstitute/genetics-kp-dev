@@ -459,7 +459,7 @@ def build_creative_query(web_query_object, log=False):
         sql_string = add_in_in(sql=sql_string, term="disease.ontology_id", list_input=list_input, is_first=False)
         param_list += list_input
 
-    sql_string = sql_string + " limit " + str(5)
+    sql_string = sql_string + " limit " + str(500)
 
     # log
     if log:
