@@ -3,9 +3,15 @@
 
 2022 - creative tasks
 - tasks
-  - download drugs for all 20k genes
-  - filter on whether query is inferred
-  - 
+  + download drugs for all 20k genes
+  + filter on whether query is inferred
+  - translate input based on creative
+  - backup affects drug data
+  - download regulates drugs
+  - build drug query
+  - build app query
+  - load drug data into schema
+  - test 
 
 
 

@@ -179,138 +179,7 @@ def queryGenerated(request_body):  # noqa: E501
     """
     return 'do some magic!'
 
-def queryOld(request_body):  # noqa: E501
-    """Query reasoner via one of several inputs
-
-     # noqa: E501
-
-    :param request_body: Query information to be submitted
-    :type request_body: Dict[str, ]
-
-    :rtype: Response
-    """
-    # cnx = mysql.connector.connect(database='Translator', user='mvon')
-    # cnx = pymysql.connect(host='localhost', port=3306, database='Translator', user='mvon')
-    cursor = cnx.cursor()
-
-    if connexion.request.is_json:
-        body = connexion.request.get_json()
-        print("got {}".format(body))
-        takenNodes = {}
-        takenEdges = {}
-
-        body['results'] = []
-        body['knowledge_graph'] = {}
-        body['knowledge_graph']['nodes'] = []
-        body['knowledge_graph']['edges'] = []
- 
-        for edge in body['message']['query_graph']['edges']:
-            if 'type' not in edge or edge['type'] != 'associated' or 'source_id' not in edge or 'target_id' not in edge:
-                continue
-            
-            sourceNode = 0;
-            for node in body['message']['query_graph']['nodes']:
-                if 'id' in node and node['id'] == edge['source_id']:
-                    sourceNode = node
-                    break
-
-            if sourceNode == 0 or 'type' not in sourceNode or 'curie' not in sourceNode:
-                continue
-
-            targetnode = 0;
-            for node in body['message']['query_graph']['nodes']:
-                if 'id' in node and node['id'] == edge['target_id']:
-                    targetNode = node
-                    break
-
-            if targetNode == 0 or 'type' not in targetNode:
-                continue
-        
-            qeID       = edge['id']
-            sourceID   = sourceNode['curie']
-            qn0ID      = sourceNode['id']
-            qn1ID      = targetNode['id']
-            sourceType = translate_type(sourceNode['type'])
-            targetType = translate_type(targetNode['type'])
-
-            # N = 0
-            info    = []
-            queries = []
-
-            # log
-            print("running query for source type: {} and source_id: {} and target type: {}".format(sourceType, sourceID, targetType))
-
-            # queries
-            if (sourceType == 'disease' or sourceType == 'phenotypic_feature') and targetType == 'gene':
-                # N = 2
-                info = [["MAGMA-pvalue", "smaller_is_better"],\
-                        ["Richards-effector-genes", "higher_is_better"],\
-                        ["ABC-genes", "not_displayed"],\
-                        ["Genetics-quantile", "higher_is_better"]]
-                queries = ["select GENE,ID,PVALUE from MAGMA_GENES where DISEASE='{}' and CATEGORY='{}' and PVALUE<2.5e-6 ORDER by PVALUE  ASC".format(sourceID,sourceType),\
-                           "select gene, id, probability from richards_gene where phenotype='{}' and category='{}' ORDER by probability desc".format(sourceID,sourceType),\
-                           "select gene_ncbi_id, edge_id, null from abc_gene_phenotype where phenotype_efo_id='{}' and category='{}' and gene_ncbi_id is not null order by edge_id".format(sourceID,sourceType),\
-                           "select GENE,ID,SCORE  from SCORE_GENES where DISEASE='{}' and CATEGORY='{}' and SCORE >0.95   ORDER by SCORE  DESC".format(sourceID,sourceType)]
-
-            elif (sourceType == 'disease' or sourceType == 'phenotypic_feature') and targetType == 'pathway':
-                # N = 1
-                info = [["MAGMA-pvalue", "smaller_is_better"]]
-                queries = ["select PATHWAY,ID,PVALUE from MAGMA_PATHWAYS where DISEASE='{}' and CATEGORY='{}' and PVALUE<2.0e-6 ORDER by PVALUE ASC".format(sourceID,sourceType)]
-
-            elif sourceType == 'gene' and (targetType == 'disease' or targetType == 'phenotypic_feature'):
-                # N = 2
-                info = [["MAGMA-pvalue", "smaller_is_better"],\
-                        ["Richards-effector-genes", "higher_is_better"],\
-                        ["ABC-genes", "not_displayed"],\
-                        ["Genetics-quantile", "higher_is_better"]]
-                queries = ["select DISEASE,ID,PVALUE from MAGMA_GENES where GENE='{}' and CATEGORY='{}' and PVALUE<0.05 ORDER by PVALUE ASC".format(sourceID,targetType),\
-                           "select phenotype, id, probability from richards_gene where gene='{}' and category='{}' ORDER by probability desc".format(sourceID,targetType),\
-                           "select phenotype_efo_id, edge_id, null from abc_gene_phenotype where gene_ncbi_id='{}' and category='{}' and phenotype_efo_id is not null order by edge_id".format(sourceID,targetType),\
-                           "select DISEASE,ID,SCORE  from SCORE_GENES where GENE='{}' and CATEGORY='{}' and SCORE >0.80 ORDER by SCORE DESC".format(sourceID,targetType)]
-
-            elif sourceType == 'pathway' and (targetType == 'disease' or targetType == 'phenotypic_feature'):
-                # N = 1
-                info = [["MAGMA-pvalue", "smaller_is_better"]]
-                queries = ["select DISEASE,ID,PVALUE from MAGMA_PATHWAYS where PATHWAY='{}' and CATEGORY='{}' and PVALUE<0.05 ORDER by PVALUE ASC".format(sourceID,targetType)]
-
-            if len(queries) > 0:
-                for i in range(0, len(queries)):
-                    print("running query: {}".format(queries[i]))
-                    cursor.execute(queries[i])
-                    results = cursor.fetchall()
-                    print("result of type {} is {}".format(type(results), results))
-                    if results:
-                        for record in results:
-                            targetID  = record[0]
-                            edgeID    = record[1]
-                            score     = record[2]
-
-                            if sourceID not in takenNodes:
-                                body['knowledge_graph']['nodes'].append({"id" : sourceID, "type" : sourceType})
-                                takenNodes[sourceID] = 1
-
-                            if targetID not in takenNodes:
-                                body['knowledge_graph']['nodes'].append({"id" : targetID, "type" : targetType})
-                                takenNodes[targetID] = 1
-
-                            if edgeID not in takenEdges: 
-                                if score is not None:
-                                    body['knowledge_graph']['edges'].append({"id" : edgeID, "source_id": sourceID, "target_id" : targetID, "score_name" : info[i][0], "score" : score, "score_direction" : info[i][1], "type" : "associated"})
-                                else:
-                                    body['knowledge_graph']['edges'].append({"id" : edgeID, "source_id": sourceID, "target_id" : targetID, "score_name" : info[i][0], "type" : "associated"})
-                                takenEdges[edgeID] = 1
-
-                            body['results'].append({"edge_bindings": [ {"kg_id": edgeID, "qg_id": qeID} ], "node_bindings": [ { "kg_id": sourceID, "qg_id": qn0ID }, { "kg_id": targetID, 'qg_id': qn1ID } ] })
-
-        body['query_graph'] = body['message']['query_graph']
-        del body['message']
-        return body
-
-    cnx.close() 
-    return({"status": 400, "title": "body content not JSON", "detail": "Required body content is not JSON", "type": "about:blank"}, 400)
-
-
-def get_request_elements(body):
+def get_request_elements(body, is_creative=False):
     """ 
     translates the json into a neutral format 
     input: trapi json
@@ -360,14 +229,16 @@ def get_request_elements(body):
         # filter out the ontologies we don't service
         # BUG: https://github.com/broadinstitute/genetics-kp-dev/issues/26
         # -- if source or target is only one id, don't bother filtering; if do end up filtering ID, will get unbounded incorrect query
-        if len(list_source) > 1:
-            list_temp = []
-            for item in list_source:
-                if item.split(':')[0] not in list_ontology_prefix_avoid:
-                    list_temp.append(item)
-                else:
-                    logger.info("skipping non serviced source: {}".format(item))
-            list_source = list_temp
+        # NOTE - CREATIVE - only filter subject if not creative query (not drug - treats - disease)
+        if not is_creative:
+            if len(list_source) > 1:
+                list_temp = []
+                for item in list_source:
+                    if item.split(':')[0] not in list_ontology_prefix_avoid:
+                        list_temp.append(item)
+                    else:
+                        logger.info("skipping non serviced source: {}".format(item))
+                list_source = list_temp
 
         # BUG: https://github.com/broadinstitute/genetics-kp-dev/issues/26
         # -- if source or target is only one id, don't bother filtering
@@ -412,82 +283,6 @@ def get_request_elements(body):
 
     # return
     return results
-
-# def build_results(results_list, query_graph):
-#     """ build the trapi v1.0 response from the genetics model """
-#     # build the empty collections
-#     results = []
-#     knowledge_graph = KnowledgeGraph(nodes={}, edges={})
-#     nodes = {}
-#     edges = {}
-
-#     # loop through the results
-#     for edge_element in results_list:
-#         # get the nodes
-#         source = edge_element.source_node
-#         target = edge_element.target_node
-#         # print("edge element: {}".format(edge_element))
-
-#         # add the edge
-#         # build the provenance data
-#         attributes = [PROVENANCE_AGGREGATOR_KP_GENETICS]
-#         provenance_child = MAP_PROVENANCE.get(edge_element.study_type_id)
-#         if provenance_child:
-#             attributes.append(provenance_child)
-
-#         # add in the pvalue/probability if applicable
-#         if edge_element.score_translator:
-#             attributes.append(Attribute(original_attribute_name='probability', value=edge_element.score_translator, attribute_type_id='biolink:probability'))
-#         if edge_element.score is not None:
-#             # OLD - pre score translator data
-#             # if edge_element.score_type == 'biolink:probability':
-#             #     attributes.append(Attribute(original_attribute_name='probability', value=edge_element.score, attribute_type_id=edge_element.score_type))
-
-#             # add p_value or classification if available
-#             if edge_element.score_type == 'biolink:classification':
-#                 attributes.append(Attribute(original_attribute_name='classification', value=edge_element.score, attribute_type_id=edge_element.score_type))
-#             elif edge_element.score_type == 'biolink:p_value':
-#                 attributes.append(Attribute(original_attribute_name='pValue', value=edge_element.score, attribute_type_id=edge_element.score_type))
-#             # print("added attributes: {}".format(attributes))
-
-#         if edge_element.publication_ids:
-#             list_publication = build_pubmed_ids(edge_element.publication_ids)
-#             if (list_publication):
-#                 pub_source = None
-#                 if MAP_PROVENANCE.get(edge_element.study_type_id):
-#                     pub_source = MAP_PROVENANCE.get(edge_element.study_type_id).value
-#                 attributes.append(Attribute(original_attribute_name='publication', value=list_publication, 
-#                     attribute_type_id='biolink:has_supporting_publications', value_type_id='biolink:Publication', attribute_source=pub_source))
-
-#         # build the edge
-#         edge = Edge(predicate=translate_type(edge_element.predicate, False), subject=source.curie, object=target.curie, attributes=attributes)
-#         knowledge_graph.edges[edge_element.id] = edge
-#         edges[(source.node_key, target.node_key)] = edge
-
-#         # add the subject node
-#         node = Node(name=source.name, categories=[translate_type(source.category, False)], attributes=None)
-#         nodes[source.node_key] = node           
-#         knowledge_graph.nodes[source.curie] = node
-
-#         # add the target node
-#         node = Node(name=target.name, categories=[translate_type(target.category, False)], attributes=None)
-#         nodes[target.node_key] = node           
-#         knowledge_graph.nodes[target.curie] = node
-
-#         # build the bindings
-#         source_binding = NodeBinding(id=source.curie)
-#         edge_binding = EdgeBinding(id=edge_element.id)
-#         target_binding = NodeBinding(id=target.curie)
-#         edge_map = {edge_element.edge_key: [edge_binding]}
-#         nodes_map = {source.node_key: [source_binding], target.node_key: [target_binding]}
-#         results.append(Result(nodes_map, edge_map, score=edge_element.score_translator))
-
-#     # build out the message
-#     message = Message(results=results, query_graph=query_graph, knowledge_graph=knowledge_graph)
-#     results_response = Response(message = message)
-
-#     # return
-#     return results_response
 
 
 def query(request_body):  # noqa: E501
@@ -544,108 +339,17 @@ def query(request_body):  # noqa: E501
         is_creative_query = is_query_creative(body)
         if is_creative_query:
             logger.info("query is CREATIVE")
+            # build the response
+            query_response = sub_query_creative(body, query_graph, request_body)
+
         else:
             logger.info("query is LOOKUP")
-
-        # build the response
-        query_response = sub_query_lookup(body, query_graph, request_body)
-
-
-        # # build the interim data structure 
-        # # NOTE - also expand the ID list based on ontology ancestry
-        # request_input = get_request_elements(body)
-        # logger.info("got request input {}".format(request_input))
-
-        # # only allow small queries
-        # if len(request_input) > MAX_SIZE_ID_LIST:
-        #     logger.error("too big request, asking for {} combinations".format(len(request_input)))
-        #     return ({"status": 413, "title": "Query payload too large", "detail": "Query payload too large, exceeds the {} subject/object combination size".format(MAX_SIZE_ID_LIST), "type": "about:blank" }, 413)
-
-        # # only open web connection when have passed validation of request
-        # cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
-        # cursor = cnx.cursor()
-
-        # for web_request_object in request_input:
-        #     # log
-        #     # logger.info("running query for web query object: {}\n".format(web_request_object))
-
-        #     # queries
-        #     # NOTE - implemented batch subject/target input - done in the batch sql structure
-
-        #     # TODO - might have to implement uniqueness on the PK returned (use set); took out duplicate check
-        #     # if not found_results_already:   # TODO - might not be needed anymore since ncats NN and each disease/phenotype entry should only have one curie in the DB
-
-        #     # make sure it is not an unbounded query (that we have matched with at leat one source/target)
-        #     if len(web_request_object.get_list_source_id()) > 0 or len(web_request_object.get_list_target_id()) > 0:
-        #         queries = qbuilder.get_queries(web_request_object)
-
-        #         # if results
-        #         if len(queries) > 0:
-        #             found_results_already = True
-        #             for i in range(0, len(queries)):
-        #                 sql_object = queries[i]
-        #                 logger.info("running query: {}\n".format(sql_object))
-        #                 cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
-        #                 results = cursor.fetchall()
-        #                 # print("result of type {} is {}".format(type(results), results))
-        #                 logger.info("for DB query got result count of: {}".format(len(results)))
-        #                 if results:
-        #                     for record in results:
-        #                         edgeID    = record[0]
-        #                         sourceID  = record[1]
-        #                         targetID  = record[2]
-        #                         originalSourceID  = record[1]
-        #                         originalTargetID  = record[2]
-
-        #                         # find original source/target IDs
-        #                         if web_request_object.get_map_source_normalized_id().get(sourceID):
-        #                             originalSourceID  = web_request_object.get_map_source_normalized_id().get(sourceID)
-
-        #                         if web_request_object.get_map_target_normalized_id().get(targetID):
-        #                             originalTargetID  = web_request_object.get_map_target_normalized_id().get(targetID)
-        #                         # else:
-        #                         #     logger.info(web_request_object.get_map_target_normalized_id())
-        #                         # logger.info("original: {}, converted: {}".format(targetID, originalTargetID))
-
-        #                         score     = record[3]
-        #                         scoreType = record[4]
-        #                         sourceName = record[5]
-        #                         targetName = record[6]
-        #                         edgeType = record[7]
-        #                         sourceType = record[8]
-        #                         targetType = record[9]
-        #                         studyTypeId = record[10]
-        #                         publications = record[11]
-        #                         score_translator = record[12]
-
-        #                         # build the result objects
-        #                         source_node = NodeOuput(curie=originalSourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
-        #                         target_node = NodeOuput(curie=originalTargetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
-        #                         output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
-        #                             score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, 
-        #                             publication_ids=publications, score_translator=score_translator)
-
-        #                         # add to the results list
-        #                         genetics_results.append(output_edge)
-                    
-        #     else:
-        #         logger.info("no source/target inputs that we have, so skip")
-
-        # # log
-        # logger.info("for query \n{}".format(request_body))
-        # num_source = 0
-        # if web_request_object.get_original_source_ids():
-        #     num_source = len(web_request_object.get_original_source_ids())
-        # num_target = 0
-        # if web_request_object.get_original_target_ids():
-        #     num_target = len(web_request_object.get_original_target_ids())
-        # logger.info("web query with source count: {} and target count: {} return total edge count: {}".format(num_source, num_target, len(genetics_results)))
-
-        # # close the connection
-        # cnx.close()
+            # build the response
+            query_response = sub_query_lookup(body, query_graph, request_body)
 
         # # build the response
-        # query_response = build_results(results_list=genetics_results, query_graph=query_graph)
+        # query_response = sub_query_lookup(body, query_graph, request_body)
+
 
         # return
         return query_response
@@ -771,6 +475,125 @@ def sub_query_lookup(body, query_graph, request_body, log=False):
 
     # return
     return query_response
+
+def sub_query_creative(body, query_graph, request_body, log=False):
+    '''
+    deal with a creative query
+    '''
+    # initialize
+    genetics_results = []
+
+    # tag start time
+    start = time.time()
+
+    # build the interim data structure 
+    # NOTE - also expand the ID list based on ontology ancestry
+    request_input = get_request_elements(body, is_creative=True)
+    logger.info("got request input {}".format(request_input))
+
+    # only allow small queries
+    if len(request_input) > MAX_SIZE_ID_LIST:
+        logger.error("too big request, asking for {} combinations".format(len(request_input)))
+        return ({"status": 413, "title": "Query payload too large", "detail": "Query payload too large, exceeds the {} subject/object combination size".format(MAX_SIZE_ID_LIST), "type": "about:blank" }, 413)
+
+    # log
+    logger.info("looping through queries for CREATIVE web query object list: {}\n".format(request_input))
+    # for web_request_object in request_input:
+    #     # log
+    #     # logger.info("running query for web query object: {}\n".format(web_request_object))
+
+    #     # queries
+    #     # NOTE - implemented batch subject/target input - done in the batch sql structure
+
+    #     # TODO - might have to implement uniqueness on the PK returned (use set); took out duplicate check
+    #     # if not found_results_already:   # TODO - might not be needed anymore since ncats NN and each disease/phenotype entry should only have one curie in the DB
+
+    #     # make sure it is not an unbounded query (that we have matched with at leat one source/target)
+    #     if len(web_request_object.get_list_source_id()) > 0 or len(web_request_object.get_list_target_id()) > 0:
+    #         queries = qbuilder.get_queries(web_request_object)
+
+    #         # if results
+    #         if len(queries) > 0:
+    #             found_results_already = True
+    #             # only open web connection when have passed validation of request
+    #             cnx = pymysql.connect(host=DB_HOST, port=3306, database=DB_SCHEMA, user=DB_USER, password=DB_PASSWD)
+    #             cursor = cnx.cursor()
+
+    #             for i in range(0, len(queries)):
+    #                 sql_object = queries[i]
+    #                 logger.info("running query: {}\n".format(sql_object))
+    #                 cursor.execute(sql_object.sql_string, tuple(sql_object.param_list))
+    #                 results = cursor.fetchall()
+    #                 # print("result of type {} is {}".format(type(results), results))
+    #                 logger.info("for DB query got result count of: {}".format(len(results)))
+    #                 if results:
+    #                     for record in results:
+    #                         edgeID    = record[0]
+    #                         sourceID  = record[1]
+    #                         targetID  = record[2]
+    #                         originalSourceID  = record[1]
+    #                         originalTargetID  = record[2]
+
+    #                         # find original source/target IDs
+    #                         if web_request_object.get_map_source_normalized_id().get(sourceID):
+    #                             originalSourceID  = web_request_object.get_map_source_normalized_id().get(sourceID)
+
+    #                         if web_request_object.get_map_target_normalized_id().get(targetID):
+    #                             originalTargetID  = web_request_object.get_map_target_normalized_id().get(targetID)
+    #                         # else:
+    #                         #     logger.info(web_request_object.get_map_target_normalized_id())
+    #                         # logger.info("original: {}, converted: {}".format(targetID, originalTargetID))
+
+    #                         score     = record[3]
+    #                         scoreType = record[4]
+    #                         sourceName = record[5]
+    #                         targetName = record[6]
+    #                         edgeType = record[7]
+    #                         sourceType = record[8]
+    #                         targetType = record[9]
+    #                         studyTypeId = record[10]
+    #                         publications = record[11]
+    #                         score_translator = record[12]
+
+    #                         # build the result objects
+    #                         source_node = NodeOuput(curie=originalSourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
+    #                         target_node = NodeOuput(curie=originalTargetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
+    #                         output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
+    #                             score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, 
+    #                             publication_ids=publications, score_translator=score_translator)
+
+    #                         # add to the results list
+    #                         genetics_results.append(output_edge)
+                
+    #             # close the connection
+    #             cnx.close()
+
+    #     else:
+    #         logger.info("no source/target inputs that we have, so skip")
+
+    #     # log
+    #     logger.info("for query \n{}".format(request_body))
+    #     num_source = 0
+    #     if web_request_object.get_original_source_ids():
+    #         num_source = len(web_request_object.get_original_source_ids())
+    #     num_target = 0
+    #     if web_request_object.get_original_target_ids():
+    #         num_target = len(web_request_object.get_original_target_ids())
+    #     logger.info("CREATIVE web query with source count: {} and target count: {} return total edge count: {}".format(num_source, num_target, len(genetics_results)))
+
+
+    # # build the response
+    # query_response = build_results_creative(results_list=genetics_results, query_graph=query_graph)
+
+    # # tag and print the time elapsed
+    # end = time.time()
+    # time_elapsed = end - start
+    # logger.info("CREATIVE web query with source: {} and target: {} return total edge: {} in time: {}s".format(num_source, num_target, len(genetics_results), time_elapsed))
+
+    # return
+    query_response = {"dude": "creative query"}
+    return query_response
+
 
 def is_query_creative(json_body, log=False):
     '''
