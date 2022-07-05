@@ -601,16 +601,16 @@ def sub_query_creative(body, query_graph, request_body, log=False):
         logger.info("CREATIVE web query with source count: {} and target count: {} return total result count: {}".format(num_source, num_target, len(genetics_results)))
 
 
-    # # build the response
-    # query_response = build_results_creative(results_list=genetics_results, query_graph=query_graph)
+    # build the response
+    query_response = build_results_creative(results_list=genetics_results, query_graph=query_graph)
 
-    # # tag and print the time elapsed
-    # end = time.time()
-    # time_elapsed = end - start
-    # logger.info("CREATIVE web query with source: {} and target: {} return total edge: {} in time: {}s".format(num_source, num_target, len(genetics_results), time_elapsed))
+    # tag and print the time elapsed
+    end = time.time()
+    time_elapsed = end - start
+    logger.info("CREATIVE web query with source: {} and target: {} return total edge: {} in time: {}s".format(num_source, num_target, len(genetics_results), time_elapsed))
 
     # return
-    query_response = {"dude": "creative query"}
+    # query_response = {"dude": "creative query"}
     return query_response
 
 

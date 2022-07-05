@@ -90,7 +90,7 @@ def build_results_creative(results_list, query_graph):
 
             # add in the pvalue/probability if applicable
             if edge_element.score:
-                attributes.append(Attribute(original_attribute_name='pvalue', value=edge_element.score_translator, attribute_type_id='biolink:p_value'))
+                attributes.append(Attribute(original_attribute_name='pvalue', value=edge_element.score, attribute_type_id='biolink:p_value'))
 
             # build the edge
             edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, attributes=attributes)
@@ -113,7 +113,7 @@ def build_results_creative(results_list, query_graph):
             source_binding = NodeBinding(id=edge_element.subject.id)
             edge_binding = EdgeBinding(id=edge_element.edge_id)
             target_binding = NodeBinding(id=edge_element.target.id)
-            edge_binding_map[edge_element.edge_key] = [edge_binding]
+            edge_binding_map[edge_element.query_edge_binding_key] = [edge_binding]
             node_binding_map[edge_element.subject.query_node_binding_key] = [source_binding]
             node_binding_map[edge_element.target.query_node_binding_key] = [target_binding]
 
