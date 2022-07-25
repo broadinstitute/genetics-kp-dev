@@ -3,11 +3,10 @@ import six
 
 from openapi_server.models.response import Response  # noqa: E501
 from openapi_server import util
-from openapi_server.dcc.web_utils import query
 
 
 def query_post(request_body):  # noqa: E501
-    """Query reasoner via one of several inputs
+    """Initiate a query and wait to receive a Response
 
      # noqa: E501
 
@@ -16,8 +15,4 @@ def query_post(request_body):  # noqa: E501
 
     :rtype: Response
     """
-    # return 'do some magic!'
-
-    # get the response
-    response = query(request_body)
-    return response
+    return 'do some magic!'
