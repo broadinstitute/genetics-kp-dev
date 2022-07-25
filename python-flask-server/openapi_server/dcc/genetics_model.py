@@ -94,14 +94,15 @@ class GeneticsModel():
 
 
 class NodeOuput():
-    def __init__(self, curie, name, category, node_key):
+    def __init__(self, curie, query_curie, name, category, node_key):
         self.curie = curie
+        self.query_curie = query_curie
         self.name = name
         self.category = category
         self.node_key = node_key 
     
     def __str__(self):
-        return "curie: {}, name: {}, category: {}, node key: {}".format(self.curie, self.name, self.category, self.node_key)
+        return "[curie: {}, qcurie: {}, name: {}, category: {}, node key: {}]".format(self.curie, self.query_curie, self.name, self.category, self.node_key)
 
     __repr__ = __str__
         

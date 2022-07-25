@@ -469,6 +469,7 @@ def build_results(results_list, query_graph):
 
     # loop through the results
     for edge_element in results_list:
+        print("edge: {}".format(edge_element))
         # get the nodes
         source = edge_element.source_node
         target = edge_element.target_node
@@ -521,9 +522,9 @@ def build_results(results_list, query_graph):
         knowledge_graph.nodes[target.curie] = node
 
         # build the bindings
-        source_binding = NodeBinding(id=source.curie)
+        source_binding = NodeBinding(id=source.curie, query_id=source.query_curie)
         edge_binding = EdgeBinding(id=edge_element.id)
-        target_binding = NodeBinding(id=target.curie)
+        target_binding = NodeBinding(id=target.curie, query_id=target.query_curie)
         edge_map = {edge_element.edge_key: [edge_binding]}
         nodes_map = {source.node_key: [source_binding], target.node_key: [target_binding]}
         results.append(Result(nodes_map, edge_map, score=edge_element.score_translator))
@@ -640,8 +641,10 @@ def query(request_body):  # noqa: E501
                                 edgeID    = record[0]
                                 sourceID  = record[1]
                                 targetID  = record[2]
-                                originalSourceID  = record[1]
-                                originalTargetID  = record[2]
+                                # originalSourceID  = record[1]
+                                # originalTargetID  = record[2]
+                                originalSourceID  = None
+                                originalTargetID  = None
 
                                 # find original source/target IDs
                                 if web_request_object.get_map_source_normalized_id().get(sourceID):
@@ -665,8 +668,8 @@ def query(request_body):  # noqa: E501
                                 score_translator = record[12]
 
                                 # build the result objects
-                                source_node = NodeOuput(curie=originalSourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
-                                target_node = NodeOuput(curie=originalTargetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
+                                source_node = NodeOuput(curie=sourceID, query_curie=originalSourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
+                                target_node = NodeOuput(curie=targetID, query_curie=originalTargetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
                                 output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
                                     score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, 
                                     publication_ids=publications, score_translator=score_translator)
