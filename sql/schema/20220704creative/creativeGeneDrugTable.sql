@@ -23,7 +23,7 @@ insert into infe_drug_gene
 (gene_node_id, gene_ontology_id, gene_code, drug_ontology_id, drug_name, drug_category_biolink_id, predicate_biolink_id)
 select gene_node_id, gene_ontology_id, gene_code, drug_ontology_id, drug_name, drug_category_biolink_id, predicate_biolink_id
 from tran_upkeep.molepro_drug_gene_affects 
-where predicate_biolink_id in ('biolink:increases_metabolic_processing_of', 'biolink:decreases_metabolic_processing_of', 'biolink:affects_metabolic_processing_of')
+where predicate_biolink_id in ('biolink:increases_metabolic_processing_of', 'biolink:decreases_metabolic_processing_of', 'biolink:affects_metabolic_processing_of');
 
 insert into infe_drug_gene
 (gene_node_id, gene_ontology_id, gene_code, drug_ontology_id, drug_name, drug_category_biolink_id, predicate_biolink_id)
