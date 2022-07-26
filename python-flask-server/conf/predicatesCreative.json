@@ -1,0 +1,7 @@
+{
+    "biolink:MolecularEntity": {
+        "biolink:Disease": [
+            "biolink:ameliorates"
+        ]
+    }
+}
