@@ -19,6 +19,9 @@ file_blank_query = file_prepend + '/Data/Broad/Translator/Client/blankGeneRelate
 # singleton class to keep translations in memory, avoid repeated file reading
 # see https://www.geeksforgeeks.org/singleton-method-python-design-patterns/
 class BiolinkAncestrySingleton:
+    '''
+    class holds the predicate map that is supported and the ancestry data generated from biolink ancestry
+    '''
   
     __shared_instance = 'biolink_ancestry'
   
@@ -36,12 +39,15 @@ class BiolinkAncestrySingleton:
         else:
             print("reading BiolinkAncestrySingleton data")
             # read the biolink translations file
-            with open('biolinkAncestry.json') as json_file:
+            with open('conf/biolinkAncestry.json') as json_file:
                 # read the map
                 self.ancestry_map = json.load(json_file)
-            with open('predicates.json') as json_file:
+            with open('conf/predicates.json') as json_file:
                 # read the map
                 self.predicate_map = json.load(json_file)
+            with open('conf/predicatesCreative.json') as json_file:
+                # read the map
+                self.predicate_creative_map = json.load(json_file)
 
             # set the object
             BiolinkAncestrySingleton.__shared_instance = self
@@ -146,7 +152,10 @@ def get_node_map():
     return map_node
 
 def create_predicate_triple_list():
-    ''' create a list query triples of all accepted queries for the given predicate '''
+    ''' 
+    create a list query triples of all accepted queries for the given predicate 
+    returns the hard coded non inferenced predicate/node tripes
+    '''
     query_list = []
 
     # get the list
@@ -242,7 +251,10 @@ def get_query_parts(query_json):
     return sub, obj, pred 
 
 def get_all_overlap_queries(ancestor_map, predicate_json, query_json):
-    ''' returns the intersection of the predicates and expanded query list '''
+    ''' 
+    returns the intersection of the predicates and expanded query list 
+    @deprecated
+    '''
     # get the parts of the query
     sub, obj, pred = get_query_parts(query_json)
 
@@ -260,6 +272,21 @@ def get_overlap_queries_for_parts(subject_type, object_type, predicate, debug=Fa
     biolink_object = BiolinkAncestrySingleton.getInstance()
     ancestor_map = biolink_object.ancestry_map
     predicate_map = biolink_object.predicate_map
+
+    # get the query list
+    query_list = get_all_overap_queries_for_parts(ancestor_map, predicate_map, subject_type, object_type, predicate, debug)
+
+    # return
+    return query_list
+
+def get_overlap_queries_for_parts_creative(subject_type, object_type, predicate, debug=False):
+    ''' returns the intersection of the predicates and expanded query list '''
+    query_list = []
+
+    # get the ancestor map
+    biolink_object = BiolinkAncestrySingleton.getInstance()
+    ancestor_map = biolink_object.ancestry_map
+    predicate_map = biolink_object.predicate_creative_map
 
     # get the query list
     query_list = get_all_overap_queries_for_parts(ancestor_map, predicate_map, subject_type, object_type, predicate, debug)
