@@ -1,0 +1,13 @@
+
+
+2022 dev epics
+- todo
+  - move to sqllite
+  - 
+
+
+202207 tasks
+- todo
+  - 202206 data 
+  - 
+

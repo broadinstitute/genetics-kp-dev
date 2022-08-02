@@ -2,9 +2,10 @@ export FLASK_PORT=7003
 
 export DB_HOST=localhost
 export DB_USER=root
-export DB_PASSWD=somepassword
-export DB_SCHEMA=someschema
-export DB_CACHE_SCHEMA=someschema
+export DB_PASSWD=yoyoma
+# export DB_SCHEMA=tran_test_202108
+export DB_SCHEMA=tran_test_202205
+export DB_CACHE_SCHEMA=translator_cache
 export DB_RESULTS_LIMIT=150
 
 export TRAN_LOG_FILE=genepro.log
