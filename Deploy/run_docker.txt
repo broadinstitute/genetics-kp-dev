@@ -1,0 +1,4 @@
+export PORT=7003
+
+# sudo docker run -p $PORT:$PORT gene:gene 
+sudo docker run --network="host" gene_test:latest
