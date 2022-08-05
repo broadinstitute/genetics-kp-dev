@@ -1,4 +1,4 @@
-name: Test ITRB Cloud - CI
+name: ITRB Cloud - CI Tests
 
 on: 
   schedule:

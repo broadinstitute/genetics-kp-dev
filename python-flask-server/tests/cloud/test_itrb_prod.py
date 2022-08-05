@@ -3,7 +3,7 @@
 import openapi_server.dcc.result_utils as rutils
 
 # constants
-url_trapi_service = "https://translator.broadinstitute.org/genetics_provider/trapi/v1.2/{}"
+url_trapi_service = "https://genetics-kp.transltr.io/genetics_provider/trapi/v1.2/{}"
 
 # tests
 def test_query_api():
@@ -18,17 +18,17 @@ def test_query_api():
     # test
     assert len(map_nodes) > 0
 
-def test_creative_query_api():
-    ''' method to test the post creative query ncats itrb cloud deployment of the genetics kp '''
+# def test_creative_query_api():
+#     ''' method to test the post creative query ncats itrb cloud deployment of the genetics kp '''
 
-    # get the url
-    url = url_trapi_service.format("query")
+#     # get the url
+#     url = url_trapi_service.format("query")
 
-    # call the query service and get the nodes
-    map_nodes = rutils.post_query_nodes_one_hop(url, None, ["MONDO:0004975"], ["biolink:ChemicalEntity"], ["biolink:Disease"], ["biolink:treats"], knowledge_type="inferred", log=False)
+#     # call the query service and get the nodes
+#     map_nodes = rutils.post_query_nodes_one_hop(url, None, ["MONDO:0004975"], ["biolink:ChemicalEntity"], ["biolink:Disease"], ["biolink:treats"], knowledge_type="inferred", log=False)
 
-    # test
-    assert len(map_nodes) > 0
+#     # test
+#     assert len(map_nodes) > 0
 
 def test_meta_knowledge_graph_api():
     ''' method to test the get MKG ncats itrb cloud deployment of the genetics kp '''

@@ -1,8 +1,8 @@
-name: Unit Tests
+name: ITRB Cloud - Production Tests
 
 on: 
-  push:
-    branches: [ master ]
+  schedule:
+  - cron: '00 6,12,20 * * *'   # 3 times a day
 
 jobs:
   build:
@@ -25,4 +25,4 @@ jobs:
         pip install pytest
         pip install requests
         export PYTHONPATH=python-flask-server
-        pytest python-flask-server/tests/unit/test_biolink_utils.py
+        pytest python-flask-server/tests/cloud/test_itrb_prod.py
