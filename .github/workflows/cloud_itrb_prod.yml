@@ -1,6 +1,7 @@
 name: ITRB Cloud - Production Tests
 
 on: 
+  push:
   schedule:
   - cron: '00 6,12,20 * * *'   # 3 times a day
 
