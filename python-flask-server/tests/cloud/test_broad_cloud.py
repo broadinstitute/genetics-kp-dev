@@ -13,7 +13,7 @@ def test_query_api():
     url = url_trapi_service.format("query")
 
     # call the query service and get the nodes
-    map_nodes = rutils.get_nodes_one_hop(url, None, ["MONDO:0011936"], ["biolink:Gene"], ["biolink:DiseaseOrPhenotypicFeature"], None)
+    map_nodes = rutils.post_query_nodes_one_hop(url, None, ["MONDO:0011936"], ["biolink:Gene"], ["biolink:DiseaseOrPhenotypicFeature"], None)
 
     # test
     assert len(map_nodes) > 0
