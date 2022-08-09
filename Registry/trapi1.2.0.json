@@ -56,7 +56,7 @@
             "url": "https://genetics-kp.ci.transltr.io/genetics_provider/trapi/v1.2"
         },
         {
-            "description": "Development 1.2 server",
+            "description": "Development - temp - 1.2 server",
             "x-maturity": "development",
             "x-location": "ITRB",
             "url": "https://genetics-kp.transltr.io/genetics_provider/trapi/v1.2"
