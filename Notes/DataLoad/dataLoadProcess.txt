@@ -1,0 +1,26 @@
+
+
+- todo 
+  - look at bioindex list phenotypes api
+
+- new phenotypes
+  - get xlsx document
+  - load into load schema 
+  - pull in ontology id from the production schema 
+  - for any without ontology id (so not in system), run script to find best curie
+  - load new phenotypes that have curies into production tables
+
+- gene
+  - load flat file into load schema
+  - delete genes/phenotypes from production schema 
+  - load genes/phenotypes edges for genes and phenotypes in the production schema and based on filter pValue
+
+- pathways 
+  - load flat file into load schema
+  - delete pathways/phenotypes from production schema 
+  - load pathways/phenotypes edges for pathways and phenotypes in the production schema and based on filter pValue
+
+- pathway genes 
+
+- cache 
+  - run process to build synonyms and descendants of ontologies 

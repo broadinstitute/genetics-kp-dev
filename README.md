@@ -35,7 +35,7 @@ sudo docker build \
 ```
 * deploy the docker image making sure to open up the application port
 ```
-sudo docker run --rm -p 8090:8090 -v <CONTAINER_LOG_DIR>:/home/CodeTest/GeneticsPro/python-flask-server/logs <DOCKER_IMAGE_ID>
+
 ```
 
 # Data Available
