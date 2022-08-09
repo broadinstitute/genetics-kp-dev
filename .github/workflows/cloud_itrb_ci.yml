@@ -1,4 +1,4 @@
-name: ITRB Cloud - CI Tests
+name: ITRB Cloud - CI/Staging Tests
 
 on: 
   push:

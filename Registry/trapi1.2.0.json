@@ -38,10 +38,16 @@
     },
     "servers": [
         {
-            "description": "Default server",
+            "description": "Broad Production server",
             "x-maturity": "production",
             "x-location": "Broad Institute",
             "url": "https://translator.broadinstitute.org/genetics_provider/trapi/v1.2"
+        },
+        {
+            "description": "ITRB CI server",
+            "x-maturity": "staging",
+            "x-location": "ITRB",
+            "url": "https://genetics-kp.ci.transltr.io/genetics_provider/trapi/v1.2"
         }
     ],
     "externalDocs": {
