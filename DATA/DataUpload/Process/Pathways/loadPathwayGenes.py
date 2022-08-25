@@ -15,6 +15,7 @@ is_update_data = True
 DB_PASSWD = os.environ.get('DB_PASSWD')
 db_pathway_table = "tran_upkeep.data_pathway_genes"
 max_count = 20000000
+# max_count = 2000
 
 # db constants
 schema_data_load = "tran_upkeep"
@@ -84,7 +85,7 @@ def insert_pathway(conn, pathway_code, pathway):
         len(pathway.get('geneSymbols')), pathway_prefix, ontology_id))
 
     # insert the genes
-
+    insert_pathway_genes(conn, pathway_code, pathway)
 
 def get_ontology_id(prefix, pathway):
     '''
@@ -152,6 +153,29 @@ def create_updated_name(name, log=False):
     # return
     return new_name
 
+def insert_pathway_genes(conn, pathway_code, pathway_map, log=False):
+    ''' 
+    will insert the pathway genes
+    '''
+    # initialize 
+    sql_insert = """insert into {}.{} (pathway_id, gene_code) select id, %s from {}.{} where pathway_code = %s
+        """.format(schema_data_load, table_pathway_genes, schema_data_load, table_pathways)
+    list_genes = pathway_map['geneSymbols']
+    counter = 0
+
+    # insert the genes
+    cursor = conn.cursor()
+    for gene in list_genes:
+        # insert
+        cursor.execute(sql_insert, (gene, pathway_code))
+        counter = counter + 1
+
+        # log every 10
+        if log:
+            if counter % 10 == 0:
+                print("{} - pathway gene added with code {} for pathway {}".format(counter, gene, pathway_code))
+
+
 # main
 if __name__ == "__main__":
     # initialize
@@ -201,7 +225,7 @@ if __name__ == "__main__":
                 # log
                 if counter % 500 == 0:
                     conn.commit()
-                    print("inserted pathway: {} with code: {}".format(key, row_pathway['exactSource']))
+                    print("inserted pathway: {} with code: {} and gene count: {}".format(key, row_pathway['exactSource'], len(row_pathway['geneSymbols'])))
 
 
         # log the current db data

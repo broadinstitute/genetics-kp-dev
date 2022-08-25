@@ -18,6 +18,7 @@ alter table agg_aggregator_phenotype add unique index u_phenotype_id_idx (phenot
 
 
 -- insert new phenotypes into the comb_node_ontology table
+-- new phenotypes from magma are determined based on the aggregator phenotype code, not the ontology_id
 insert into tran_test_202209.comb_node_ontology
 (node_code, node_type_id, ontology_id, ontology_type_id, node_name, added_by_study_id)
 select up_phenotype.phenotype_id, 
@@ -80,3 +81,7 @@ from tran_test_202209.comb_node_ontology
 where node_type_id in (1, 3) and added_by_study_id = 1
 order by node_name, ontology_id;
 
+select a.id, b.id, a.node_code, b.node_code, a.node_type_id, b.node_type_id, a.last_updated, b.last_updated
+from comb_node_ontology a, comb_node_ontology b 
+where a.node_type_id in (1, 3) and b.node_type_id in (1, 3)
+and a.node_code = b.node_code and a.id != b.id;

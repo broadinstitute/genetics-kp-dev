@@ -18,6 +18,7 @@ create table tran_upkeep.data_pathway (
 
 -- create indexes
 create index dt_pathway_info_cde on tran_upkeep.data_pathway(pathway_code);
+create index dt_pathway_ont_id on tran_upkeep.data_pathway(ontology_id);
 
 
 

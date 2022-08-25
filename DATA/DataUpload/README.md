@@ -34,7 +34,7 @@ The staging schema is tran_upkeep
 ### Pathways
 * load the new pathways into translator (if updated)
 * load the pathway/phenotype magma associations from S3 into the upkeep table
-* refresh (delete/insert) the pathway/phenotype magma associations
+* refresh (delete/insert) the pathway/phenotype magma associations; cutoff is for loading is is pValue less than 0.05
 
 ### Genes
 * load the gene/phenotype magma associations from S3 into the upkeep table
