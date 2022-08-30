@@ -92,4 +92,7 @@ and a.node_code = b.node_code and a.id != b.id;
 -- most likely loaded old aggregator codes that had no ontologies
 -- deleting them from db, as well as their edges
 -- ADDING THEM TO TRAN_SCRATCH SCHEMA
-
+select * from comb_node_ontology where node_type_id = 12 order by node_code;
+select * from comb_node_ontology where node_type_id = 12 and ontology_id is not null order by node_code;
+create table tran_scratch.comb_node_ontology_20220829_type_12 as select * from comb_node_ontology where node_type_id = 12 order by node_code;
+delete from comb_node_ontology where node_type_id = 12;

@@ -89,6 +89,8 @@ order by up_path.id, up_path_assoc.id, pathway.id, phenotype.id;
 
 
 
+-- debugging getting 1.3 million rows vs 800k rows in upkeep associations
+-- this was due to PID pathwqys all having the same ontology id, hence lots of cartesian joins
 drop table if exists scratch_pathway_pheno;
 create table scratch_pathway_pheno (
   id                        int not null auto_increment primary key,
