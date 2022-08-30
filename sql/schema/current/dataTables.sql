@@ -21,6 +21,8 @@ alter table comb_edge_node add index comb_edg_nod_src_idx (source_node_id);
 alter table comb_edge_node add index comb_edg_nod_tgt_idx (target_node_id);
 alter table comb_edge_node add index comb_edg_nod_sco_idx (score);
 alter table comb_edge_node add index comb_edg_nod_sco_typ_idx (score_type_id);
+-- 20220829 - added to help with creative query
+alter table comb_edge_node add index comb_edg_nod_stu_idx (study_id);
 
 -- 20210817 - add in translator score, secondary provenance
 alter table comb_edge_node add score_translator double;

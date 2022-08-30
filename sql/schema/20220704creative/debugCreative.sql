@@ -58,7 +58,7 @@ from comb_edge_node path_disease, comb_edge_node gene_disease,
 where path_disease.source_node_id = pathway.id and path_disease.target_node_id = disease.id 
     and gene_disease.source_node_id = gene.id and gene_disease.target_node_id = disease.id
     and pathway.node_type_id = 4 and gene.node_type_id = 2 
-    and path_disease.score < 0.00005 and gene_disease.score < 0.000006 
+    and path_disease.score < 0.0005 and gene_disease.score < 0.000006 
     and pathway_gene.gene_node_id = gene.id and pathway_gene.pathway_node_id = pathway.id
     and gene.id = drug_gene.gene_node_id
      and disease.ontology_id in ('MONDO:0029132', 'MONDO:0005044', 'MONDO:0007211', 'MONDO:0007772', 'MONDO:0017147', 'MONDO:0024533', 'MONDO:0014135', 
