@@ -3,17 +3,22 @@
 
 -- delete old pathway associations
 -- delete where pathway is subject or object
+delete edge from comb_edge_node edge
+inner join comb_node_ontology node on edge.source_node_id = node.id 
+where node.node_type_id = 4;
 
+delete edge from comb_edge_node edge
+inner join comb_node_ontology node on edge.target_node_id = node.id 
+where node.node_type_id = 4;
 
 -- insert pathway phenotype association
 -- add pathway as subject
 -- expecting 729207 rows in set (14.35 sec)
 -- got 360523 rows in set (12.38 sec) -> fewer due to phenotypes that don't get included
-insert into comb_node_edge 
+-- insert with pathway as source
+insert into comb_edge_node 
 (edge_id, edge_type_id, source_node_id, target_node_id, score, score_type_id, study_id) 
-values(
     select concat('magma_', pathway.ontology_id, '_', phenotype.ontology_id) as edge_id, 
-    pathway.ontology_id as path_ont, phenotype.ontology_id as pheno_ont, phenotype.node_code, pathway.node_code,
     6, pathway.id, phenotype.id, 
     up_path_assoc.p_value, 8, 1
     from tran_upkeep.agg_pathway_phenotype up_path_assoc, comb_node_ontology pathway, comb_node_ontology phenotype, tran_upkeep.data_pathway up_path
@@ -23,7 +28,23 @@ values(
     and up_path_assoc.p_value <= 0.05
     order by phenotype.node_code, pathway.node_code;
 
+-- insert with pathway as target
+insert into comb_edge_node 
+(edge_id, edge_type_id, source_node_id, target_node_id, score, score_type_id, study_id) 
+    select concat('magma_', phenotype.ontology_id, '_', pathway.ontology_id) as edge_id, 
+    6, phenotype.id, pathway.id, 
+    up_path_assoc.p_value, 8, 1
+    from tran_upkeep.agg_pathway_phenotype up_path_assoc, comb_node_ontology pathway, comb_node_ontology phenotype, tran_upkeep.data_pathway up_path
+    where up_path_assoc.pathway_code = up_path.pathway_code
+    and up_path.ontology_id collate utf8mb4_unicode_ci = pathway.ontology_id and pathway.node_type_id = 4 and pathway.ontology_id is not null
+    and up_path_assoc.phenotype_code collate utf8mb4_unicode_ci = phenotype.node_code and phenotype.node_type_id in (1, 3) and phenotype.ontology_id is not null
+    and up_path_assoc.p_value <= 0.05
+    order by phenotype.node_code, pathway.node_code;
 
+
+    limit 20;
+
+    pathway.ontology_id as path_ont, phenotype.ontology_id as pheno_ont, phenotype.node_code, pathway.node_code,
     limit 20;
 
     %s, 5, %s, 2, %s, (select node_type_id from comb_node_ontology where node_code = %s and node_type_id in (1, 3, 12)), %s, 8, 1)

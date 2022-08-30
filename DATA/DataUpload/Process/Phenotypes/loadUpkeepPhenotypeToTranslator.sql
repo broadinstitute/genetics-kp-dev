@@ -81,7 +81,15 @@ from tran_test_202209.comb_node_ontology
 where node_type_id in (1, 3) and added_by_study_id = 1
 order by node_name, ontology_id;
 
-select a.id, b.id, a.node_code, b.node_code, a.node_type_id, b.node_type_id, a.last_updated, b.last_updated
+-- find duplicate aggregator code entries
+select a.id, b.id, a.node_code, b.node_code, a.node_type_id, b.node_type_id, a.ontology_id, b.ontology_id, a.last_updated, b.last_updated
 from comb_node_ontology a, comb_node_ontology b 
 where a.node_type_id in (1, 3) and b.node_type_id in (1, 3)
 and a.node_code = b.node_code and a.id != b.id;
+
+-- 20220829 - have node type 12 disease/phenotypes in comb_node_ontology linked to edges
+-- node type 12 non existent; all have null ontology_id
+-- most likely loaded old aggregator codes that had no ontologies
+-- deleting them from db, as well as their edges
+-- ADDING THEM TO TRAN_SCRATCH SCHEMA
+

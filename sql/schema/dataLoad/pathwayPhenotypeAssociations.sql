@@ -19,7 +19,8 @@ create table tran_upkeep.agg_pathway_phenotype (
 
 
 
--- alter table tran_upkeep.agg_pathway_phenotype add index path_gen_path_id_idx (pathway_id);
+alter table tran_upkeep.agg_pathway_phenotype add index path_phen_path_cde_idx (pathway_code);
+alter table tran_upkeep.agg_pathway_phenotype add index path_phen_phen_cde_idx (phenotype_code);
 
 
 
