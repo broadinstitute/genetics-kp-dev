@@ -36,7 +36,7 @@ externalDocs:
   url: https://github.com/NCATSTranslator/ReasonerAPI
 servers:
 - description: TRAPI production service for the Translator Genetics Data Provider
-  url: https://translator.broadinstitute.org/genetics_provider/trapi/v1.2
+  url: https://translator.broadinstitute.org/genetics_provider/trapi/v1.3
   x-maturity: development
 tags:
 - description: Retrieve the meta knowledge graph representation of this TRAPI web
