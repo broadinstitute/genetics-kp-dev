@@ -87,4 +87,35 @@ update comb_ontology_type set prefix='HP' where ontology_id = 6;
 update comb_ontology_type set prefix='NCIT' where ontology_id = 7;
 update comb_ontology_type set prefix='MESH' where ontology_id = 8;
 
+-- 20220817 - add new pathways
+update comb_ontology_type set ontology_name='HP disease/phenotype/pathway' where ontology_id = 6;
+insert into comb_ontology_type (ontology_id, ontology_name, prefix) values(9, 'Reactome pathway', 'REACTOME');
+insert into comb_ontology_type (ontology_id, ontology_name, prefix) values(10, 'Biocarta pathway', 'BIOCARTA');
+insert into comb_ontology_type (ontology_id, ontology_name, prefix) values(11, 'Kegg pathway', 'KEGG');
+insert into comb_ontology_type (ontology_id, ontology_name, prefix) values(12, 'PID pathway', 'PID');
+insert into comb_ontology_type (ontology_id, ontology_name, prefix) values(13, 'WikiPathway pathway', 'WP');
+
+
+-- 20220817 
+-- mysql> select * from comb_ontology_type;
+-- +-------------+------------------------------+------+-------------+----------+
+-- | ontology_id | ontology_name                | url  | description | prefix   |
+-- +-------------+------------------------------+------+-------------+----------+
+-- |           1 | NCBI Gene                    | NULL | NULL        | NCBIGene |
+-- |           2 | MONDO disease/phenotype      | NULL | NULL        | MONDO    |
+-- |           3 | EFO disease/phenotype        | NULL | NULL        | EFO      |
+-- |           4 | GO pathway                   | NULL | NULL        | GO       |
+-- |           5 | UMLS disease/phenotype       | NULL | NULL        | UMLS     |
+-- |           6 | HP disease/phenotype/pathway | NULL | NULL        | HP       |
+-- |           7 | NCIT disease/phenotype       | NULL | NULL        | NCIT     |
+-- |           8 | MESH disease/phenotype       | NULL | NULL        | MESH     |
+-- |           9 | Reactome pathway             | NULL | NULL        | REACTOME |
+-- |          10 | Biocarta pathway             | NULL | NULL        | BIOCARTA |
+-- |          11 | Kegg pathway                 | NULL | NULL        | KEGG     |
+-- |          12 | PID pathway                  | NULL | NULL        | PID      |
+-- |          13 | WikiPathway pathway          | NULL | NULL        | WP       |
+-- +-------------+------------------------------+------+-------------+----------+
+-- 13 rows in set (0.00 sec
+
+
 

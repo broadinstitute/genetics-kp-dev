@@ -18,6 +18,7 @@ RUN cd /home/CodeTest/GeneticsPro
 RUN pip3 install PyMySQL==0.10.1
 RUN pip3 install gunicorn
 RUN pip3 install connexion==2.7.0
+RUN pip3 install six==1.15.0
 
 # get/set the environment variables
 # NOTE: set this below checkout code to speed up testing (can use cached tag for checkout)
@@ -62,6 +63,7 @@ RUN mkdir /home/CodeTest/GeneticsPro/python-flask-server/logs
 WORKDIR /home/CodeTest/GeneticsPro/python-flask-server
 
 # CMD cat /proc/version
-CMD gunicorn -w 2 --bind 0.0.0.0:$FLASK_PORT openapi_server.__main__:app --timeout 3600 --log-file $TRAN_LOG_FILE --capture-output
+# CMD gunicorn -w 2 --bind 0.0.0.0:$FLASK_PORT openapi_server.__main__:app --timeout 3600 --log-file $TRAN_LOG_FILE --capture-output
+CMD gunicorn -w 2 --bind 0.0.0.0:$FLASK_PORT openapi_server.__main__:app --timeout 3600
 # CMD . /home/CodeTest/GeneticsPro/Test/echo_env.txt
 

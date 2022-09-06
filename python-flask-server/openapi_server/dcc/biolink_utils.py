@@ -45,6 +45,9 @@ class BiolinkAncestrySingleton:
             with open('conf/predicates.json') as json_file:
                 # read the map
                 self.predicate_map = json.load(json_file)
+            with open('conf/predicatesCreative.json') as json_file:
+                # read the map
+                self.predicate_creative_map = json.load(json_file)
 
             # set the object
             BiolinkAncestrySingleton.__shared_instance = self
@@ -141,7 +144,7 @@ def get_node_map():
 
     # build the map
     map_node["biolink:Gene"] = ["NCBIGene", "ENSEMBL", "HGNC", "OMIM", "UMLS", "UniProtKB"]
-    map_node["biolink:Pathway"] = ["GO"]
+    map_node["biolink:Pathway"] = ["GO", "REACT", "BIOCARTA", "KEGG", "WP"]
     map_node["biolink:Disease"] = ["MONDO", "EFO", "UMLS", "HP", "NCIT", "MESH", "SNOMEDCT", "DOID"]
     map_node["biolink:PhenotypicFeature"] = ["MONDO", "EFO", "UMLS", "HP", "NCIT", "MESH", "SNOMEDCT", "DOID"]
 
@@ -269,6 +272,21 @@ def get_overlap_queries_for_parts(subject_type, object_type, predicate, debug=Fa
     biolink_object = BiolinkAncestrySingleton.getInstance()
     ancestor_map = biolink_object.ancestry_map
     predicate_map = biolink_object.predicate_map
+
+    # get the query list
+    query_list = get_all_overap_queries_for_parts(ancestor_map, predicate_map, subject_type, object_type, predicate, debug)
+
+    # return
+    return query_list
+
+def get_overlap_queries_for_parts_creative(subject_type, object_type, predicate, debug=False):
+    ''' returns the intersection of the predicates and expanded query list '''
+    query_list = []
+
+    # get the ancestor map
+    biolink_object = BiolinkAncestrySingleton.getInstance()
+    ancestor_map = biolink_object.ancestry_map
+    predicate_map = biolink_object.predicate_creative_map
 
     # get the query list
     query_list = get_all_overap_queries_for_parts(ancestor_map, predicate_map, subject_type, object_type, predicate, debug)
