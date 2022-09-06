@@ -415,8 +415,11 @@ def sub_query_lookup(body, query_graph, request_body, log=False):
                             edgeID    = record[0]
                             sourceID  = record[1]
                             targetID  = record[2]
-                            originalSourceID  = record[1]
-                            originalTargetID  = record[2]
+                            # trapi 1.3
+                            # originalSourceID  = record[1]
+                            # originalTargetID  = record[2]
+                            originalSourceID  = None
+                            originalTargetID  = None
 
                             # find original source/target IDs
                             if web_request_object.get_map_source_normalized_id().get(sourceID):
@@ -440,8 +443,11 @@ def sub_query_lookup(body, query_graph, request_body, log=False):
                             score_translator = record[12]
 
                             # build the result objects
-                            source_node = NodeOuput(curie=originalSourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
-                            target_node = NodeOuput(curie=originalTargetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
+                            # trapi 1.3
+                            # source_node = NodeOuput(curie=originalSourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
+                            # target_node = NodeOuput(curie=originalTargetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
+                            source_node = NodeOuput(curie=sourceID, query_curie=originalSourceID, name=sourceName, category=sourceType, node_key=web_request_object.get_source_key())
+                            target_node = NodeOuput(curie=targetID, query_curie=originalTargetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
                             output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
                                 score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, 
                                 publication_ids=publications, score_translator=score_translator)

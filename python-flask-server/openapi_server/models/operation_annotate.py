@@ -28,7 +28,7 @@ class OperationAnnotate(Model):
         self.openapi_types = {
             'id': str,
             # 'parameters': AnyType
-            'parameters': object
+            'parameters': str
         }
 
         self.attribute_map = {
