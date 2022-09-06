@@ -38,28 +38,10 @@
     },
     "servers": [
         {
-            "description": "Broad Production 1.2 server",
-            "x-maturity": "production",
-            "x-location": "ITRB",
-            "url": "https://genetics-kp.transltr.io/genetics_provider/trapi/v1.3"
-        },
-        {
-            "description": "ITRB Test 1.2 server",
-            "x-maturity": "testing",
-            "x-location": "ITRB",
-            "url": "https://genetics-kp.test.transltr.io/genetics_provider/trapi/v1.3"
-        },
-        {
-            "description": "ITRB CI 1.2 server",
-            "x-maturity": "staging",
-            "x-location": "ITRB",
-            "url": "https://genetics-kp.ci.transltr.io/genetics_provider/trapi/v1.3"
-        },
-        {
             "description": "Development 1.2 server",
             "x-location": "Broad Institute",
             "x-maturity": "development",
-            "url": "https://translator.broadinstitute.org/genetics_provider/trapi/v1.3"
+            "url": "https://translator.broadinstitute.org/genetics_provider/trapi/v1.2"
         }
     ],
     "externalDocs": {
