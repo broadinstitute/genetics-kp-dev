@@ -40,8 +40,8 @@
         {
             "description": "Broad Production 1.2 server",
             "x-maturity": "production",
-            "x-location": "Broad Institute",
-            "url": "https://translator.broadinstitute.org/genetics_provider/trapi/v1.2"
+            "x-location": "ITRB",
+            "url": "https://genetics-kp.transltr.io/genetics_provider/trapi/v1.3"
         },
         {
             "description": "ITRB Test 1.2 server",
@@ -57,9 +57,9 @@
         },
         {
             "description": "Development 1.2 server",
+            "x-location": "Broad Institute",
             "x-maturity": "development",
-            "x-location": "ITRB",
-            "url": "https://genetics-kp.transltr.io/genetics_provider/trapi/v1.2"
+            "url": "https://translator.broadinstitute.org/genetics_provider/trapi/v1.3"
         }
     ],
     "externalDocs": {
