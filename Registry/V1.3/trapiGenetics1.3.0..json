@@ -51,7 +51,7 @@
             "description": "ITRB Test 1.2 server",
             "x-maturity": "testing",
             "x-location": "ITRB",
-            "url": "https://genetics-kp.test.transltr.io/genetics_provider/trapi/v1.2"
+            "url": "https://genetics-kp.test.transltr.io/genetics_provider/trapi/v1.3"
         },
         {
             "description": "ITRB CI 1.3 server",
