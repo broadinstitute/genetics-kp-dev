@@ -1,4 +1,14 @@
 
+-- count phenotypes by type
+select count(node.id), type.type_id, type.type_name
+from tran_test_202209.comb_node_ontology node, tran_test_202209.comb_lookup_type type
+where node.node_type_id = type.type_id and node.node_type_id in (1, 3)
+group by type.type_id, type.type_name;
+
+
+select count(node.id), node.node_type_id
+from tran_test_202211.comb_node_ontology node
+group by node.node_type_id;
 
 -- count pathways by type
 select count(id) as count, pathway_prefix 
@@ -21,11 +31,17 @@ and source.node_type_id = source_type.type_id and target.node_type_id = target_t
 group by edge_type.type_name, source_type.type_name, target_type.type_name
 order by source_type.type_name, target_type.type_name, edge_type.type_name;
 
--- count nodes by type
+-- count nodes by ontology type
 select count(a.id), b.ontology_name
 from comb_node_ontology a, comb_ontology_type b
 where a.ontology_type_id = b.ontology_id
 group by b.ontology_name;
+
+-- count nodes by node type
+select count(a.id), b.type_name
+from comb_node_ontology a, comb_lookup_type b
+where a.node_type_id = b.type_id
+group by b.type_name;
 
 -- find mondo with smallest counts
 select count(a.id) as edge_count, b.node_name, b.ontology_id
@@ -67,3 +83,7 @@ limit 10;
 
 -- debug
 select ontology_id from data_pathway where ontology_id is not null order by ontology_id;
+
+select * from tran_test_202211.comb_lookup_type;
+
+
