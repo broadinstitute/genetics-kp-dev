@@ -1,5 +1,6 @@
 {
-    "TRAPI": true,
+    "source_type": "primary",
+    "infores": "genetics-data-provider",
     "edges": [
         {
             "subject_category": "biolink:Gene",
