@@ -38,7 +38,13 @@
                 "lookup"
             ],
             "version": "1.3.0",
-            "test_data_location": ["https://github.com/broadinstitute/genetics-kp-dev/blob/master/Test/Data/automated_test_data.json"]
+            "test_data_location": {
+                "default": {
+                    "url": [
+                        "https://github.com/broadinstitute/genetics-kp-dev/blob/master/Test/Data/automated_test_data.json"
+                    ]
+                }
+            }
         }
     },
     "servers": [
