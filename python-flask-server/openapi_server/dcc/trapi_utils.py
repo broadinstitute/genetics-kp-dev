@@ -35,7 +35,7 @@ PROVENANCE_INFORES_GENEBASS='infores:genebass'
 PROVENANCE_AGGREGATOR_KP_GENETICS = Attribute(value = PROVENANCE_INFORES_KP_GENETICS,
     attribute_type_id = 'biolink:aggregator_knowledge_source',
     value_type_id = 'biolink:InformationResource',
-    value_url = 'https://translator.broadinstitute.org/genetics_provider/trapi/v1.2',
+    value_url = 'https://translator.broadinstitute.org/genetics_provider/trapi/v1.3',
     description = 'The Genetics Data Provider KP from NCATS Translator',
     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
 PROVENANCE_AGGREGATOR_CLINVAR = Attribute(value = PROVENANCE_INFORES_CLINVAR,
@@ -110,6 +110,9 @@ def build_results_creative(results_list, query_graph):
                 knowledge_graph.nodes[edge_element.target.id] = node
 
             # build the bindings
+            # TODO - trapi 1.3
+            # TODO - source_binding = NodeBinding(id=source.curie, query_id=source.query_curie)
+            # TODO - target_binding = NodeBinding(id=target.curie, query_id=target.query_curie)
             source_binding = NodeBinding(id=edge_element.subject.id)
             edge_binding = EdgeBinding(id=edge_element.edge_id)
             target_binding = NodeBinding(id=edge_element.target.id)
@@ -190,9 +193,13 @@ def build_results(results_list, query_graph):
         knowledge_graph.nodes[target.curie] = node
 
         # build the bindings
-        source_binding = NodeBinding(id=source.curie)
+        # trapi 1.3
+        # source_binding = NodeBinding(id=source.curie)
+        source_binding = NodeBinding(id=source.curie, query_id=source.query_curie)
         edge_binding = EdgeBinding(id=edge_element.id)
-        target_binding = NodeBinding(id=target.curie)
+        # trapi 1.3
+        # target_binding = NodeBinding(id=target.curie)
+        target_binding = NodeBinding(id=target.curie, query_id=target.query_curie)
         edge_map = {edge_element.edge_key: [edge_binding]}
         nodes_map = {source.node_key: [source_binding], target.node_key: [target_binding]}
         results.append(Result(nodes_map, edge_map, score=edge_element.score_translator))

@@ -1,4 +1,0 @@
-export PORT=7003
-
-sudo docker run -p $PORT:$PORT gene:gene 
-

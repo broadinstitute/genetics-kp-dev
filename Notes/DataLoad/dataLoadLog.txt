@@ -1,0 +1,34 @@
+
+
+
+
+
+
+
+20220811 - tran_upkeep schema
+mysql> show tables;
++-----------------------------+
+| Tables_in_tran_upkeep       |
++-----------------------------+
+| agg_aggregator_phenotype    |
+| agg_pathway_phenotype       |
+| calc_pathway_similarity     |
+| calc_pathway_similarity_min |
+| comb_edge_node_backup       |
+| comb_pathway_magma_data     |
+| data_pathway                |
+| data_pathway_genes          |
+| data_pathway_similarity     |
+| load_pathway                |
+| load_pathway_similarity     |
+| molepro_drug_gene           |
+| molepro_drug_gene_affects   |
+| molepro_drug_gene_regulates |
+| molepro_gene_status         |
++-----------------------------+
+15 rows in set (0.00 sec)
+
+mysql> 
+
+- load_pathway and load_pathway_similarity deprecated?
+

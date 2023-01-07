@@ -38,9 +38,9 @@
     },
     "servers": [
         {
-            "description": "Default server",
-            "x-maturity": "production",
+            "description": "Development 1.2 server",
             "x-location": "Broad Institute",
+            "x-maturity": "development",
             "url": "https://translator.broadinstitute.org/genetics_provider/trapi/v1.2"
         }
     ],

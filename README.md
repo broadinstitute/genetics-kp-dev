@@ -35,7 +35,7 @@ sudo docker build \
 ```
 * deploy the docker image making sure to open up the application port
 ```
-sudo docker run --rm -p 8090:8090 -v <CONTAINER_LOG_DIR>:/home/CodeTest/GeneticsPro/python-flask-server/logs <DOCKER_IMAGE_ID>
+
 ```
 
 # Data Available
@@ -51,13 +51,16 @@ The Genetics KP provides the following data
         PMID: 25885710
         [software](https://ctg.cncr.nl/software/magma),
         [paper](https://journals.plos.org/ploscompbiol/article?id=10.1371%2Fjournal.pcbi.1004219)
+  * for genes and pathways, only phenotype associations less than 0.05 are loaded in
 
-* ABC method gene to phenotype associations
-  * Fulco JP, Nasser J., et al. Activity-by-contact model of enhancer-promoter regulation from thousands of CRISPR perturbations. 
-      Nat Genet. 2019 Dec;51(12):1664-1669.     
-      doi: 10.1038/s41588-019-0538-0.
-      PMID: 31784727
-      [paper](https://www.nature.com/articles/s41588-019-0538-0?proof=t)
+* [Genebass](https://app.genebass.org/) - a resource of exome-based association statistics from exome sequence data from the UK Biobank
+  * The probability of gene/phenotype association was calculated, then only the gene/phenotype associations with a calculated probability greater than 0.15 were loaded into the database.
+
+* [GenCC](https://thegencc.org/)
+
+* [ClinVar](https://www.ncbi.nlm.nih.gov/clinvar/)
+
+* [ClinGen](https://clinicalgenome.org/)
 
 * Experimental Integrated Genetics method (Flannick Lab); under development
 
