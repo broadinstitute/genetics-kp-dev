@@ -15,6 +15,9 @@ pipeline {
     triggers {
         pollSCM('H/2 * * * *')
     }
+    environment {
+        KUBERNETES_CLUSTER_NAME = "translator-eks-ci-blue-cluster"
+    }
     stages {
         stage('Clean') {
             steps {
