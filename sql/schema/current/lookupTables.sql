@@ -54,6 +54,8 @@ insert into comb_study_type (study_id, study_name) values(15, 'Franklin by Genoo
 insert into comb_study_type (study_id, study_name) values(16, 'Online Mendelian Inheritance in Man (OMIM)');
 -- 20210908 - adding genebess/uk biobank
 insert into comb_study_type (study_id, study_name) values(17, 'GeneBass');
+-- 20230208 - adding 600k ellinor study
+insert into comb_study_type (study_id, study_name) values(18, '600k Ellinor');
 
 
 -- add ontology lookup tables
@@ -77,6 +79,7 @@ insert into comb_ontology_type (ontology_id, ontology_name) values(6, 'HP diseas
 insert into comb_ontology_type (ontology_id, ontology_name) values(7, 'NCIT disease/phenotype');
 -- 20210908 - adding MESH
 insert into comb_ontology_type (ontology_id, ontology_name) values(8, 'MESH disease/phenotype');
+
 -- add prefixes
 update comb_ontology_type set prefix='NCBIGene' where ontology_id = 1;
 update comb_ontology_type set prefix='MONDO' where ontology_id = 2;
@@ -94,6 +97,9 @@ insert into comb_ontology_type (ontology_id, ontology_name, prefix) values(10, '
 insert into comb_ontology_type (ontology_id, ontology_name, prefix) values(11, 'Kegg pathway', 'KEGG');
 insert into comb_ontology_type (ontology_id, ontology_name, prefix) values(12, 'PID pathway', 'PID');
 insert into comb_ontology_type (ontology_id, ontology_name, prefix) values(13, 'WikiPathway pathway', 'WP');
+-- 20230209- adding orphanet, uberon 
+insert into comb_ontology_type (ontology_id, ontology_name, prefix) values(14, 'Orphanet phenotype', 'Orphanet');
+insert into comb_ontology_type (ontology_id, ontology_name, prefix) values(15, 'Orphanet phenotype', 'Orphanet');
 
 
 -- 20220817 
@@ -116,6 +122,43 @@ insert into comb_ontology_type (ontology_id, ontology_name, prefix) values(13, '
 -- |          13 | WikiPathway pathway          | NULL | NULL        | WP       |
 -- +-------------+------------------------------+------+-------------+----------+
 -- 13 rows in set (0.00 sec
+
+
+
+-- create qualifier table
+drop table if exists comb_qualifier;
+create table comb_qualifier (
+  id                        varchar(50) not null primary key,
+  qualifier_type            varchar(50) not null,
+  qualifier_value           varchar(50) not null,
+  date_created              datetime DEFAULT CURRENT_TIMESTAMP
+);
+
+
+-- create qualifiers
+-- aspect qualifiers
+insert into comb_qualifier (id, qualifier_type, qualifier_value) 
+values('subject_aspect_activity', 'subject_aspect_qualifier', 'activity');
+
+insert into comb_qualifier (id, qualifier_type, qualifier_value) 
+values('subject_aspect_severity', 'subject_aspect_qualifier', 'severity');
+
+-- direction qualifiers
+insert into comb_qualifier (id, qualifier_type, qualifier_value) 
+values('subject_direction_increased', 'subject_direction_qualifier', 'increased');
+
+insert into comb_qualifier (id, qualifier_type, qualifier_value) 
+values('subject_direction_decreased', 'subject_direction_qualifier', 'decreased');
+
+insert into comb_qualifier (id, qualifier_type, qualifier_value) 
+values('object_direction_increased', 'object_direction_qualifier', 'increased');
+
+insert into comb_qualifier (id, qualifier_type, qualifier_value) 
+values('object_direction_decreased', 'object_direction_qualifier', 'decreased');
+
+-- predicate qualifier
+insert into comb_qualifier (id, qualifier_type, qualifier_value) 
+values('qualified_predicate_causes', 'qualified_predicate', 'causes');
 
 
 

@@ -26,10 +26,10 @@ The staging schema is tran_upkeep
 
 ## Data Load/Refresh Process
 ### Phenotypes
-* load the new phenotypes to the upkeep table
-* mark the ones already in translator
-* find the ontology_id for the ones not already in translator
-* load the new phenotypes with ontology IDs not already in translator for magma into translator
+* load the new phenotypes from bioindex API to the upkeep table
+* mark the phenotypes already in translator (determined by the phenotype code, not ontology_id)
+* find the ontology_id for the ones not already in translator (have no ontology_id)
+* load the new phenotypes with ontology IDs not already in translator for magma (by phenotype code) into translator
 
 ### Pathways
 * load the new pathways into translator (if updated)

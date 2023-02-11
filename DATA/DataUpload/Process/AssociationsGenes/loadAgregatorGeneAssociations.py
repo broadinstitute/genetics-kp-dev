@@ -11,7 +11,7 @@ url_query_aggregator = "https://bioindex-dev.hugeamp.org/api/bio/query"
 p_value_limit = 0.05
 DB_PASSWD = os.environ.get('DB_PASSWD')
 DB_SCHEMA = 'tran_upkeep'
-DB_TRANSLATOR_SCHEMA = "tran_test_202209"
+DB_TRANSLATOR_SCHEMA = "tran_test_202211"
 
 def get_gene_list(conn):
     ''' 
@@ -37,7 +37,9 @@ def get_gene_list(conn):
     return result
 
 def get_connection():
-    ''' get the db connection '''
+    ''' 
+    get the db connection 
+    '''
     conn = mdb.connect(host='localhost', user='root', password=DB_PASSWD, charset='utf8', db=DB_SCHEMA)
 
     # return
@@ -261,6 +263,7 @@ if __name__ == "__main__":
     log_gene_associations_data_counts(conn)
 
     # delete the existing data
+    print("deleting table tran_upkeep.agg_gene_phenotype")
     delete_gene_associations(conn)
 
     # get the genes
