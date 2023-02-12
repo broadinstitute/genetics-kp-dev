@@ -21,3 +21,5 @@ select * from comb_node_ontology where ontology_id = 'MONDO:0015978';
 
 
 
+
+

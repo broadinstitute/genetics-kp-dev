@@ -16,13 +16,14 @@ from data_pathway where ontology_id is not null
 group by pathway_prefix;
 
 -- count associatyion rows by study type
-select count(a.id) as edge_count, b.study_name 
+select count(a.id) as edge_count, b.study_id, b.study_name 
 from comb_edge_node a, comb_study_type b
 where a.study_id = b.study_id
-group by b.study_name;
+group by b.study_id, b.study_name
+order by b.study_id;
 
 
--- count association rows by triples
+-- count association rows by triple types
 select count(edge.id) as edge_count, source_type.type_name, target_type.type_name, edge_type.type_name
 from comb_edge_node edge, comb_node_ontology source, comb_node_ontology target, comb_lookup_type edge_type,
     comb_lookup_type source_type, comb_lookup_type target_type
@@ -30,6 +31,19 @@ where edge.source_node_id = source.id and edge.target_node_id = target.id
 and source.node_type_id = source_type.type_id and target.node_type_id = target_type.type_id and edge.edge_type_id = edge_type.type_id
 group by edge_type.type_name, source_type.type_name, target_type.type_name
 order by source_type.type_name, target_type.type_name, edge_type.type_name;
+
+
+-- count association rows by triple types and study
+select count(edge.id) as edge_count, source_type.type_name, target_type.type_name, edge_type.type_name, study.study_name
+from comb_edge_node edge, comb_node_ontology source, comb_node_ontology target, comb_lookup_type edge_type,
+    comb_lookup_type source_type, comb_lookup_type target_type, comb_study_type study 
+where edge.source_node_id = source.id and edge.target_node_id = target.id 
+and source.node_type_id = source_type.type_id and target.node_type_id = target_type.type_id and edge.edge_type_id = edge_type.type_id
+and edge.study_id = study.study_id
+group by edge_type.type_name, source_type.type_name, target_type.type_name, study.study_name
+order by source_type.type_name, target_type.type_name, edge_type.type_name;
+
+
 
 -- count nodes by ontology type
 select count(a.id), b.ontology_name
@@ -51,6 +65,17 @@ where a.source_node_id = b.id
 group by b.node_name, b.ontology_id
 order by edge_count
 limit 20;
+
+-- count edges by study
+select count(a.id), b.study_id, b.study_name
+from comb_edge_node a, comb_study_type b
+where a.study_id = b.study_id
+group by b.study_id, b.study_name;
+
+-- count edges by qualifiers
+select count(a.id), a.has_qualifiers
+from comb_edge_node a
+group by a.has_qualifiers;
 
 
 -- phenotypes by dataset

@@ -99,7 +99,7 @@ insert into comb_ontology_type (ontology_id, ontology_name, prefix) values(12, '
 insert into comb_ontology_type (ontology_id, ontology_name, prefix) values(13, 'WikiPathway pathway', 'WP');
 -- 20230209- adding orphanet, uberon 
 insert into comb_ontology_type (ontology_id, ontology_name, prefix) values(14, 'Orphanet phenotype', 'Orphanet');
-insert into comb_ontology_type (ontology_id, ontology_name, prefix) values(15, 'Orphanet phenotype', 'Orphanet');
+insert into comb_ontology_type (ontology_id, ontology_name, prefix) values(15, 'Uberon phenotype', 'UBERON');
 
 
 -- 20220817 
@@ -139,26 +139,28 @@ create table comb_qualifier (
 -- aspect qualifiers
 insert into comb_qualifier (id, qualifier_type, qualifier_value) 
 values('subject_aspect_activity', 'subject_aspect_qualifier', 'activity');
-
 insert into comb_qualifier (id, qualifier_type, qualifier_value) 
 values('subject_aspect_severity', 'subject_aspect_qualifier', 'severity');
+insert into comb_qualifier (id, qualifier_type, qualifier_value) 
+values('object_aspect_activity', 'object_aspect_qualifier', 'activity');
+insert into comb_qualifier (id, qualifier_type, qualifier_value) 
+values('object_aspect_severity', 'object_aspect_qualifier', 'severity');
 
 -- direction qualifiers
 insert into comb_qualifier (id, qualifier_type, qualifier_value) 
 values('subject_direction_increased', 'subject_direction_qualifier', 'increased');
-
 insert into comb_qualifier (id, qualifier_type, qualifier_value) 
 values('subject_direction_decreased', 'subject_direction_qualifier', 'decreased');
-
 insert into comb_qualifier (id, qualifier_type, qualifier_value) 
 values('object_direction_increased', 'object_direction_qualifier', 'increased');
-
 insert into comb_qualifier (id, qualifier_type, qualifier_value) 
 values('object_direction_decreased', 'object_direction_qualifier', 'decreased');
 
 -- predicate qualifier
 insert into comb_qualifier (id, qualifier_type, qualifier_value) 
 values('qualified_predicate_causes', 'qualified_predicate', 'causes');
+insert into comb_qualifier (id, qualifier_type, qualifier_value) 
+values('qualified_predicate_caused_by', 'qualified_predicate', 'caused by');
 
 
 

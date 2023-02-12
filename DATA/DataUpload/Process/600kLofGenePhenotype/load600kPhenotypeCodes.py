@@ -6,6 +6,7 @@ import pandas as pd
 import pymysql as mdb
 import os
 import requests 
+import time
 
 # constants 
 file_phenotype_codes = "/home/javaprog/Data/Broad/Translator/DownloadedData/600kGeneDisease/finalModified600kPhenoCode20230202.tsv"
@@ -28,7 +29,7 @@ def read_file(file, log=False):
         read = csv.reader(f, delimiter='\t')
         # map_row = dict(((first, last), float(grade)) for first, last, grade in read)
         for row in read:
-            # keep pheno code, ontology id, phenotype name
+            # keep pheno code, ontology id, phenotype namecomb_qualifier
             list_phenotypes.append({'code': row[0], 'name': row[1], 'ontology_id': row[4]})
 
         # (print("row: {}".format(row)) for row in read)
@@ -89,8 +90,8 @@ def insert_phenotype_ontologies(conn, list_phenotypes, log=False):
     add phenotype ontologies from the csv file results
     '''
     sql_insert = """
-        insert into {}.{} (phenotype_ontology_id, phenotype_code, phenotype_translator_name, phenotype_data_name, has_translator_name)
-            values (%s, %s, %s, %s, %s) 
+        insert into {}.{} (phenotype_ontology_id, phenotype_code, phenotype_translator_name, phenotype_data_name, has_translator_name, node_type)
+            values (%s, %s, %s, %s, %s, %s) 
         """.format(DB_SCHEMA, DB_TABLE)
 
     cur = conn.cursor()
@@ -104,7 +105,8 @@ def insert_phenotype_ontologies(conn, list_phenotypes, log=False):
             if i % 50 == 0:
                 print(row)
 
-        cur.execute(sql_insert, (row.get('ontology_id'), row.get('code'), row.get('name_translator'), row.get('name'), row.get('has_translator_name')))
+        cur.execute(sql_insert, (row.get('ontology_id'), row.get('code'), row.get('name_translator'), row.get('name'), 
+            row.get('has_translator_name'), row.get('node_type')))
 
     # log
     print("inserted phenotypes row count: {}".format(len(list_phenotypes)))
@@ -128,6 +130,9 @@ def get_translator_name(ontology_id, name_backup, log=False):
     # initialize 
     name_translator = name_backup
     has_translator_name = 'N'
+    new_ontology_id = None
+    node_type = 'biolink:PhenotypicFeature'
+    type_disease = 'biolink:Disease'
 
     # log
     if log:
@@ -141,6 +146,23 @@ def get_translator_name(ontology_id, name_backup, log=False):
         name_translator = response.get(ontology_id).get('id').get('label')
         has_translator_name = 'Y'
 
+        # loop through the curies and convert to mondo or efo if possible 
+        if ontology_id.split(':')[0].strip() not in ['MONDO']:
+            if response.get(ontology_id).get('equivalent_identifiers'):
+                for row in response.get(ontology_id).get('equivalent_identifiers'):
+                    if row.get('identifier').split(':')[0].strip() == 'MONDO':
+                        new_ontology_id = row.get('identifier').strip()
+                        break
+
+                    elif row.get('identifier').split(':')[0].strip() == 'EFO':
+                        new_ontology_id = row.get('identifier').strip()
+                        break
+
+        # add in disease type if there 
+        if response.get(ontology_id).get('type'):
+            if type_disease in response.get(ontology_id).get('type'):
+                node_type = type_disease
+                    
     else:
         print("found no name for: {}".format(ontology_id))
 
@@ -149,7 +171,7 @@ def get_translator_name(ontology_id, name_backup, log=False):
         print("for: {} got name: {}".format(ontology_id, name_translator))
 
     # return
-    return name_translator, has_translator_name
+    return name_translator, has_translator_name, new_ontology_id, node_type
 
 
 if __name__ == "__main__":
@@ -168,9 +190,15 @@ if __name__ == "__main__":
 
     # get the official translator name 
     for key, value in map_phenotypes.items():
-        name_translator, has_translator_name = get_translator_name(key, value.get('name'), log=False)
+        name_translator, has_translator_name, new_ontology_id, node_type = get_translator_name(key, value.get('name'), log=False)
         value['name_translator'] = name_translator
         value['has_translator_name'] = has_translator_name
+        value['node_type'] = node_type
+        if new_ontology_id:
+            print("========= replacing: {} with: {}".format(value['ontology_id'], new_ontology_id))
+            value['ontology_id'] = new_ontology_id
+        time.sleep(1)
+
 
     # get the db connection
     connection = get_connection()

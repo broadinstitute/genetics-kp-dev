@@ -26,6 +26,7 @@ create table tran_upkeep.data_600k_phenotype_ontology (
   id                           int not null auto_increment primary key,
   phenotype_ontology_id        varchar(50) not null,
   phenotype_code               varchar(50) not null,
+  node_type                    varchar(50) not null,
   phenotype_translator_name    varchar(250) not null,
   phenotype_data_name          varchar(250) not null,
   has_translator_name          varchar(1) not null,
@@ -35,7 +36,30 @@ create table tran_upkeep.data_600k_phenotype_ontology (
 alter table tran_upkeep.data_600k_phenotype_ontology add index phe_ont_phe_cde_idx (phenotype_code);
 
 
+
+
+
+
 -- scratch 
+-- get the 600k data that is lof and significant
+select link.id, link.gene_code, phenotype.phenotype_ontology_id, link.ancestry, link.mask, link.p_value, link.beta
+from tran_upkeep.data_600k_gene_phenotype link, tran_upkeep.data_600k_phenotype_ontology phenotype 
+where link.phenotype_code = phenotype.phenotype_code
+and link.p_value < 0.0025 and link.mask = 'LoF_HC'
+and phenotype.phenotype_ontology_id = 'MONDO:0004975' 
+order by link.p_value;
+
+-- get specific row
+select link.id, link.gene_code, phenotype.phenotype_ontology_id, link.ancestry, link.mask, link.p_value, link.beta
+from tran_upkeep.data_600k_gene_phenotype link, tran_upkeep.data_600k_phenotype_ontology phenotype 
+where link.phenotype_code = phenotype.phenotype_code
+and phenotype.phenotype_ontology_id = 'MONDO:0004975' 
+and link.id = 18113562
+order by link.p_value;
+
+
+
+
 -- find the gene/phenotypes for ontology_id
 select gene.gene_code, phe.phenotype_ontology_id, gene.p_value, gene.mask, phe.phenotype_translator_name
 from data_600k_gene_phenotype gene, data_600k_phenotype_ontology phe 
@@ -67,7 +91,13 @@ select * from data_600k_phenotype_ontology where regexp_like('[...]:[0..9]*', ph
 select id, phenotype_ontology_id, substring_index(phenotype_ontology_id, ':', 1) from data_600k_phenotype_ontology where substring_index(phenotype_ontology_id, ':', 1) > 0;
 
 
-select distinct(substring_index(phenotype_ontology_id, ':', 1)) from data_600k_phenotype_ontology;
+select count(id), substring_index(phenotype_ontology_id, ':', 1) as prefix
+from data_600k_phenotype_ontology
+group by prefix;
+
+select count(id) from data_600k_phenotype_ontology;
+
+
 
 select * from data_600k_phenotype_ontology where substring_index(phenotype_ontology_id, ':', 1) = 'MP';
 select * from data_600k_phenotype_ontology where substring_index(phenotype_ontology_id, ':', 1) = 'OBA';
