@@ -10,6 +10,7 @@ from openapi_server.models.message import Message
 from openapi_server.models.knowledge_graph import KnowledgeGraph
 from openapi_server.models.edge import Edge
 from openapi_server.models.node import Node
+from openapi_server.models.qualifier import Qualifier
 from openapi_server.models.result import Result
 from openapi_server.models.edge_binding import EdgeBinding
 from openapi_server.models.node_binding import NodeBinding
@@ -177,8 +178,14 @@ def build_results(results_list, query_graph):
                 attributes.append(Attribute(original_attribute_name='publication', value=list_publication, 
                     attribute_type_id='biolink:has_supporting_publications', value_type_id='biolink:Publication', attribute_source=pub_source))
 
+        # 20230213 - add qualifiers
+        list_qualifiers = []
+        if edge_element.list_qualifiers:
+            for row_qualifier in edge_element.list_qualifiers:
+                list_qualifiers.append(Qualifier(qualifier_type_id=row_qualifier['id'], qualifier_value=row_qualifier['value']))
+
         # build the edge
-        edge = Edge(predicate=translate_type(edge_element.predicate, False), subject=source.curie, object=target.curie, attributes=attributes)
+        edge = Edge(predicate=translate_type(edge_element.predicate, False), subject=source.curie, object=target.curie, attributes=attributes, qualifiers=list_qualifiers)
         knowledge_graph.edges[edge_element.id] = edge
         edges[(source.node_key, target.node_key)] = edge
 

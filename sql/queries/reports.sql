@@ -44,6 +44,18 @@ group by edge_type.type_name, source_type.type_name, target_type.type_name, stud
 order by source_type.type_name, target_type.type_name, edge_type.type_name;
 
 
+-- count the rows with qualifiers
+select count(id), has_qualifiers 
+from comb_edge_node
+group by has_qualifiers;
+
+-- count the qualifiers
+select count(link.id), qualifier.id 
+from comb_edge_qualifier link, comb_qualifier qualifier 
+where link.qualifier_id = qualifier.id 
+group by qualifier.id;
+
+
 
 -- count nodes by ontology type
 select count(a.id), b.ontology_name
