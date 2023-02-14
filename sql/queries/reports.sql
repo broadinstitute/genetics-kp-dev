@@ -49,7 +49,7 @@ select count(id), has_qualifiers
 from comb_edge_node
 group by has_qualifiers;
 
--- count the qualifiers
+-- count the qualifiersaspe
 select count(link.id), qualifier.id 
 from comb_edge_qualifier link, comb_qualifier qualifier 
 where link.qualifier_id = qualifier.id 
@@ -123,4 +123,31 @@ select ontology_id from data_pathway where ontology_id is not null order by onto
 
 select * from tran_test_202211.comb_lookup_type;
 
+
+
+-- rows with qualifiers
+select edge.id, subj.ontology_id as scusie, subj.node_code as snode, substring(sloo.type_name, 1, 20) as sname,
+  obj.ontology_id as ocurie, obj.node_code as ocode, substring(oloo.type_name, 1, 20) as oname, 
+  qualifier.qualifier_type as qtype, qualifier.qualifier_value as qvalue,
+  edge.study_id
+from comb_edge_node edge, comb_node_ontology subj, comb_node_ontology obj, comb_edge_qualifier link,
+  comb_qualifier qualifier, comb_lookup_type sloo, comb_lookup_type oloo
+where edge.source_node_id = subj.id and edge.target_node_id = obj.id 
+and link.edge_id = edge.id and link.qualifier_id = qualifier.id
+and subj.node_type_id = sloo.type_id and obj.node_type_id = oloo.type_id
+order by subj.node_code, obj.node_code, qualifier.qualifier_type, qualifier.qualifier_value 
+limit 2;
+
+
+select edge.id, subj.ontology_id as scusie, substring(sloo.type_name, 1, 20) as sname,
+  obj.ontology_id as ocurie, substring(oloo.type_name, 1, 20) as oname, 
+  qualifier.qualifier_type as qtype, qualifier.qualifier_value as qvalue,
+  edge.study_id
+from comb_edge_node edge, comb_node_ontology subj, comb_node_ontology obj, comb_edge_qualifier link,
+  comb_qualifier qualifier, comb_lookup_type sloo, comb_lookup_type oloo
+where edge.source_node_id = subj.id and edge.target_node_id = obj.id 
+and link.edge_id = edge.id and link.qualifier_id = qualifier.id
+and subj.node_type_id = sloo.type_id and obj.node_type_id = oloo.type_id
+and obj.ontology_id = 'MONDO:0004975'
+order by subj.node_code, obj.node_code, qualifier.qualifier_type, qualifier.qualifier_value;
 

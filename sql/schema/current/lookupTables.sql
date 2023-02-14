@@ -125,7 +125,7 @@ insert into comb_ontology_type (ontology_id, ontology_name, prefix) values(15, '
 
 
 
--- create qualifier table
+-- 20230209 - create qualifier table
 drop table if exists comb_qualifier;
 create table comb_qualifier (
   id                        varchar(50) not null primary key,

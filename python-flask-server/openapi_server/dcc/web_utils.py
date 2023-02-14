@@ -457,7 +457,7 @@ def sub_query_lookup(body, query_graph, request_body, log=False):
                                     list_qualifiers.append({'id':row_qualifier[0], 'value':row_qualifier[1]})
 
                             # log
-                            logger.info("got result: {}".format(record))
+                            # logger.info("got result: {}".format(record))
 
                             # build the result objects
                             # trapi 1.3

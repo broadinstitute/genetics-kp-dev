@@ -15,6 +15,9 @@ create table tran_upkeep.data_600k_gene_phenotype (
   p_value                      double not null,
   date_created                 datetime DEFAULT CURRENT_TIMESTAMP
 );
+-- 20230213 - adding calculated probability
+alter table tran_upkeep.data_600k_gene_phenotype add column probability_calculated double;
+
 -- indices
 alter table tran_upkeep.data_600k_gene_phenotype add index gen_phe_phe_cde_idx (phenotype_code);
 alter table tran_upkeep.data_600k_gene_phenotype add index gen_phe_pval_idx (p_value);
@@ -42,37 +45,80 @@ alter table tran_upkeep.data_600k_phenotype_ontology add index phe_ont_phe_cde_i
 
 -- scratch 
 -- get the 600k data that is lof and significant
-select link.id, link.gene_code, phenotype.phenotype_ontology_id, link.ancestry, link.mask, link.p_value, link.beta
+select link.id, link.gene_code, phenotype.phenotype_code, phenotype.phenotype_ontology_id, 
+  phenotype.node_type, phenotype.phenotype_translator_name,
+  link.ancestry, link.mask, link.p_value, link.beta
 from tran_upkeep.data_600k_gene_phenotype link, tran_upkeep.data_600k_phenotype_ontology phenotype 
 where link.phenotype_code = phenotype.phenotype_code
 and link.p_value < 0.0025 and link.mask = 'LoF_HC'
-and phenotype.phenotype_ontology_id = 'MONDO:0004975' 
 order by link.p_value;
 
--- get specific row
-select link.id, link.gene_code, phenotype.phenotype_ontology_id, link.ancestry, link.mask, link.p_value, link.beta
+-- get count for only negative betas
+select link.id, link.gene_code, phenotype.phenotype_code, phenotype.phenotype_ontology_id as curie, 
+  phenotype.node_type, substring(phenotype.phenotype_translator_name, 1, 20) as name,
+  link.ancestry, link.mask, link.p_value, link.beta
 from tran_upkeep.data_600k_gene_phenotype link, tran_upkeep.data_600k_phenotype_ontology phenotype 
 where link.phenotype_code = phenotype.phenotype_code
-and phenotype.phenotype_ontology_id = 'MONDO:0004975' 
+and link.p_value < 0.0025 and link.mask = 'LoF_HC' and link.beta < 0
+order by link.p_value;
+
+-- EFO:0010830
+-- MONDO:0021839
+-- MONDO:0004975
+
+-- get specific row
+select link.id, link.gene_code, phenotype.phenotype_code, phenotype.phenotype_ontology_id, 
+  phenotype.node_type, phenotype.phenotype_translator_name,
+  link.ancestry, link.mask, link.p_value, link.beta
+from tran_upkeep.data_600k_gene_phenotype link, tran_upkeep.data_600k_phenotype_ontology phenotype 
+where link.phenotype_code = phenotype.phenotype_code
 and link.id = 18113562
 order by link.p_value;
 
 
+-- test row ids
+-- 13266554
+-- 
+-- count all relevant associations
+select count(link.id)
+from tran_upkeep.data_600k_gene_phenotype link, tran_upkeep.data_600k_phenotype_ontology phenotype 
+where link.phenotype_code = phenotype.phenotype_code
+and link.p_value < 0.0025 and link.mask = 'LoF_HC';
+
+
+select count(link.id), link.mask
+from tran_upkeep.data_600k_gene_phenotype link, tran_upkeep.data_600k_phenotype_ontology phenotype 
+where link.phenotype_code = phenotype.phenotype_code
+and link.p_value < 0.0025 and beta >= 0
+group by mask;
+
+-- select all relevant associations
+select link.id, link.gene_code, phenotype.phenotype_code, phenotype.phenotype_ontology_id, 
+phenotype.node_type, phenotype.phenotype_translator_name,
+link.ancestry, link.mask, link.p_value, link.beta
+from tran_upkeep.data_600k_gene_phenotype link, tran_upkeep.data_600k_phenotype_ontology phenotype 
+where link.phenotype_code = phenotype.phenotype_code
+and link.p_value < 0.0025 and link.mask = 'LoF_HC'
+order by link.phenotype_code;
+
+
+-- 
+-- and phenotype.phenotype_ontology_id = 'MONDO:0004975' 
 
 
 -- find the gene/phenotypes for ontology_id
-select gene.gene_code, phe.phenotype_ontology_id, gene.p_value, gene.mask, phe.phenotype_translator_name
+select gene.gene_code, phe.phenotype_ontology_id, phe.node_type, gene.p_value, gene.mask, phe.phenotype_translator_name
 from data_600k_gene_phenotype gene, data_600k_phenotype_ontology phe 
 where gene.phenotype_code = phe.phenotype_code
 and gene.p_value < 0.0025 and gene.mask = 'LoF_HC'
 order by phe.phenotype_translator_name, gene.gene_code;
 
 -- count the gene/phenotypes for ontology_id
-select count(gene.id), phe.phenotype_ontology_id, phe.phenotype_translator_name
+select count(gene.id), phe.phenotype_ontology_id, phe.node_type, phe.phenotype_translator_name
 from tran_upkeep.data_600k_gene_phenotype gene, tran_upkeep.data_600k_phenotype_ontology phe 
 where gene.phenotype_code = phe.phenotype_code
 and gene.p_value < 0.0025 and gene.mask = 'LoF_HC'
-group by phe.phenotype_ontology_id, phe.phenotype_translator_name
+group by phe.phenotype_ontology_id, phe.phenotype_translator_name, phe.node_type
 order by phe.phenotype_translator_name, phe.phenotype_ontology_id;
 -- 496 rows in set (0.71 sec)
 
@@ -131,5 +177,43 @@ update data_600k_phenotype_ontology set phenotype_ontology_id = 'MONDO:0019216' 
 -- MONDO:0005392 replaces MP:0004174
 -- curvature of spine 
 
+
+
+-- range of beta
+select max(gene.beta), min(gene.beta)
+from tran_upkeep.data_600k_gene_phenotype gene, tran_upkeep.data_600k_phenotype_ontology phe 
+where gene.phenotype_code = phe.phenotype_code
+and gene.p_value < 0.0025 and gene.mask = 'LoF_HC';
+-- +----------------+----------------+
+-- | max(gene.beta) | min(gene.beta) |
+-- +----------------+----------------+
+-- |         451.54 |          -1.49 |
+-- +----------------+----------------+
+
+select count(gene.id),
+ case 
+  when gene.beta between -10 and 0 then '0-less_than_0'
+  when gene.beta between 0 and 25 then '1-under_25'
+         when gene.beta between 25 and 50 then '2-between_25_50'
+         when gene.beta between 50 and 100 then '3-between_50_100'
+         when gene.beta between 100 and 9999 then '4-over_100'
+    end as grp
+from tran_upkeep.data_600k_gene_phenotype gene, tran_upkeep.data_600k_phenotype_ontology phe 
+where gene.phenotype_code = phe.phenotype_code
+and gene.p_value < 0.0025 and gene.mask = 'LoF_HC'
+group by grp
+order by grp;
+
+
+
+
+select max(gene.beta), min(gene.beta)
+from tran_upkeep.data_600k_gene_phenotype gene, tran_upkeep.data_600k_phenotype_ontology phe 
+where gene.phenotype_code = phe.phenotype_code
+and gene.p_value < 0.0025 and gene.mask = 'LoF_HC';
+
+
+group by phe.phenotype_ontology_id, phe.phenotype_translator_name, phe.node_type
+order by phe.phenotype_translator_name, phe.phenotype_ontology_id;
 
 

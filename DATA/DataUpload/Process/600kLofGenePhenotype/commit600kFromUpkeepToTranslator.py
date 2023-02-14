@@ -146,10 +146,10 @@ def add_edge(conn, gene, phenotype_ontology_id, phenotype_type, phenotype_code, 
     cur.execute(sql_qualifier_insert, (id_new_edge, 'object_aspect_severity', STUDY_ID))
     if beta < 0:
         # opposite direction of subject
-        cur.execute(sql_qualifier_insert, (id_new_edge, 'object_direction_increased', STUDY_ID))
+        cur.execute(sql_qualifier_insert, (id_new_edge, 'object_direction_decreased', STUDY_ID))
     else:
         # same direction of subject
-        cur.execute(sql_qualifier_insert, (id_new_edge, 'object_direction_decreased', STUDY_ID))
+        cur.execute(sql_qualifier_insert, (id_new_edge, 'object_direction_increased', STUDY_ID))
     cur.execute(sql_qualifier_insert, (id_new_edge, 'qualified_predicate_causes', STUDY_ID))
 
     # log
@@ -173,10 +173,10 @@ def add_edge(conn, gene, phenotype_ontology_id, phenotype_type, phenotype_code, 
     cur.execute(sql_qualifier_insert, (id_new_edge, 'subject_aspect_severity', STUDY_ID))
     if beta < 0:
         # opposite direction of subject
-        cur.execute(sql_qualifier_insert, (id_new_edge, 'subject_direction_increased', STUDY_ID))
+        cur.execute(sql_qualifier_insert, (id_new_edge, 'subject_direction_decreased', STUDY_ID))
     else:
         # same direction of subject
-        cur.execute(sql_qualifier_insert, (id_new_edge, 'subject_direction_decreased', STUDY_ID))
+        cur.execute(sql_qualifier_insert, (id_new_edge, 'subject_direction_increased', STUDY_ID))
     cur.execute(sql_qualifier_insert, (id_new_edge, 'qualified_predicate_caused_by', STUDY_ID))
 
     # commit

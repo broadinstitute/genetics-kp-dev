@@ -34,11 +34,11 @@ alter table comb_edge_node add column has_qualifiers enum('N', 'Y') default 'N';
 
 
 -- create qualifier link table
-drop table if exists comb_qualifier;
-create table comb_qualifier (
-  id                        varchar(50) not null primary key,
-  qualifier_type            varchar(50) not null,
-  qualifier_value           varchar(50) not null,
+drop table if exists comb_edge_qualifier;
+create table comb_edge_qualifier (
+  id                        int not null auto_increment primary key,
+  edge_id                   int(9) not null,
+  qualifier_id              varchar(50) not null,
   study_id                  int(3) not null,
   date_created              datetime DEFAULT CURRENT_TIMESTAMP
 );

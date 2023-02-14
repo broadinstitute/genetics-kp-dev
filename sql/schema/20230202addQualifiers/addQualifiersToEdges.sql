@@ -72,14 +72,20 @@ alter table comb_edge_node add column has_qualifiers enum('N', 'Y') default 'N';
 
 -- test queries
 -- rows with qualifiers
-select edge.id, subj.ontology_id, subj.node_code, obj.ontology_id, obj.node_code, qualifier.qualifier_type, qualifier.qualifier_value
+select edge.id, subj.ontology_id, subj.node_code, sloo.type_name,
+  obj.ontology_id, obj.node_code, oloo.type_name, qualifier.qualifier_type, qualifier.qualifier_value
 from comb_edge_node edge, comb_node_ontology subj, comb_node_ontology obj, comb_edge_qualifier link,
-  comb_qualifier qualifier
+  comb_qualifier qualifier, comb_lookup_type sloo, comb_lookup_type oloo
 where edge.source_node_id = subj.id and edge.target_node_id = obj.id 
 and link.edge_id = edge.id and link.qualifier_id = qualifier.id
+and subj.node_type_id = sloo.type_id and obj.node_type_id = oloo.type_id
 order by subj.node_code, obj.node_code, qualifier.qualifier_type, qualifier.qualifier_value;
 
 
 
-
+select qa.qualifier_type, qa.qualifier_value 
+from comb_qualifier qa, comb_edge_qualifier link 
+where qa.id = link.qualifier_id 
+and link.edge_id = 5219639
+order by qa.id;
 
