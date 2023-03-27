@@ -172,14 +172,34 @@ def calc_prob_from_bayes(bayes_factor, log=False):
 
     if bayes_factor:
         # calculate the prior odds
-        odds = (bayes_factor * prior) / (1 - prior)
+        odds = (bayes_factor * prior) / (1.0 - prior)
 
         # calculate the probability
         probability = odds / (1 + odds)
 
+    # log
+    if log:
+        print("bayes: {}, odds: {}, probability: {}".format(bayes_factor, odds, probability))
+
     # return 
     return probability 
 
+def add_bayes_values(json_bayes, map_association, log=False):
+    '''
+    will take the bayes json and add the data to the association map
+    '''
+    list_data = json_bayes.get('data').get('Huge')
+
+    if list_data:
+        for row in list_data:
+            # for the row, get the phenotype update the map after verifying the gene 
+            map_pheno = map_association.get(row.get('phenotype'))
+            if map_pheno:
+                if map_pheno.get('gene') == row.get('gene'):
+                    map_pheno.update(row)
+
+    # return 
+    return map_association
 
 def insert_gene_associations(conn, map_gene_assoc, log=False):
     ''' 
@@ -202,18 +222,18 @@ def insert_gene_associations(conn, map_gene_assoc, log=False):
         pValue = gene_association.get('pValue')
         zStat = gene_association.get('zStat')
         geneType = gene_association.get('type')
-        abf_common = gene_association.get('bf_common')
-        abf_rare = gene_association.get('bf_rare')
-        abf_combined = gene_association.get('huge')
+        abf_common = float(gene_association.get('bf_common'))
+        abf_rare = float(gene_association.get('bf_rare'))
+        abf_combined = float(gene_association.get('huge'))
         prob_common = calc_prob_from_bayes(abf_common)
         prob_rare = calc_prob_from_bayes(abf_rare)
-        prob_combined = calc_prob_from_bayes(abf_combined)
+        prob_combined = calc_prob_from_bayes(abf_combined, log=True)
 
         # log
         i += 1
         if log:
-            if i % 200 == 0:
-                print("gene: {}, phenotype: {}, pValue: {}".format(gene, phenotype, pValue))
+            if i % 100 == 0:
+                print("inserted gene: {}, phenotype: {}, pValue: {}, bayes: {}, probability: {}".format(gene, phenotype, pValue, abf_combined, prob_combined))
 
         cur.execute(sql_insert, (gene, phenotype, geneType, zStat, pValue, abf_common, abf_rare, abf_combined, prob_common, prob_rare, prob_combined))
 
@@ -330,12 +350,14 @@ if __name__ == "__main__":
     # get the phenotypes pvalues for the gene from the bioindex
     for gene in list_gene:
         count_gene = count_gene + 1
-        result_json = query_gene_assocations_service(gene[0], url_query_aggregator)
-        map_phenotype = get_phenotype_values(result_json)
+        json_association = query_gene_assocations_service(gene[0], url_query_aggregator)
+        map_phenotype = get_phenotype_values(json_association)
+        json_bayes = query_gene_bayes_service(gene[0], url_query_aggregator)
+        map_phenotype = add_bayes_values(json_bayes, map_phenotype)
         print("for {} - {} got new gene associations of size {}".format(count_gene, gene[0], len(map_phenotype)))
     
         # insert the data
-        insert_gene_associations(conn, map_phenotype)
+        insert_gene_associations(conn, map_phenotype, log=True)
 
     # log
     log_gene_associations_data_counts(conn)
