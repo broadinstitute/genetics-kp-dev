@@ -32,6 +32,13 @@ alter table comb_edge_node add publication_ids varchar(1000) null;
 -- 20230208 - add flag if has qualifiers indicating 2nd query 
 alter table comb_edge_node add column has_qualifiers enum('N', 'Y') default 'N';
 
+-- 20230303 - add specific probability, beta, abf, p_value (eventually deprecate score)
+alter table comb_edge_node add p_value double;
+alter table comb_edge_node add beta double;
+alter table comb_edge_node add standard_error double;
+alter table comb_edge_node add probabilty double;
+alter table comb_edge_node add probability_app_bayes_factor double;
+
 
 -- create qualifier link table
 drop table if exists comb_edge_qualifier;

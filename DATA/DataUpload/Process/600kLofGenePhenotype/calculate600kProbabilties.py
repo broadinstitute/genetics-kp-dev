@@ -46,9 +46,12 @@ def calc_probabilty(list_association, log=False):
     '''
     for row in list_association:
         # print("got row: {}".format(row))
-        abf = calculate_abf(standard_error=row['se'], effect_size=row['beta'])
-        probability = convert_abf_to_probability(abf)
-        row['prob'] = probability
+        if row['se'] and row['beta']:
+            abf = calculate_abf(standard_error=row['se'], effect_size=row['beta'])
+            probability = convert_abf_to_probability(abf)
+            row['prob'] = probability
+        else:
+            row['prob'] = None
 
 def get_connection():
     ''' 
@@ -84,6 +87,52 @@ def get_data(conn, num_batch, log=False):
     # return
     return list_data
 
+
+def get_data_for_phenotype(conn, phenotype_code, log=False):
+    '''
+    get the rows
+    '''
+    list_data = []
+
+    # get the data
+    sql_select = """
+    select id, std_error, beta from data_600k_gene_phenotype 
+    where phenotype_code = %s
+    """
+
+    cursor = conn.cursor()
+    cursor.execute(sql_select, (phenotype_code))
+    db_results = cursor.fetchall()
+
+    # loop
+    for row in db_results:
+        list_data.append({'id': row[0], 'se': row[1], 'beta': row[2]})
+
+    # return
+    return list_data
+
+def get_distinct_phenotypes(conn, log=False):
+    '''
+    get the rows
+    '''
+    list_data = []
+
+    # get the data
+    sql_select = """
+    select distinct phenotype_code from data_600k_gene_phenotype 
+    """
+
+    cursor = conn.cursor()
+    cursor.execute(sql_select)
+    db_results = cursor.fetchall()
+
+    # loop
+    for row in db_results:
+        list_data.append(row[0])
+
+    # return
+    return list_data
+
 def save_data(conn, list_row, log=False):
     '''
     save the data
@@ -95,7 +144,8 @@ def save_data(conn, list_row, log=False):
     for row in list_row:
         # cursor.execute(sql_update, (row['prob'], row['id']))
         try:
-            cursor.execute(sql_update, (str(row['prob'].item()).encode('utf-8','ignore'), row['id']))
+            if row['prob']:
+                cursor.execute(sql_update, (str(row['prob'].item()).encode('utf-8','ignore'), row['id']))
         except mdb.err.DataError:
             pass
 
@@ -108,13 +158,20 @@ if __name__ == "__main__":
     # get the connection
     connection = get_connection()
 
-    for i in range
-    # get the data
-    list_association = get_data(connection, num_batch)
+    # get the distinct phenotypes
+    list_phenotype = get_distinct_phenotypes(connection)
+    print("got phentye count of: {}".format(len(list_phenotype)))
 
-    # calculate the probability
-    calc_probabilty(list_association)
+    count = 0
+    for phenotype in list_phenotype:
+        count = count + 1
+        # get the data
+        list_association = get_data_for_phenotype(connection, phenotype)
+        print("{} - {}: got num rows: {}".format(count, len(list_phenotype), len(list_association)))
 
-    # save the calculated data
-    save_data(connection, list_association)
+        # calculate the probability
+        calc_probabilty(list_association)
+
+        # save the calculated data
+        save_data(connection, list_association)
 

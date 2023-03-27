@@ -114,13 +114,28 @@ and gene.p_value < 0.0025 and gene.mask = 'LoF_HC'
 order by phe.phenotype_translator_name, gene.gene_code;
 
 -- count the gene/phenotypes for ontology_id
-select count(gene.id), phe.phenotype_ontology_id, phe.node_type, phe.phenotype_translator_name
+select count(gene.id) as num, phe.phenotype_ontology_id, phe.node_type, phe.phenotype_translator_name
 from tran_upkeep.data_600k_gene_phenotype gene, tran_upkeep.data_600k_phenotype_ontology phe 
 where gene.phenotype_code = phe.phenotype_code
-and gene.p_value < 0.0025 and gene.mask = 'LoF_HC'
+and gene.p_value < 0.0025 and gene.mask = 'LoF_HC' and beta < 0
 group by phe.phenotype_ontology_id, phe.phenotype_translator_name, phe.node_type
 order by phe.phenotype_translator_name, phe.phenotype_ontology_id;
 -- 496 rows in set (0.71 sec)
+
+-- for the 202302 relay
+select count(gene.id) as num, phe.phenotype_ontology_id as curie, substring(phe.phenotype_translator_name, 1, 20) as name
+from tran_upkeep.data_600k_gene_phenotype gene, tran_upkeep.data_600k_phenotype_ontology phe 
+where gene.phenotype_code = phe.phenotype_code
+and gene.p_value < 0.0025 and gene.mask = 'LoF_HC' and beta < 0 and phe.node_type = 'biolink:Disease'
+group by phe.phenotype_ontology_id, phe.phenotype_translator_name, phe.node_type
+order by phe.phenotype_translator_name, phe.phenotype_ontology_id;
+
+
+select gene.gene_code, gene.p_value, gene.beta, phe.phenotype_ontology_id as curie, substring(phe.phenotype_translator_name, 1, 20) as name
+from tran_upkeep.data_600k_gene_phenotype gene, tran_upkeep.data_600k_phenotype_ontology phe 
+where gene.phenotype_code = phe.phenotype_code
+and gene.p_value < 0.0025 and gene.mask = 'LoF_HC' and beta < 0 and phe.node_type = 'biolink:Disease'
+order by phe.phenotype_translator_name, phe.phenotype_ontology_id;
 
 
 select count(id), mask from tran_upkeep.data_600k_gene_phenotype group by mask;

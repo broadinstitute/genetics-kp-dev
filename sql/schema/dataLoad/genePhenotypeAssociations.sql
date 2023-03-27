@@ -13,6 +13,14 @@ create table tran_upkeep.agg_gene_phenotype (
 );
 
 
+-- adding approximate bayes factor
+alter table tran_upkeep.agg_gene_phenotype add column app_bayes_factor_common double;
+alter table tran_upkeep.agg_gene_phenotype add column app_bayes_factor_rare double;
+alter table tran_upkeep.agg_gene_phenotype add column app_bayes_factor_combined double;
+alter table tran_upkeep.agg_gene_phenotype add column abf_probability_common double;
+alter table tran_upkeep.agg_gene_phenotype add column abf_probability_rare double;
+alter table tran_upkeep.agg_gene_phenotype add column abf_probability_combined double;
+
 
 
 alter table tran_upkeep.agg_gene_phenotype add index gene_phen_gene_cde_idx (gene_code);
