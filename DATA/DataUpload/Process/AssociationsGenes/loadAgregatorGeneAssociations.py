@@ -217,22 +217,38 @@ def insert_gene_associations(conn, map_gene_assoc, log=False):
     i = 0
     # loop through rows
     for gene_association in map_gene_assoc.values():
+        # initialize
+        abf_common = None
+        abf_rare = None
+        abf_combined = None
+        prob_common = None
+        prob_rare = None 
+        prob_combined = None
+
+        # get the lookup date
         phenotype = gene_association.get('phenotype')
         gene = gene_association.get('gene')
         pValue = gene_association.get('pValue')
         zStat = gene_association.get('zStat')
         geneType = gene_association.get('type')
-        abf_common = float(gene_association.get('bf_common'))
-        abf_rare = float(gene_association.get('bf_rare'))
-        abf_combined = float(gene_association.get('huge'))
-        prob_common = calc_prob_from_bayes(abf_common)
-        prob_rare = calc_prob_from_bayes(abf_rare)
-        prob_combined = calc_prob_from_bayes(abf_combined, log=True)
+
+        # calculate
+        if gene_association.get('bf_common'):
+            abf_common = float(gene_association.get('bf_common'))
+            prob_common = calc_prob_from_bayes(abf_common)
+
+        if gene_association.get('bf_rare'):
+            abf_rare = float(gene_association.get('bf_rare'))
+            prob_rare = calc_prob_from_bayes(abf_rare)
+
+        if gene_association.get('huge'):
+            abf_combined = float(gene_association.get('huge'))
+            prob_combined = calc_prob_from_bayes(abf_combined, log=False)
 
         # log
         i += 1
         if log:
-            if i % 100 == 0:
+            if i % 300 == 0:
                 print("inserted gene: {}, phenotype: {}, pValue: {}, bayes: {}, probability: {}".format(gene, phenotype, pValue, abf_combined, prob_combined))
 
         cur.execute(sql_insert, (gene, phenotype, geneType, zStat, pValue, abf_common, abf_rare, abf_combined, prob_common, prob_rare, prob_combined))
@@ -254,7 +270,7 @@ def insert_gene_associations(conn, map_gene_assoc, log=False):
 #     count = 0
 
 #     # get the list of genes
-#     cursor.execute(sql_select)
+#     cursor.execute(sql_select)print
 #     db_results = cursor.fetchall()
 
 #     # loop for each gene
@@ -320,44 +336,50 @@ def log_gene_associations_data_counts(conn):
 
 
 if __name__ == "__main__":
+    # count for testing 
+    num_count = -1
+
     # get the db connection
     conn = get_connection()
     count_gene = 0
 
     # log
-    # log_gene_associations_data_counts(conn)
+    log_gene_associations_data_counts(conn)
 
     # delete the existing data
     print("deleting table tran_upkeep.agg_gene_phenotype")
     delete_gene_associations(conn)
 
     # get the genes
-    # list_gene = get_gene_list(conn)
-    list_gene = [['PPARG'], [12618]]
+    list_gene = get_gene_list(conn)
+
+    # test gene list
+    # list_gene = [['PPARG'], [12618]]
+    # list_gene = [['SEP15'], [12618]]
+    
 
     # log
     print("got gene list of size {}".format(len(list_gene)))
     
     # test the check_phenotype method
-    # assert (len(list_gene) > 19000) == True
-
-    # test gene list
-    # list_gene = [['PPARG'], [12618]]
+    num_genes = len(list_gene)
+    assert (num_genes > 19000) == True
 
     # log
     # print_num_phenotypes_for_gene_in_db(conn, list_gene[0][0], list_gene[1][0])
 
     # get the phenotypes pvalues for the gene from the bioindex
     for gene in list_gene:
-        count_gene = count_gene + 1
-        json_association = query_gene_assocations_service(gene[0], url_query_aggregator)
-        map_phenotype = get_phenotype_values(json_association)
-        json_bayes = query_gene_bayes_service(gene[0], url_query_aggregator)
-        map_phenotype = add_bayes_values(json_bayes, map_phenotype)
-        print("for {} - {} got new gene associations of size {}".format(count_gene, gene[0], len(map_phenotype)))
+        if num_count < 0 or count_gene < num_count:
+            count_gene = count_gene + 1
+            json_association = query_gene_assocations_service(gene[0], url_query_aggregator)
+            map_phenotype = get_phenotype_values(json_association)
+            json_bayes = query_gene_bayes_service(gene[0], url_query_aggregator)
+            map_phenotype = add_bayes_values(json_bayes, map_phenotype)
+            print("for {}/{} - {} got new gene/phenotype associations of size {}".format(count_gene, num_genes, gene[0], len(map_phenotype)))
     
-        # insert the data
-        insert_gene_associations(conn, map_phenotype, log=True)
+            # insert the data
+            insert_gene_associations(conn, map_phenotype, log=True)
 
     # log
     log_gene_associations_data_counts(conn)

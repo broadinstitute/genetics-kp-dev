@@ -34,3 +34,14 @@ alter table tran_upkeep.agg_gene_phenotype add index gene_phen_phen_cde_idx (phe
 
 
 -- queries 
+select count(id) from tran_upkeep.agg_gene_phenotype;
+
+select * from tran_upkeep.agg_gene_phenotype where abf_probability_combined > 0.15 order by abf_probability_combined desc;
+
+select id, gene_code, phenotype_code, p_value, app_bayes_factor_combined, abf_probability_combined
+from tran_upkeep.agg_gene_phenotype 
+where abf_probability_combined > 0.5 
+order by gene_code, abf_probability_combined desc;
+
+
+
