@@ -31,41 +31,57 @@ PROVENANCE_INFORES_CLINVAR='infores:clinvar'
 PROVENANCE_INFORES_CLINGEN='infores:clingen'
 PROVENANCE_INFORES_GENCC='infores:gencc'
 PROVENANCE_INFORES_GENEBASS='infores:genebass'
+PROVENANCE_INFORES_RICHARDS='infores:richards'
 
 # provenance attributes
+# aggregator sources
 PROVENANCE_AGGREGATOR_KP_GENETICS = Attribute(value = PROVENANCE_INFORES_KP_GENETICS,
     attribute_type_id = 'biolink:aggregator_knowledge_source',
     value_type_id = 'biolink:InformationResource',
     value_url = 'https://translator.broadinstitute.org/genetics_provider/trapi/v1.3',
     description = 'The Genetics Data Provider KP from NCATS Translator',
     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
-PROVENANCE_AGGREGATOR_CLINVAR = Attribute(value = PROVENANCE_INFORES_CLINVAR,
-    attribute_type_id = 'biolink:aggregator_knowledge_source',
+
+# primary sources
+PROVENANCE_PRIMARY_KP_GENETICS = Attribute(value = PROVENANCE_INFORES_KP_GENETICS,
+    attribute_type_id = 'biolink:primary_knowledge_source',
+    value_type_id = 'biolink:InformationResource',
+    value_url = 'https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/magmaData.md',
+    description = 'The Genetics Data Provider KP from NCATS Translator',
+    attribute_source = PROVENANCE_INFORES_KP_GENETICS)
+PROVENANCE_PRIMARY_RICHARDS = Attribute(value = PROVENANCE_INFORES_RICHARDS,
+    attribute_type_id = 'biolink:primary_knowledge_source',
+    value_type_id = 'biolink:InformationResource',
+    value_url = 'https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/richardsList.md',
+    description = 'The Richards Algorith Effector Gene List',
+    attribute_source = PROVENANCE_INFORES_KP_GENETICS)
+PROVENANCE_PRIMARY_CLINVAR = Attribute(value = PROVENANCE_INFORES_CLINVAR,
+    attribute_type_id = 'biolink:primary_knowledge_source',
     value_type_id = 'biolink:InformationResource',
     value_url = 'https://www.ncbi.nlm.nih.gov/clinvar/',
     description = 'ClinVar is a freely accessible, public archive of reports of the relationships among human variations and phenotypes',
     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
-PROVENANCE_AGGREGATOR_CLINGEN = Attribute(value = PROVENANCE_INFORES_CLINGEN,
-    attribute_type_id = 'biolink:aggregator_knowledge_source',
+PROVENANCE_PRIMARY_CLINGEN = Attribute(value = PROVENANCE_INFORES_CLINGEN,
+    attribute_type_id = 'biolink:primary_knowledge_source',
     value_type_id = 'biolink:InformationResource',
     value_url = 'https://clinicalgenome.org/',
     description = 'ClinGen is a NIH-funded resource dedicated to building a central resource that defines the clinical relevance of genes and variants for use in precision medicine and research',
     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
-PROVENANCE_AGGREGATOR_GENCC = Attribute(value = PROVENANCE_INFORES_GENCC,
-    attribute_type_id = 'biolink:aggregator_knowledge_source',
+PROVENANCE_PRIMARY_GENCC = Attribute(value = PROVENANCE_INFORES_GENCC,
+    attribute_type_id = 'biolink:primary_knowledge_source',
     value_type_id = 'biolink:InformationResource',
     value_url = 'https://thegencc.org/',
     description = 'The GenCC DB provides information pertaining to the validity of gene-disease relationships, with a current focus on Mendelian diseases',
     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
-PROVENANCE_AGGREGATOR_GENEBASS = Attribute(value = PROVENANCE_INFORES_GENEBASS,
-    attribute_type_id = 'biolink:aggregator_knowledge_source',
+PROVENANCE_PRIMARY_GENEBASS = Attribute(value = PROVENANCE_INFORES_GENEBASS,
+    attribute_type_id = 'biolink:primary_knowledge_source',
     value_type_id = 'biolink:InformationResource',
     value_url = 'https://genebass.org/',
     description = 'Genebass is a resource of exome-based association statistics, made available to the public. The dataset encompasses 3,817 phenotypes with gene-based and single-variant testing across 281,852 individuals with exome sequence data from the UK Biobank.',
     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
 
 # build map for study types
-MAP_PROVENANCE = {5: PROVENANCE_AGGREGATOR_CLINGEN, 6: PROVENANCE_AGGREGATOR_CLINVAR, 7: PROVENANCE_AGGREGATOR_GENCC, 17: PROVENANCE_AGGREGATOR_GENEBASS}
+MAP_PROVENANCE = {1: PROVENANCE_PRIMARY_KP_GENETICS, 4: PROVENANCE_PRIMARY_RICHARDS, 5: PROVENANCE_PRIMARY_CLINGEN, 6: PROVENANCE_PRIMARY_CLINVAR, 7: PROVENANCE_PRIMARY_GENCC, 17: PROVENANCE_PRIMARY_GENEBASS}
 
 
 def build_results_creative(results_list, query_graph):
