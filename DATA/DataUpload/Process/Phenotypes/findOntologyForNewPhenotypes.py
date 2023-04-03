@@ -96,7 +96,6 @@ def add_phenotype_ontology_id(conn, row_id, ontology_id):
     cursor.execute(sql_update, (ontology_id, row_id))
     conn.commit()
 
-
 if __name__ == "__main__":
     # initialize
     list_phenotypes = []
@@ -113,9 +112,12 @@ if __name__ == "__main__":
     # loop
     for (row_id, name, phenotype_id) in list_phenotypes:
         count = count + 1
-        if count > 500:
+        if count > 5000:
             break
     
+        # pause for rest service
+        time.sleep(0.5)
+        
         # search for an ontology id
         ontology_id = tl.find_ontology(name, list_ontology)
         print("{} - {} found for {} - '{}'".format(count, ontology_id, phenotype_id, name))

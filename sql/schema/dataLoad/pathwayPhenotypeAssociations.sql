@@ -1,8 +1,8 @@
 
 
 -- create table for loading pathway name to id data
-drop table if exists tran_upkeep.agg_pathway_phenotype;
-create table tran_upkeep.agg_pathway_phenotype (
+drop table if exists tran_upkeep.agg_pathway_phenotype2;
+create table tran_upkeep.agg_pathway_phenotype2 (
   id                           int not null auto_increment primary key,
   pathway_code                 varchar(250) not null,
   phenotype_code               varchar(50) not null,

@@ -15,8 +15,8 @@ create table tran_upkeep.data_genebass_gene_phenotype (
   pvalue                    double,                                    -- 
   standard_error            double,                                    -- 
   beta                      double,                                    -- 
-  abf                       double,                                    -- 
-  probability               double,                                    -- 
+  abf                       double,                                    -- approximate bayes factor
+  probability               double,                                    -- probability from abf using prior 0.05
   score_genepro             double                                    -- classification calculated
 );
 

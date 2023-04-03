@@ -11,8 +11,6 @@ url_query_aggregator = "https://bioindex-dev.hugeamp.org/api/bio/query"
 p_value_limit = 0.05
 DB_PASSWD = os.environ.get('DB_PASSWD')
 DB_SCHEMA = 'tran_upkeep'
-DB_TRANSLATOR_SCHEMA = "tran_test_202211"
-COUNT_BREAK = -1
 
 def get_phenotype_list(conn):
     ''' 
@@ -22,10 +20,6 @@ def get_phenotype_list(conn):
     sql_string = """
     select phenotype_id, phenotype_name from {}.agg_aggregator_phenotype order by phenotype_id
     """.format(DB_SCHEMA)
-    # sql_string = """
-    # select node_code, ontology_id from {}.comb_node_ontology where node_type_id in (1, 3) 
-    # where node_code not like 'Clinvar_%' and node_code not like 'Clingen_%'
-    # """.format(DB_TRANSLATOR_SCHEMA)
 
     # query the db
     cursor = conn.cursor()
@@ -92,7 +86,9 @@ def delete_pathway_associations(conn):
     ''' 
     delete the pathway/phenotype associations from the agregator load table
     '''
-    sql_delete = """delete from {}.agg_pathway_phenotype 
+    # sql_delete = """delete from {}.agg_pathway_phenotype 
+    #     """.format(DB_SCHEMA)
+    sql_delete = """truncate table {}.agg_pathway_phenotype2 
         """.format(DB_SCHEMA)
 
     # delete the data
@@ -108,7 +104,7 @@ def insert_pathway_associations(conn, list_pathway_assoc, log=False):
     add pathway/phenotype associations from the agregator results
     '''
     sql_insert = """
-        insert into {}.agg_pathway_phenotype (pathway_code, phenotype_code, beta, standard_error, p_value)
+        insert into {}.agg_pathway_phenotype2 (pathway_code, phenotype_code, beta, standard_error, p_value)
             values (%s, %s, %s, %s, %s) 
         """.format(DB_SCHEMA)
     # print(sql_insert)
@@ -148,12 +144,12 @@ def log_pathway_associations_data_counts(conn):
 
     # log the number
     cursor = conn.cursor()
-    sql_to_run = sql_count.format(DB_SCHEMA, "agg_pathway_phenotype")
+    sql_to_run = sql_count.format(DB_SCHEMA, "agg_pathway_phenotype2")
     cursor.execute(sql_to_run)
     results = cursor.fetchall()
 
     for row in results:
-        print("for: {} got row count: {}".format("pathway/phenotype", row[0]))
+        print("for upkeep: {} got row count: {}".format("pathway/phenotype", row[0]))
     # print("for: {} got row count: {}".format(key, results))
 
 
@@ -162,6 +158,7 @@ if __name__ == "__main__":
     # get the db connection
     conn = get_connection()
     count_phenotype = 0
+    COUNT_BREAK = -1
 
     # log
     log_pathway_associations_data_counts(conn)
@@ -178,7 +175,7 @@ if __name__ == "__main__":
 
     # log
     num_phenotypes = len(list_phenotype)
-    print("got phenotype list of size {}".format(num_phenotypes))
+    print("got upkeep phenotype list of size {}".format(num_phenotypes))
     
     # test the check_phenotype method
     assert (num_phenotypes > 190) == True
