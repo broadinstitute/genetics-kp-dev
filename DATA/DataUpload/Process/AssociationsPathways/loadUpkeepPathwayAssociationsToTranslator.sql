@@ -2,11 +2,12 @@
 
 
 -- delete old pathway associations
--- delete where pathway is subject or object
+-- delete where pathway is subject
 delete edge from tran_test_202211.comb_edge_node edge
 inner join tran_test_202211.comb_node_ontology node on edge.source_node_id = node.id 
 where node.node_type_id = 4;
 
+-- delete where pathway is object
 delete edge from tran_test_202211.comb_edge_node edge
 inner join tran_test_202211.comb_node_ontology node on edge.target_node_id = node.id 
 where node.node_type_id = 4;

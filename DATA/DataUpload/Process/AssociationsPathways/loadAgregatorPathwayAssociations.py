@@ -88,7 +88,7 @@ def delete_pathway_associations(conn):
     '''
     # sql_delete = """delete from {}.agg_pathway_phenotype 
     #     """.format(DB_SCHEMA)
-    sql_delete = """truncate table {}.agg_pathway_phenotype2 
+    sql_delete = """truncate table {}.agg_pathway_phenotype 
         """.format(DB_SCHEMA)
 
     # delete the data
@@ -104,7 +104,7 @@ def insert_pathway_associations(conn, list_pathway_assoc, log=False):
     add pathway/phenotype associations from the agregator results
     '''
     sql_insert = """
-        insert into {}.agg_pathway_phenotype2 (pathway_code, phenotype_code, beta, standard_error, p_value)
+        insert into {}.agg_pathway_phenotype (pathway_code, phenotype_code, beta, standard_error, p_value)
             values (%s, %s, %s, %s, %s) 
         """.format(DB_SCHEMA)
     # print(sql_insert)
@@ -144,7 +144,7 @@ def log_pathway_associations_data_counts(conn):
 
     # log the number
     cursor = conn.cursor()
-    sql_to_run = sql_count.format(DB_SCHEMA, "agg_pathway_phenotype2")
+    sql_to_run = sql_count.format(DB_SCHEMA, "agg_pathway_phenotype")
     cursor.execute(sql_to_run)
     results = cursor.fetchall()
 

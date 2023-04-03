@@ -18,30 +18,30 @@ delete from comb_edge_node where study_id = 17;
 -- only load with probability > 0.15 
 -- insert disease/gene rows
 -- edge type 10: disease/gene, score type 9: probability, study_id 17: genebass
-insert into comb_edge_node 
+insert into tran_test_202303.comb_edge_node 
 (edge_id, source_node_id, target_node_id, edge_type_id, score, score_type_id, study_id, score_translator, 
     p_value, beta, standard_error, probability_app_bayes_factor)
-select distinct concat('genebass_', gb.id), so.id, ta.id, 10, gb.probability, 9, 17, gb.probability,
+select distinct concat('genebass_', gb.id), phenotype.id, gene.id, 10, gb.probability, 9, 17, gb.probability,
     gb.pvalue, gb.beta, gb.standard_error, gb.probability
-from tran_upkeep.data_genebass_gene_phenotype gb, comb_node_ontology so, comb_node_ontology ta
-where gb.gene_ncbi_id COLLATE utf8mb4_unicode_ci = ta.ontology_id
-and gb.phenotype_ontology_id COLLATE utf8mb4_unicode_ci = so.ontology_id 
-and ta.node_type_id = 2 and so.node_type_id in (1, 3) 
-and gb.probability >= 0.15;
+from tran_upkeep.data_genebass_gene_phenotype gb, tran_test_202303.comb_node_ontology phenotype, tran_test_202303.comb_node_ontology gene
+where gb.gene_ncbi_id COLLATE utf8mb4_unicode_ci = gene.ontology_id
+and gb.phenotype_ontology_id COLLATE utf8mb4_unicode_ci = phenotype.ontology_id 
+and gene.node_type_id = 2 and phenotype.node_type_id in (1, 3) 
+and gb.probability >= 0.10;
 
 
 -- insert gene/disease rows
 -- edge type 5: gene/disease, score type 9: probability, study_id 17: genebass
-insert into comb_edge_node 
+insert into tran_test_202303.comb_edge_node 
 (edge_id, source_node_id, target_node_id, edge_type_id, score, score_type_id, study_id, score_translator,
     p_value, beta, standard_error, probability_app_bayes_factor)
-select distinct concat('genebass_', gb.id), ta.id, so.id, 5, gb.probability, 9, 17, gb.probability,
+select distinct concat('genebass_', gb.id), gene.id, phenotype.id, 5, gb.probability, 9, 17, gb.probability,
     gb.pvalue, gb.beta, gb.standard_error, gb.probability
-from tran_upkeep.data_genebass_gene_phenotype gb, comb_node_ontology so, comb_node_ontology ta
-where gb.gene_ncbi_id COLLATE utf8mb4_unicode_ci = ta.ontology_id
-and gb.phenotype_ontology_id COLLATE utf8mb4_unicode_ci = so.ontology_id 
-and ta.node_type_id = 2 and so.node_type_id in (1, 3)
-and gb.probability >= 0.15;
+from tran_upkeep.data_genebass_gene_phenotype gb, tran_test_202303.comb_node_ontology phenotype, tran_test_202303.comb_node_ontology gene
+where gb.gene_ncbi_id COLLATE utf8mb4_unicode_ci = gene.ontology_id
+and gb.phenotype_ontology_id COLLATE utf8mb4_unicode_ci = phenotype.ontology_id 
+and gene.node_type_id = 2 and phenotype.node_type_id in (1, 3)
+and gb.probability >= 0.10;
 
 
 -- history 

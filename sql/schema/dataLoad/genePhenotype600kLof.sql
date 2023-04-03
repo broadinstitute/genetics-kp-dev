@@ -19,9 +19,13 @@ create table tran_upkeep.data_600k_gene_phenotype (
 alter table tran_upkeep.data_600k_gene_phenotype add column probability_calculated double;
 
 -- indices
+alter table tran_upkeep.data_600k_gene_phenotype add index gen_phe_gen_cde_idx (gene_code);
 alter table tran_upkeep.data_600k_gene_phenotype add index gen_phe_phe_cde_idx (phenotype_code);
 alter table tran_upkeep.data_600k_gene_phenotype add index gen_phe_pval_idx (p_value);
 alter table tran_upkeep.data_600k_gene_phenotype add index gen_phe_msk_idx (mask);
+-- alter table tran_upkeep.data_600k_gene_phenotype add index gen_phe_prob_idx (probability_calculated);
+
+alter table tran_upkeep.data_600k_gene_phenotype add index gen_phe_gen_phe_msk_cde_idx (gene_code, phenotype_code, mask);
 
 
 drop table if exists tran_upkeep.data_600k_phenotype_ontology;
@@ -37,6 +41,8 @@ create table tran_upkeep.data_600k_phenotype_ontology (
 );
 -- indices
 alter table tran_upkeep.data_600k_phenotype_ontology add index phe_ont_phe_cde_idx (phenotype_code);
+alter table tran_upkeep.data_600k_phenotype_ontology add index phe_ont_phe_ont_idx (phenotype_ontology_id);
+alter table tran_upkeep.data_600k_phenotype_ontology add index phe_ont_phe_cde_ont_idx (phenotype_code,   phenotype_ontology_id);
 
 
 
