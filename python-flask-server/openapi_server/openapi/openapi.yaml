@@ -119,6 +119,20 @@ paths:
       tags:
       - asyncquery
       x-openapi-router-controller: openapi_server.controllers.asyncquery_controller
+  /version:
+    get:
+      operationId: version_get
+      responses:
+        "200":
+          content:
+            application/json:
+              schema:
+                type: string
+          description: Returns version
+      summary: Version
+      tags:
+      - version
+      x-openapi-router-controller: openapi_server.controllers.version_controller
   /meta_knowledge_graph:
     get:
       operationId: meta_knowledge_graph_get
