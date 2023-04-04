@@ -107,7 +107,8 @@ class NodeOuput():
     __repr__ = __str__
         
 class EdgeOuput():
-    def __init__(self, id, source_node, target_node, predicate, edge_key, study_type_id, score=None, score_type=None, publication_ids=None, score_translator=None, list_qualifiers=None):
+    def __init__(self, id, source_node, target_node, predicate, edge_key, study_type_id, score=None, score_type=None, 
+                 publication_ids=None, score_translator=None, list_qualifiers=None, p_value=None, probability=None, beta=None, standard_error=None):
         self.id = id
         self.source_node = source_node
         self.target_node = target_node
@@ -119,6 +120,10 @@ class EdgeOuput():
         self.publication_ids = publication_ids
         self.score_translator = score_translator
         self.list_qualifiers = list_qualifiers
+        self.p_value=p_value
+        self.probability = probability
+        self.beta = beta
+        self.standard_error = standard_error
     
     def __str__(self):
         return "id: {}, subject: {}, object: {}, perdicate: {}, edge key: {}, score: {}, score type: {}, study: {}".format(self.id, 

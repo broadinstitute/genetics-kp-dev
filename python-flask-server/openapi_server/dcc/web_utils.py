@@ -443,18 +443,22 @@ def sub_query_lookup(body, query_graph, request_body, log=False):
                             score_translator = record[12]
                             has_qualifiers = record[13]
                             id_db_edge = record[14]
+                            probability = None
+                            pValue = None 
+                            beta = None 
 
 
                             # 20230213 - add qualifiers is available
                             list_qualifiers = []
-                            if has_qualifiers == 'Y':
+                            # deprecated since comb_edge_qualifier table deleted; qualifiers now dowe througb decorator class
+                            # if has_qualifiers == 'Y':
                                 # query the db
-                                cursor.execute(qbuilder.build_qualifier_sql(), (id_db_edge))
-                                db_results_qualifiers = cursor.fetchall()
+                                # cursor.execute(qbuilder.build_qualifier_sql(), (id_db_edge))
+                                # db_results_qualifiers = cursor.fetchall()
 
-                                # build the qualifiers as needed
-                                for row_qualifier in db_results_qualifiers:
-                                    list_qualifiers.append({'id':row_qualifier[0], 'value':row_qualifier[1]})
+                                # # build the qualifiers as needed
+                                # for row_qualifier in db_results_qualifiers:
+                                #     list_qualifiers.append({'id':row_qualifier[0], 'value':row_qualifier[1]})
 
                             # log
                             # logger.info("got result: {}".format(record))

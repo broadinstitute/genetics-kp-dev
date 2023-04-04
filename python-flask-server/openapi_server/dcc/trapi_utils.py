@@ -148,7 +148,7 @@ def build_results_creative(results_list, query_graph):
     return results_response
 
 
-def build_results(results_list, query_graph):
+def build_results(results_list: list, query_graph) -> Response:
     """ build the trapi v1.0 response from the genetics model """
     # build the empty collections
     results = []
@@ -157,6 +157,7 @@ def build_results(results_list, query_graph):
     edges = {}
 
     # loop through the results
+    edge_element: EdgeOuput
     for edge_element in results_list:
         # get the nodes
         source = edge_element.source_node
@@ -171,8 +172,10 @@ def build_results(results_list, query_graph):
             attributes.append(provenance_child)
 
         # add in the pvalue/probability if applicable
-        if edge_element.score_translator:
-            attributes.append(Attribute(original_attribute_name='probability', value=edge_element.score_translator, attribute_type_id='biolink:probability'))
+        # 20230404 - OLD SCHEMA
+        # if edge_element.score_translator:
+        #     attributes.append(Attribute(original_attribute_name='probability', value=edge_element.score_translator, attribute_type_id='biolink:probability'))
+
         if edge_element.score is not None:
             # OLD - pre score translator data
             # if edge_element.score_type == 'biolink:probability':
@@ -185,6 +188,19 @@ def build_results(results_list, query_graph):
                 attributes.append(Attribute(original_attribute_name='pValue', value=edge_element.score, attribute_type_id=edge_element.score_type))
             # print("added attributes: {}".format(attributes))
 
+        # 20230404 - NEW SCHEMA
+        if edge_element.score_translator:
+            attributes.append(Attribute(original_attribute_name='score', value=edge_element.score_translator, attribute_type_id='biolink:score'))
+        if edge_element.beta:
+            attributes.append(Attribute(original_attribute_name='beta', value=edge_element.beta, attribute_type_id='biolink:beta'))
+        if edge_element.standard_error:
+            attributes.append(Attribute(original_attribute_name='standard_error', value=edge_element.standard_error, attribute_type_id='biolink:standard_error'))
+        # if edge_element.p_value:
+        #     attributes.append(Attribute(original_attribute_name='p_value', value=edge_element.score_translator, attribute_type_id='biolink:p_value'))
+        if edge_element.probability:
+            attributes.append(Attribute(original_attribute_name='probability', value=edge_element.probability, attribute_type_id='biolink:probability'))
+
+        # publications
         if edge_element.publication_ids:
             list_publication = build_pubmed_ids(edge_element.publication_ids)
             if (list_publication):
@@ -228,8 +244,8 @@ def build_results(results_list, query_graph):
         results.append(Result(nodes_map, edge_map, score=edge_element.score_translator))
 
     # build out the message
-    message = Message(results=results, query_graph=query_graph, knowledge_graph=knowledge_graph)
-    results_response = Response(message = message)
+    message: Message = Message(results=results, query_graph=query_graph, knowledge_graph=knowledge_graph)
+    results_response: Response = Response(message = message)
 
     # return
     return results_response
