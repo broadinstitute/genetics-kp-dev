@@ -441,6 +441,27 @@ def sub_query_lookup(body, query_graph, request_body, log=False):
                             studyTypeId = record[10]
                             publications = record[11]
                             score_translator = record[12]
+                            has_qualifiers = record[13]
+                            id_db_edge = record[14]
+                            probability = None
+                            pValue = None 
+                            beta = None 
+
+
+                            # 20230213 - add qualifiers is available
+                            list_qualifiers = []
+                            # deprecated since comb_edge_qualifier table deleted; qualifiers now dowe througb decorator class
+                            # if has_qualifiers == 'Y':
+                                # query the db
+                                # cursor.execute(qbuilder.build_qualifier_sql(), (id_db_edge))
+                                # db_results_qualifiers = cursor.fetchall()
+
+                                # # build the qualifiers as needed
+                                # for row_qualifier in db_results_qualifiers:
+                                #     list_qualifiers.append({'id':row_qualifier[0], 'value':row_qualifier[1]})
+
+                            # log
+                            # logger.info("got result: {}".format(record))
 
                             # build the result objects
                             # trapi 1.3
@@ -450,7 +471,7 @@ def sub_query_lookup(body, query_graph, request_body, log=False):
                             target_node = NodeOuput(curie=targetID, query_curie=originalTargetID, name=targetName, category=targetType, node_key=web_request_object.get_target_key())
                             output_edge = EdgeOuput(id=edgeID, source_node=source_node, target_node=target_node, predicate=edgeType, 
                                 score=score, score_type=scoreType, edge_key=web_request_object.get_edge_key(), study_type_id=studyTypeId, 
-                                publication_ids=publications, score_translator=score_translator)
+                                publication_ids=publications, score_translator=score_translator, list_qualifiers=list_qualifiers)
 
                             # add to the results list
                             genetics_results.append(output_edge)

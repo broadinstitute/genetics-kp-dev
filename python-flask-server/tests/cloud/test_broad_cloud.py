@@ -3,7 +3,7 @@
 import openapi_server.dcc.result_utils as rutils
 
 # constants
-url_trapi_service = "https://translator.broadinstitute.org/genetics_provider/trapi/v1.2/{}"
+url_trapi_service = "https://translator.broadinstitute.org/genetics_provider/trapi/v1.3/{}"
 
 # tests
 def test_query_api():
@@ -41,3 +41,23 @@ def test_meta_knowledge_graph_api():
 
     # test
     assert len(list_edges) > 0
+
+def test_primary_knowledge_sources_for_edge():
+    ''' method to test the get MKG ncats itrb cloud deployment of the genetics kp '''
+
+    # get the url
+    url = url_trapi_service.format("query")
+
+    # call the query service and get the nodes
+    list_edges = rutils.post_query_edges_one_hop(url, None, ["MONDO:0011936"], ["biolink:Gene"], ["biolink:DiseaseOrPhenotypicFeature"], None)
+
+    # test
+    for (name, edge) in list_edges:
+        # get the attributes amd make sure one is a primary KS
+        list_attributes = edge.get('attributes')
+        has_primary = False
+        for attribute in list_attributes:
+            if attribute.get('attribute_type_id') == 'biolink:primary_knowledge_source':
+                has_primary = True
+                break
+        assert has_primary

@@ -16,13 +16,14 @@ from data_pathway where ontology_id is not null
 group by pathway_prefix;
 
 -- count associatyion rows by study type
-select count(a.id) as edge_count, b.study_name 
+select count(a.id) as edge_count, b.study_id, b.study_name 
 from comb_edge_node a, comb_study_type b
 where a.study_id = b.study_id
-group by b.study_name;
+group by b.study_id, b.study_name
+order by b.study_id;
 
 
--- count association rows by triples
+-- count association rows by triple types
 select count(edge.id) as edge_count, source_type.type_name, target_type.type_name, edge_type.type_name
 from comb_edge_node edge, comb_node_ontology source, comb_node_ontology target, comb_lookup_type edge_type,
     comb_lookup_type source_type, comb_lookup_type target_type
@@ -30,6 +31,31 @@ where edge.source_node_id = source.id and edge.target_node_id = target.id
 and source.node_type_id = source_type.type_id and target.node_type_id = target_type.type_id and edge.edge_type_id = edge_type.type_id
 group by edge_type.type_name, source_type.type_name, target_type.type_name
 order by source_type.type_name, target_type.type_name, edge_type.type_name;
+
+
+-- count association rows by triple types and study
+select count(edge.id) as edge_count, source_type.type_name, target_type.type_name, edge_type.type_name, study.study_id, study.study_name
+from comb_edge_node edge, comb_node_ontology source, comb_node_ontology target, comb_lookup_type edge_type,
+    comb_lookup_type source_type, comb_lookup_type target_type, comb_study_type study 
+where edge.source_node_id = source.id and edge.target_node_id = target.id 
+and source.node_type_id = source_type.type_id and target.node_type_id = target_type.type_id and edge.edge_type_id = edge_type.type_id
+and edge.study_id = study.study_id
+group by edge_type.type_name, source_type.type_name, target_type.type_name, study.study_id, study.study_name
+order by source_type.type_name, target_type.type_name, edge_type.type_name;
+
+
+-- count the rows with qualifiers
+select count(id), has_qualifiers 
+from comb_edge_node
+group by has_qualifiers;
+
+-- count the qualifiersaspe
+select count(link.id), qualifier.id 
+from comb_edge_qualifier link, comb_qualifier qualifier 
+where link.qualifier_id = qualifier.id 
+group by qualifier.id;
+
+
 
 -- count nodes by ontology type
 select count(a.id), b.ontology_name
@@ -51,6 +77,17 @@ where a.source_node_id = b.id
 group by b.node_name, b.ontology_id
 order by edge_count
 limit 20;
+
+-- count edges by study
+select count(a.id), b.study_id, b.study_name
+from comb_edge_node a, comb_study_type b
+where a.study_id = b.study_id
+group by b.study_id, b.study_name;
+
+-- count edges by qualifiers
+select count(a.id), a.has_qualifiers
+from comb_edge_node a
+group by a.has_qualifiers;
 
 
 -- phenotypes by dataset
@@ -86,4 +123,31 @@ select ontology_id from data_pathway where ontology_id is not null order by onto
 
 select * from tran_test_202211.comb_lookup_type;
 
+
+
+-- rows with qualifiers
+select edge.id, subj.ontology_id as scusie, subj.node_code as snode, substring(sloo.type_name, 1, 20) as sname,
+  obj.ontology_id as ocurie, obj.node_code as ocode, substring(oloo.type_name, 1, 20) as oname, 
+  qualifier.qualifier_type as qtype, qualifier.qualifier_value as qvalue,
+  edge.study_id
+from comb_edge_node edge, comb_node_ontology subj, comb_node_ontology obj, comb_edge_qualifier link,
+  comb_qualifier qualifier, comb_lookup_type sloo, comb_lookup_type oloo
+where edge.source_node_id = subj.id and edge.target_node_id = obj.id 
+and link.edge_id = edge.id and link.qualifier_id = qualifier.id
+and subj.node_type_id = sloo.type_id and obj.node_type_id = oloo.type_id
+order by subj.node_code, obj.node_code, qualifier.qualifier_type, qualifier.qualifier_value 
+limit 2;
+
+
+select edge.id, subj.ontology_id as scusie, substring(sloo.type_name, 1, 20) as sname,
+  obj.ontology_id as ocurie, substring(oloo.type_name, 1, 20) as oname, 
+  qualifier.qualifier_type as qtype, qualifier.qualifier_value as qvalue,
+  edge.study_id
+from comb_edge_node edge, comb_node_ontology subj, comb_node_ontology obj, comb_edge_qualifier link,
+  comb_qualifier qualifier, comb_lookup_type sloo, comb_lookup_type oloo
+where edge.source_node_id = subj.id and edge.target_node_id = obj.id 
+and link.edge_id = edge.id and link.qualifier_id = qualifier.id
+and subj.node_type_id = sloo.type_id and obj.node_type_id = oloo.type_id
+and obj.ontology_id = 'MONDO:0004975'
+order by subj.node_code, obj.node_code, qualifier.qualifier_type, qualifier.qualifier_value;
 

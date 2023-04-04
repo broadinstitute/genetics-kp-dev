@@ -19,26 +19,32 @@ alter table agg_aggregator_phenotype add unique index u_phenotype_id_idx (phenot
 
 -- insert new phenotypes into the comb_node_ontology table
 -- new phenotypes from magma are determined based on the aggregator phenotype code, not the ontology_id
-insert into tran_test_202209.comb_node_ontology
+insert into tran_test_202211.comb_node_ontology
 (node_code, node_type_id, ontology_id, ontology_type_id, node_name, added_by_study_id)
 select up_phenotype.phenotype_id, 
 (case when SUBSTRING_INDEX(SUBSTRING_INDEX(up_phenotype.ontology_id, ':', 1), ':', -1) = 'MONDO' then 1 else 3 end) as node_type,
 up_phenotype.ontology_id, ont_type.ontology_id, up_phenotype.phenotype_name, 1
-from tran_upkeep.agg_aggregator_phenotype up_phenotype, tran_test_202209.comb_ontology_type ont_type 
-where up_phenotype.ontology_id is not null
+from tran_upkeep.agg_aggregator_phenotype up_phenotype, tran_test_202211.comb_ontology_type ont_type 
+where up_phenotype.ontology_id is not null and up_phenotype.in_translator = 'false' 
 and SUBSTRING_INDEX(SUBSTRING_INDEX(up_phenotype.ontology_id, ':', 1), ':', -1) collate utf8mb4_unicode_ci = ont_type.prefix
-and up_phenotype.phenotype_id collate utf8mb4_unicode_ci not in (select node_code from tran_test_202209.comb_node_ontology where node_type_id in (1, 3))
-and up_phenotype.id not in (479, 480);
+and up_phenotype.phenotype_id collate utf8mb4_unicode_ci not in (select node_code from tran_test_202209.comb_node_ontology where node_type_id in (1, 3));
+
+-- and up_phenotype.id not in (479, 480);
 
 -- select up_phenotype.id,  up_phenotype.phenotype_id, 
 
 
 
 -- workflow
+-- step 01 - run the loadAggregatorPhentypes.py python script - loads all the phenotypes into a cleaned table
+
+-- step 02 - set to true the upkeep phenotypes that are in the translator for magma calculations already (use DCC phenotype code for comparison)
 update tran_upkeep.agg_aggregator_phenotype set in_translator = 'true'
 where phenotype_id COLLATE utf8mb4_general_ci in (
-  select node_code from tran_test_202208.comb_node_ontology where node_type_id in (1, 3)
+  select node_code from tran_test_202211.comb_node_ontology where node_type_id in (1, 3)
 );
+
+
 
 
 
@@ -58,9 +64,15 @@ and node_code in (select phenotype_id collate utf8mb4_unicode_ci from tran_upkee
 -- debug
 select count(id) from agg_aggregator_phenotype;
 
+-- see how many of the upkeep phenotypes are in stranslator already
 select count(id), in_translator 
-from agg_aggregator_phenotype
+from tran_upkeep.agg_aggregator_phenotype
 where ontology_id is not null
+group by in_translator;
+
+-- see how many of the upkeep phenotypes are in stranslator already
+select count(id), in_translator 
+from tran_upkeep.agg_aggregator_phenotype
 group by in_translator;
 
 select * 

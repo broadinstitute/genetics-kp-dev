@@ -1,0 +1,103 @@
+{
+    "profile": {
+        "fetch": 0.15839873813092709,
+        "query": 0.0022724680602550507
+    },
+    "index": "gene-associations-600trait",
+    "q": [
+        "Mixed",
+        "PPARG"
+    ],
+    "count": 601,
+    "restricted": 0,
+    "progress": {
+        "bytes_read": 462616,
+        "bytes_total": 462616
+    },
+    "page": 1,
+    "limit": null,
+    "data": [
+        {
+            "ensemblId": "ENSG00000132170",
+            "ancestry": "Mixed",
+            "beta": 1.41,
+            "cases": 55704.0,
+            "controls": 548475.0,
+            "dataset": "600k_600traits",
+            "gene": "PPARG",
+            "lambda": 1.152108306580035,
+            "masks": [
+                {
+                    "beta": 1.41,
+                    "cases": 55704.0,
+                    "combinedAF": 0.00021020260551922527,
+                    "controls": 548475.0,
+                    "mask": "hclof_noflag_missense0.8_canonical",
+                    "n": 202272.84563018574,
+                    "pValue": 9.42e-10,
+                    "stdErr": 0.234602633873651
+                },
+                {
+                    "beta": 0.64,
+                    "cases": 55704.0,
+                    "combinedAF": 0.00027640815056465055,
+                    "controls": 548475.0,
+                    "mask": "missense0.5_canonical",
+                    "n": 202272.84563018574,
+                    "pValue": 0.00486,
+                    "stdErr": 0.22418208454595895
+                }
+            ],
+            "n": 202272.84563018574,
+            "pValue": 1.88e-9,
+            "phenotype": "phecode_250.2",
+            "phenotypeCategory": "endocrine/metabolic",
+            "phenotypeMeaning": "Type_2_diabetes",
+            "chromosome": "3",
+            "start": 12328867,
+            "end": 12475855,
+            "type": "protein_coding"
+        },
+        {
+            "ensemblId": "ENSG00000132170",
+            "ancestry": "Mixed",
+            "beta": 1.34,
+            "cases": 63945.0,
+            "controls": 540234.0,
+            "dataset": "600k_600traits",
+            "gene": "PPARG",
+            "lambda": 1.1286133717041427,
+            "masks": [
+                {
+                    "beta": 1.34,
+                    "cases": 63945.0,
+                    "combinedAF": 0.00021020260551922527,
+                    "controls": 540234.0,
+                    "mask": "hclof_noflag_missense0.8_canonical",
+                    "n": 228708.7974259284,
+                    "pValue": 7.95e-9,
+                    "stdErr": 0.233433177574889
+                },
+                {
+                    "beta": 0.59,
+                    "cases": 63945.0,
+                    "combinedAF": 0.00027640815056465055,
+                    "controls": 540234.0,
+                    "mask": "missense0.5_canonical",
+                    "n": 228708.7974259284,
+                    "pValue": 0.0106,
+                    "stdErr": 0.220258750449428
+                }
+            ],
+            "n": 228708.7974259284,
+            "pValue": 1.59e-8,
+            "phenotype": "phecode_250.0",
+            "phenotypeCategory": "endocrine/metabolic",
+            "phenotypeMeaning": "Diabetes_mellitus",
+            "chromosome": "3",
+            "start": 12328867,
+            "end": 12475855,
+            "type": "protein_coding"
+        }
+    ]
+}

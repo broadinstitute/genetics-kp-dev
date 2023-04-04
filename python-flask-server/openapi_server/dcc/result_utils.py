@@ -53,6 +53,28 @@ def post_query_nodes_one_hop(url, list_source, list_target, list_source_categori
     # return
     return list_result
 
+def post_query_edges_one_hop(url, list_source, list_target, list_source_categories, list_target_categories, list_predicates, knowledge_type=None, log=False):
+    ''' 
+    method to query a trapi url and get the resulting node list back 
+    '''
+    list_result = []
+
+    # query
+    json_response = query_one_hop(url, list_source, list_target, list_source_categories, list_target_categories, list_predicates, knowledge_type=knowledge_type, log=log)
+
+    # loop and build the list
+    map_edges = json_response.get("message").get("knowledge_graph").get("edges")
+    if map_edges and len(map_edges) > 1:
+        for key, value in map_edges.items():
+            list_result.append((key, value))
+
+    # log
+    if log:
+        logger.info("got {} resulting nodes: {}".format(len(list_result), list_result))
+
+    # return
+    return list_result
+
 def get_meta_knowlege_graph_list_edges(url, log=False):
     ''' 
     method to query a trapi url and get the resulting node list back 

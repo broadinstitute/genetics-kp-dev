@@ -29,6 +29,30 @@ alter table comb_edge_node add score_translator double;
 alter table comb_edge_node add study_secondary_id int(3) null;
 alter table comb_edge_node add publication_ids varchar(1000) null;
 
+-- 20230208 - add flag if has qualifiers indicating 2nd query 
+alter table comb_edge_node add column has_qualifiers enum('N', 'Y') default 'N';
+
+-- 20230303 - add specific probability, beta, abf, p_value (eventually deprecate score)
+alter table comb_edge_node add p_value double;
+alter table comb_edge_node add beta double;
+alter table comb_edge_node add standard_error double;
+alter table comb_edge_node add probabilty double;
+alter table comb_edge_node add probability_app_bayes_factor double;
+
+
+-- create qualifier link table
+drop table if exists comb_edge_qualifier;
+create table comb_edge_qualifier (
+  id                        int not null auto_increment primary key,
+  edge_id                   int(9) not null,
+  qualifier_id              varchar(50) not null,
+  study_id                  int(3) not null,
+  date_created              datetime DEFAULT CURRENT_TIMESTAMP
+);
+
+-- indices
+alter table comb_edge_qualifier add index comb_edg_qua_edg_idx (edge_id);
+
 
 -- add in table to link node codes (PPARG/BMI) to onltology ids returned to API queries
 -- this table handles the nodes included in our graph

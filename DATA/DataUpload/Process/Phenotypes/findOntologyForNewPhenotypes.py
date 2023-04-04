@@ -94,7 +94,7 @@ def add_phenotype_ontology_id(conn, row_id, ontology_id):
     # query the db
     cursor = conn.cursor()
     cursor.execute(sql_update, (ontology_id, row_id))
-
+    conn.commit()
 
 if __name__ == "__main__":
     # initialize
@@ -106,22 +106,26 @@ if __name__ == "__main__":
 
     # get the list of phenotypes that are not in the 
     list_phenotypes = get_new_phenotype_list(db_connection)
-    print("got {} new phenotypes to add to translator".format(len(list_phenotypes)))
+    num_total = len(list_phenotypes)
+    print("got {} new phenotypes to add to translator".format(num_total))
 
     # loop
     for (row_id, name, phenotype_id) in list_phenotypes:
         count = count + 1
-        if count > 500:
+        if count > 5000:
             break
     
+        # pause for rest service
+        time.sleep(0.5)
+        
         # search for an ontology id
         ontology_id = tl.find_ontology(name, list_ontology)
-        print("{} found for {} - '{}'".format(ontology_id, phenotype_id, name))
+        print("{} - {} found for {} - '{}'".format(count, ontology_id, phenotype_id, name))
 
         # add in to table if not null
         if ontology_id:
             add_phenotype_ontology_id(db_connection, row_id, ontology_id)
-            print("row {} - {} added for {} - {}".format(row_id, ontology_id, phenotype_id, name))
+            print("row {}/{} - {} added for {} - {}".format(row_id, num_total, ontology_id, phenotype_id, name))
 
     # commit
     db_connection.commit()

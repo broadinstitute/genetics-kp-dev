@@ -55,3 +55,17 @@ select count(edge.id), type.ontology_name
 from comb_node_ontology subject, comb_ontology_type type, comb_edge_node edge
 where subject.id = edge.source_node_id and subject.ontology_type_id = type.ontology_id and subject.node_type_id = 4
 group by type.ontology_name;
+
+
+
+-- 20221102 - fix data_pathway table as well
+select id, pathway_code, ontology_id, replace(ontology_id, 'REACTOME', 'REACT') as ont_new from data_pathway where ontology_id like 'REA%';
+
+update data_pathway set ontology_id = replace(ontology_id, 'REACTOME', 'REACT') where ontology_id like 'REA%';
+
+-- mysql> update data_pathway set ontology_id = replace(ontology_id, 'REACTOME', 'REACT') where ontology_id like 'REA%';
+-- Query OK, 1615 rows affected (0.07 sec)
+-- Rows matched: 1615  Changed: 1615  Warnings: 0
+
+
+
