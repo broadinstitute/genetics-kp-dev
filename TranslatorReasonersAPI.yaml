@@ -1,20 +1,22 @@
 openapi: 3.0.1
 info:
-  description: INSERT-DESCRIPTION-OF-YOUR-SERVICE-HERE
-  version: INSERT-VERSION-OF-YOUR-SERVICE-HERE
-  title: INSERT-TITLE-OF-YOUR-SERVICE-HERE
+  description: Genetics Data Provider for NCATS Biomedical Translator Reasoners
+  version: 1.3.0.0
+  title: Genetics Data Provider for NCATS Biomedical Translator Reasoners
   contact:
-    email: INSERT@EMAIL-ADDRESS-OF-IMPLEMENTER-HERE.ORG
+    email: mduby@broadinstitute.org
+    name: Genetics Data Provider
+    x-role: responsible organization
   license:
-    name: Apache 2.0
-    url: http://www.apache.org/licenses/LICENSE-2.0.html
-  termsOfService: INSERT-URL-HERE
+    name: MIT License
+    url: https://github.com/broadinstitute/genetics-kp-dev/blob/master/LICENSE
+  termsOfService: https://github.com/broadinstitute/genetics-kp-dev/blob/master/terms_of_service.md
   x-translator:
-    component: INSERT-EITHER-ARA-OR-KP-OR-ARS-OR-Utility-HERE
+    component: KP
     team:
-      - INSERT-ONE-TRANSLATOR-TEAM-NAME-PER-ELEMENT-HERE
-    biolink-version: INSERT-BIOLINK-MODEL-VERSION-HERE
-    infores: INSERT-INFORES-CURIE-OF-THIS-RESOURCE-HERE
+      - Genetics Data Provider
+    biolink-version: 2.2.0
+    infores: "infores:genetics-data-provider"
     externalDocs:
       description: >-
         The values for component and team are restricted according to this
@@ -23,12 +25,11 @@ info:
         production/x-translator/
   x-trapi:
     version: 1.4.0
-    asyncquery: REPLACE-WITH-true-IF-/asyncquery-IS-IMPLEMENTED-ELSE-false
+    asyncquery: false
     operations:
-      - LIST-ALL-SUPPORTED-OPERATION-IDS-HERE-OR-REMOVE-THIS-SECTION
-    batch_size_limit: ADD-BATCH-SIZE-LIMIT-OR-REMOVE-IF-NO-LIMIT
-    rate_limit: ADD-REQUEST-RATE-LIMIT-OR-REMOVE-IF-NO-LIMIT
+      - lookup
     test_data_location: ADD-URL-THAT-RESOLVES-TO-SRI-TESTING-HARNESS-DATA
+    test_data_location: https://github.com/broadinstitute/genetics-kp-dev/blob/master/TestData
     externalDocs:
       description: >-
         The values for version are restricted according to the regex in
@@ -36,8 +37,9 @@ info:
       url: https://github.com/NCATSTranslator/translator_extensions/blob/\
         production/x-trapi/
 servers:
-  - url: INSERT-URL-HERE
-    description: INSERT-SERVER-DESCRIPTION-HERE
+  - url: https://translator.broadinstitute.org/genetics_provider/trapi/v1.3
+    description: TRAPI production service for the Translator Genetics Data Provider
+    x-maturity: development
 externalDocs:
   description: >-
     Documentation for the NCATS Biomedical Translator Reasoners web services
