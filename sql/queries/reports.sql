@@ -151,3 +151,6 @@ and subj.node_type_id = sloo.type_id and obj.node_type_id = oloo.type_id
 and obj.ontology_id = 'MONDO:0004975'
 order by subj.node_code, obj.node_code, qualifier.qualifier_type, qualifier.qualifier_value;
 
+
+
+-- look into 

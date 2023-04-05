@@ -1,5 +1,14 @@
 
 
+-- look into which aggregator phenotypes are not in translator
+select phenotype_id, phenotype_name
+from tran_upkeep.agg_aggregator_phenotype data_phenotype
+where data_phenotype.phenotype_id COLLATE utf8mb4_general_ci not in (
+    select node_code from tran_test_202303.comb_node_ontology node where node.node_type_id in (1, 3)
+)
+order by phenotype_name;
+
+
 select count(id), in_translator, just_added_in 
 from agg_aggregator_phenotype 
 group by in_translator, just_added_in;

@@ -26,6 +26,7 @@ alter table tran_upkeep.data_600k_gene_phenotype add index gen_phe_msk_idx (mask
 -- alter table tran_upkeep.data_600k_gene_phenotype add index gen_phe_prob_idx (probability_calculated);
 
 alter table tran_upkeep.data_600k_gene_phenotype add index gen_phe_gen_phe_msk_cde_idx (gene_code, phenotype_code, mask);
+alter table tran_upkeep.data_600k_gene_phenotype add index gen_phe_phe_msk_cde_idx (phenotype_code, mask);
 
 
 drop table if exists tran_upkeep.data_600k_phenotype_ontology;
