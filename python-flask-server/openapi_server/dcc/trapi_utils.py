@@ -16,6 +16,7 @@ from openapi_server.models.edge_binding import EdgeBinding
 from openapi_server.models.node_binding import NodeBinding
 from openapi_server.models.response import Response
 from openapi_server.models.attribute import Attribute
+from openapi_server.models.analysis import Analysis
 
 from openapi_server import util
 from openapi_server.dcc.creative_model import CreativeResult, CreativeEdge, CreativeNode
@@ -240,8 +241,9 @@ def build_results(results_list: list, query_graph) -> Response:
         # target_binding = NodeBinding(id=target.curie)
         target_binding = NodeBinding(id=target.curie, query_id=target.query_curie)
         edge_map = {edge_element.edge_key: [edge_binding]}
+        analysis = Analysis(resource_id=PROVENANCE_INFORES_KP_GENETICS, edge_bindings=edge_map, score=edge_element.score_translator)
         nodes_map = {source.node_key: [source_binding], target.node_key: [target_binding]}
-        results.append(Result(nodes_map, edge_map, score=edge_element.score_translator))
+        results.append(Result(node_bindings=nodes_map, analyses=[analysis]))
 
     # build out the message
     message: Message = Message(results=results, query_graph=query_graph, knowledge_graph=knowledge_graph)
