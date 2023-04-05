@@ -6,13 +6,13 @@ from datetime import date, datetime  # noqa: F401
 from typing import List, Dict  # noqa: F401
 
 from openapi_server.models.base_model_ import Model
-from openapi_server.models.one_of_knowledge_graph import OneOfKnowledgeGraph
-from openapi_server.models.one_of_query_graph import OneOfQueryGraph
+from openapi_server.models.message_knowledge_graph import MessageKnowledgeGraph
+from openapi_server.models.message_query_graph import MessageQueryGraph
 from openapi_server.models.result import Result
 from openapi_server import util
 
-from openapi_server.models.one_of_knowledge_graph import OneOfKnowledgeGraph  # noqa: E501
-from openapi_server.models.one_of_query_graph import OneOfQueryGraph  # noqa: E501
+from openapi_server.models.message_knowledge_graph import MessageKnowledgeGraph  # noqa: E501
+from openapi_server.models.message_query_graph import MessageQueryGraph  # noqa: E501
 from openapi_server.models.result import Result  # noqa: E501
 
 class Message(Model):
@@ -27,16 +27,16 @@ class Message(Model):
         :param results: The results of this Message.  # noqa: E501
         :type results: List[Result]
         :param query_graph: The query_graph of this Message.  # noqa: E501
-        :type query_graph: OneOfQueryGraph
+        :type query_graph: MessageQueryGraph
         :param knowledge_graph: The knowledge_graph of this Message.  # noqa: E501
-        :type knowledge_graph: OneOfKnowledgeGraph
+        :type knowledge_graph: MessageKnowledgeGraph
         :param auxiliary_graphs: The auxiliary_graphs of this Message.  # noqa: E501
         :type auxiliary_graphs: Dict[str, object]
         """
         self.openapi_types = {
             'results': List[Result],
-            'query_graph': OneOfQueryGraph,
-            'knowledge_graph': OneOfKnowledgeGraph,
+            'query_graph': MessageQueryGraph,
+            'knowledge_graph': MessageKnowledgeGraph,
             'auxiliary_graphs': Dict[str, object]
         }
 
@@ -90,10 +90,9 @@ class Message(Model):
     def query_graph(self):
         """Gets the query_graph of this Message.
 
-        QueryGraph object that contains a serialization of a query in the form of a graph  # noqa: E501
 
         :return: The query_graph of this Message.
-        :rtype: OneOfQueryGraph
+        :rtype: MessageQueryGraph
         """
         return self._query_graph
 
@@ -101,10 +100,9 @@ class Message(Model):
     def query_graph(self, query_graph):
         """Sets the query_graph of this Message.
 
-        QueryGraph object that contains a serialization of a query in the form of a graph  # noqa: E501
 
         :param query_graph: The query_graph of this Message.
-        :type query_graph: OneOfQueryGraph
+        :type query_graph: MessageQueryGraph
         """
 
         self._query_graph = query_graph
@@ -113,10 +111,9 @@ class Message(Model):
     def knowledge_graph(self):
         """Gets the knowledge_graph of this Message.
 
-        KnowledgeGraph object that contains lists of nodes and edges in the thought graph corresponding to the message  # noqa: E501
 
         :return: The knowledge_graph of this Message.
-        :rtype: OneOfKnowledgeGraph
+        :rtype: MessageKnowledgeGraph
         """
         return self._knowledge_graph
 
@@ -124,10 +121,9 @@ class Message(Model):
     def knowledge_graph(self, knowledge_graph):
         """Sets the knowledge_graph of this Message.
 
-        KnowledgeGraph object that contains lists of nodes and edges in the thought graph corresponding to the message  # noqa: E501
 
         :param knowledge_graph: The knowledge_graph of this Message.
-        :type knowledge_graph: OneOfKnowledgeGraph
+        :type knowledge_graph: MessageKnowledgeGraph
         """
 
         self._knowledge_graph = knowledge_graph

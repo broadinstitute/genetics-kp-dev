@@ -15,7 +15,7 @@ class OperationFilterKgraphTopNParameters(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, edge_attribute=None, max_edges=50, keep_top_or_bottom='top', qedge_keys=None, qnode_keys=None):  # noqa: E501
+    def __init__(self, edge_attribute=None, max_edges=50, keep_top_or_bottom='top', qedge_keys=None, qnode_keys=[]):  # noqa: E501
         """OperationFilterKgraphTopNParameters - a model defined in OpenAPI
 
         :param edge_attribute: The edge_attribute of this OperationFilterKgraphTopNParameters.  # noqa: E501

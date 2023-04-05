@@ -7,13 +7,17 @@ from typing import List, Dict  # noqa: F401
 
 from openapi_server.models.base_model_ import Model
 from openapi_server.models.attribute import Attribute
-from openapi_server.models.one_ofstring import OneOfstring
+from openapi_server.models.edge_object import EdgeObject
+from openapi_server.models.edge_predicate import EdgePredicate
+from openapi_server.models.edge_subject import EdgeSubject
 from openapi_server.models.qualifier import Qualifier
 from openapi_server.models.retrieval_source import RetrievalSource
 from openapi_server import util
 
 from openapi_server.models.attribute import Attribute  # noqa: E501
-from openapi_server.models.one_ofstring import OneOfstring  # noqa: E501
+from openapi_server.models.edge_object import EdgeObject  # noqa: E501
+from openapi_server.models.edge_predicate import EdgePredicate  # noqa: E501
+from openapi_server.models.edge_subject import EdgeSubject  # noqa: E501
 from openapi_server.models.qualifier import Qualifier  # noqa: E501
 from openapi_server.models.retrieval_source import RetrievalSource  # noqa: E501
 
@@ -27,11 +31,11 @@ class Edge(Model):
         """Edge - a model defined in OpenAPI
 
         :param predicate: The predicate of this Edge.  # noqa: E501
-        :type predicate: OneOfstring
+        :type predicate: EdgePredicate
         :param subject: The subject of this Edge.  # noqa: E501
-        :type subject: OneOfstring
+        :type subject: EdgeSubject
         :param object: The object of this Edge.  # noqa: E501
-        :type object: OneOfstring
+        :type object: EdgeObject
         :param attributes: The attributes of this Edge.  # noqa: E501
         :type attributes: List[Attribute]
         :param qualifiers: The qualifiers of this Edge.  # noqa: E501
@@ -40,9 +44,9 @@ class Edge(Model):
         :type sources: List[RetrievalSource]
         """
         self.openapi_types = {
-            'predicate': OneOfstring,
-            'subject': OneOfstring,
-            'object': OneOfstring,
+            'predicate': EdgePredicate,
+            'subject': EdgeSubject,
+            'object': EdgeObject,
             'attributes': List[Attribute],
             'qualifiers': List[Qualifier],
             'sources': List[RetrievalSource]
@@ -79,10 +83,9 @@ class Edge(Model):
     def predicate(self):
         """Gets the predicate of this Edge.
 
-        The type of relationship between the subject and object for the statement expressed in an Edge. These should be Biolink Model predicate terms and are NOT allowed to be of type 'abstract' or 'mixin'. Returning 'deprecated' predicate terms should also be avoided.  # noqa: E501
 
         :return: The predicate of this Edge.
-        :rtype: OneOfstring
+        :rtype: EdgePredicate
         """
         return self._predicate
 
@@ -90,10 +93,9 @@ class Edge(Model):
     def predicate(self, predicate):
         """Sets the predicate of this Edge.
 
-        The type of relationship between the subject and object for the statement expressed in an Edge. These should be Biolink Model predicate terms and are NOT allowed to be of type 'abstract' or 'mixin'. Returning 'deprecated' predicate terms should also be avoided.  # noqa: E501
 
         :param predicate: The predicate of this Edge.
-        :type predicate: OneOfstring
+        :type predicate: EdgePredicate
         """
         if predicate is None:
             raise ValueError("Invalid value for `predicate`, must not be `None`")  # noqa: E501
@@ -104,10 +106,9 @@ class Edge(Model):
     def subject(self):
         """Gets the subject of this Edge.
 
-        Corresponds to the map key CURIE of the subject concept node of this relationship edge.  # noqa: E501
 
         :return: The subject of this Edge.
-        :rtype: OneOfstring
+        :rtype: EdgeSubject
         """
         return self._subject
 
@@ -115,10 +116,9 @@ class Edge(Model):
     def subject(self, subject):
         """Sets the subject of this Edge.
 
-        Corresponds to the map key CURIE of the subject concept node of this relationship edge.  # noqa: E501
 
         :param subject: The subject of this Edge.
-        :type subject: OneOfstring
+        :type subject: EdgeSubject
         """
         if subject is None:
             raise ValueError("Invalid value for `subject`, must not be `None`")  # noqa: E501
@@ -129,10 +129,9 @@ class Edge(Model):
     def object(self):
         """Gets the object of this Edge.
 
-        Corresponds to the map key CURIE of the object concept node of this relationship edge.  # noqa: E501
 
         :return: The object of this Edge.
-        :rtype: OneOfstring
+        :rtype: EdgeObject
         """
         return self._object
 
@@ -140,10 +139,9 @@ class Edge(Model):
     def object(self, object):
         """Sets the object of this Edge.
 
-        Corresponds to the map key CURIE of the object concept node of this relationship edge.  # noqa: E501
 
         :param object: The object of this Edge.
-        :type object: OneOfstring
+        :type object: EdgeObject
         """
         if object is None:
             raise ValueError("Invalid value for `object`, must not be `None`")  # noqa: E501
@@ -218,5 +216,7 @@ class Edge(Model):
         """
         if sources is None:
             raise ValueError("Invalid value for `sources`, must not be `None`")  # noqa: E501
+        if sources is not None and len(sources) < 1:
+            raise ValueError("Invalid value for `sources`, number of items must be greater than or equal to `1`")  # noqa: E501
 
         self._sources = sources

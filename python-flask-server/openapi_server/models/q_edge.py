@@ -19,7 +19,7 @@ class QEdge(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, knowledge_type=None, predicates=None, subject=None, object=None, attribute_constraints=None, qualifier_constraints=None):  # noqa: E501
+    def __init__(self, knowledge_type=None, predicates=None, subject=None, object=None, attribute_constraints=[], qualifier_constraints=[]):  # noqa: E501
         """QEdge - a model defined in OpenAPI
 
         :param knowledge_type: The knowledge_type of this QEdge.  # noqa: E501
@@ -114,6 +114,8 @@ class QEdge(Model):
         :param predicates: The predicates of this QEdge.
         :type predicates: List[str]
         """
+        if predicates is not None and len(predicates) < 1:
+            raise ValueError("Invalid value for `predicates`, number of items must be greater than or equal to `1`")  # noqa: E501
 
         self._predicates = predicates
 

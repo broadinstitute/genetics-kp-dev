@@ -15,7 +15,7 @@ class OperationFilterKgraphPercentileParameters(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, edge_attribute=None, threshold=95, remove_above_or_below='below', qedge_keys=None, qnode_keys=None):  # noqa: E501
+    def __init__(self, edge_attribute=None, threshold=95, remove_above_or_below='below', qedge_keys=None, qnode_keys=[]):  # noqa: E501
         """OperationFilterKgraphPercentileParameters - a model defined in OpenAPI
 
         :param edge_attribute: The edge_attribute of this OperationFilterKgraphPercentileParameters.  # noqa: E501

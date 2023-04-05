@@ -15,7 +15,7 @@ class OperationFilterKgraphContinuousKedgeAttributeParameters(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, edge_attribute=None, threshold=None, remove_above_or_below=None, qedge_keys=None, qnode_keys=None):  # noqa: E501
+    def __init__(self, edge_attribute=None, threshold=None, remove_above_or_below=None, qedge_keys=None, qnode_keys=[]):  # noqa: E501
         """OperationFilterKgraphContinuousKedgeAttributeParameters - a model defined in OpenAPI
 
         :param edge_attribute: The edge_attribute of this OperationFilterKgraphContinuousKedgeAttributeParameters.  # noqa: E501

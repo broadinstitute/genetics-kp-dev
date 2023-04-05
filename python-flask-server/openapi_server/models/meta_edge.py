@@ -179,6 +179,8 @@ class MetaEdge(Model):
         :param knowledge_types: The knowledge_types of this MetaEdge.
         :type knowledge_types: List[str]
         """
+        if knowledge_types is not None and len(knowledge_types) < 1:
+            raise ValueError("Invalid value for `knowledge_types`, number of items must be greater than or equal to `1`")  # noqa: E501
 
         self._knowledge_types = knowledge_types
 
