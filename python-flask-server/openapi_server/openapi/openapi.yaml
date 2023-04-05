@@ -3,26 +3,26 @@ info:
   contact:
     email: mduby@broadinstitute.org
     name: Genetics Data Provider
-    x-role: responsible organization
+    x-role: responsible developer
   description: Genetics Data Provider for NCATS Biomedical Translator Reasoners
   license:
     name: MIT License
     url: https://github.com/broadinstitute/genetics-kp-dev/blob/master/LICENSE
   termsOfService: https://github.com/broadinstitute/genetics-kp-dev/blob/master/terms_of_service.md
   title: Genetics Data Provider for NCATS Biomedical Translator Reasoners
-  version: 1.3.0.0
+  version: 1.4.0.0
   x-translator:
     component: KP
     team:
     - Genetics Data Provider
-    biolink-version: 2.2.0
+    biolink-version: 3.2.0
     infores: infores:genetics-data-provider
     externalDocs:
       description: The values for component and team are restricted according to this
         external JSON schema. See schema and examples at url
       url: https://github.com/NCATSTranslator/translator_extensions/blob/\ production/x-translator/
   x-trapi:
-    version: 1.3.0
+    version: 1.4.0
     asyncquery: false
     operations:
     - lookup
@@ -44,20 +44,14 @@ tags:
     that are supported by the service, NOT including all implied ancestor relationships.
     ARAs SHOULD provide the union of all meta knowledge graphs of all the KPs that
     they can consult.
-  externalDocs:
-    description: Documentation for the reasoner meta_knowledge_graph function
-    url: INSERT-URL-HERE-OR-REMOVE-EXTERNALDOCS-IF-NA
   name: meta_knowledge_graph
 - description: Initiate a query and wait to receive the response
-  externalDocs:
-    description: Documentation for the reasoner query function
-    url: INSERT-URL-HERE-OR-REMOVE-EXTERNALDOCS-IF-NA
   name: query
 - description: Initiate a query with a callback to receive the response
-  externalDocs:
-    description: Documentation for the reasoner asynchquery function
-    url: INSERT-URL-HERE-OR-REMOVE-EXTERNALDOCS-IF-NA
   name: asyncquery
+- description: Retrieve the current status of a previously submitted asyncquery given
+    its job_id
+  name: asyncquery_status
 - description: Required for SmartAPI validation of x-translator
   name: translator
 - description: Required for SmartAPI validation of x-trapi
@@ -78,7 +72,7 @@ paths:
           content:
             application/json:
               schema:
-                type: string
+                $ref: '#/components/schemas/AsyncQueryResponse'
           description: The query is accepted for processing and the Response will
             be sent to the callback url when complete.
         "400":
@@ -119,20 +113,42 @@ paths:
       tags:
       - asyncquery
       x-openapi-router-controller: openapi_server.controllers.asyncquery_controller
-  /version:
+  /asyncquery_status/{job_id}:
     get:
-      operationId: version_get
+      operationId: asyncquery_status
+      parameters:
+      - description: Identifier of the job for status request
+        example: rXEOAosN3L
+        explode: false
+        in: path
+        name: job_id
+        required: true
+        schema:
+          type: string
+        style: simple
       responses:
         "200":
           content:
             application/json:
               schema:
+                $ref: '#/components/schemas/AsyncQueryStatusResponse'
+          description: Returns the status and current logs of a previously submitted
+            asyncquery.
+        "404":
+          description: job_id not found
+        "501":
+          content:
+            application/json:
+              schema:
                 type: string
-          description: Returns version
-      summary: Version
+          description: Return code 501 indicates that this endpoint has not been implemented
+            at this site. Sites that implement /asyncquery MUST implement /asyncquery_status/{job_id},
+            but those that do not implement /asyncquery SHOULD NOT implement /asyncquery_status.
+      summary: Retrieve the current status of a previously submitted asyncquery given
+        its job_id
       tags:
-      - version
-      x-openapi-router-controller: openapi_server.controllers.version_controller
+      - asyncquery_status
+      x-openapi-router-controller: openapi_server.controllers.asyncquery_status_controller
   /meta_knowledge_graph:
     get:
       operationId: meta_knowledge_graph_get
@@ -218,15 +234,15 @@ components:
         message:
           $ref: '#/components/schemas/Message'
         log_level:
-          allOf:
-          - $ref: '#/components/schemas/LogLevel'
           description: The least critical level of logs to return
           nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/LogLevel'
         workflow:
-          allOf:
-          - $ref: '#/components/schemas/schema'
           description: List of workflow steps to be executed.
           nullable: true
+          oneOf:
+          - $ref: http://standards.ncats.io/workflow/1.3.2/schema
         submitter:
           description: Any string for self-identifying the submitter of a query. The
             purpose of this optional field is to aid in the tracking of the source
@@ -256,15 +272,15 @@ components:
         message:
           $ref: '#/components/schemas/Message'
         log_level:
-          allOf:
-          - $ref: '#/components/schemas/LogLevel'
           description: The least critical level of logs to return
           nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/LogLevel'
         workflow:
-          allOf:
-          - $ref: '#/components/schemas/schema'
           description: List of workflow steps to be executed.
           nullable: true
+          oneOf:
+          - $ref: http://standards.ncats.io/workflow/1.3.2/schema
         submitter:
           description: Any string for self-identifying the submitter of a query. The
             purpose of this optional field is to aid in the tracking of the source
@@ -276,6 +292,86 @@ components:
       - message
       type: object
       x-body-name: request_body
+    AsyncQueryResponse:
+      additionalProperties: true
+      description: The AsyncQueryResponse object contains a payload that must be returned
+        from a submitted async_query.
+      example:
+        job_id: rXEOAosN3L
+        description: Async_query has been queued
+        status: Accepted
+      properties:
+        status:
+          description: 'One of a standardized set of short codes: e.g. Accepted, QueryNotTraversable,
+            KPsNotAvailable'
+          example: Accepted
+          nullable: true
+          type: string
+        description:
+          description: A brief human-readable description of the result of the async_query
+            submission.
+          example: Async_query has been queued
+          nullable: true
+          type: string
+        job_id:
+          description: An identifier for the submitted job that can be used with /async_query_status
+            to receive an update on the status of the job.
+          example: rXEOAosN3L
+          nullable: false
+          type: string
+      required:
+      - job_id
+      type: object
+    AsyncQueryStatusResponse:
+      additionalProperties: true
+      description: The AsyncQueryStatusResponse object contains a payload that describes
+        the current status of a previously submitted async_query.
+      example:
+        description: Callback URL returned 500
+        logs:
+        - code: code
+          level: ""
+          message: message
+          timestamp: 2020-09-03T18:13:49Z
+        - code: code
+          level: ""
+          message: message
+          timestamp: 2020-09-03T18:13:49Z
+        status: Running
+        response_url: https://arax.ncats.io/api/arax/v1.3/response/116481
+      properties:
+        status:
+          description: 'One of a standardized set of short codes: Queued, Running,
+            Completed, Failed'
+          example: Running
+          nullable: false
+          type: string
+        description:
+          description: A brief human-readable description of the current state or
+            summary of the problem if the status is Failed.
+          example: Callback URL returned 500
+          nullable: false
+          type: string
+        logs:
+          description: A list of LogEntry items, containing errors, warnings, debugging
+            information, etc. List items MUST be in chronological order with earliest
+            first. The most recent entry should be last. Its timestamp will be compared
+            against the current time to see if there is still activity.
+          items:
+            $ref: '#/components/schemas/LogEntry'
+          nullable: false
+          type: array
+        response_url:
+          description: Optional URL that can be queried to restrieve the full TRAPI
+            Response.
+          example: https://arax.ncats.io/api/arax/v1.3/response/116481
+          nullable: true
+          type: string
+      required:
+      - description
+      - logs
+      - status
+      type: object
     Response:
       additionalProperties: true
       description: The Response object contains the main payload when a TRAPI query
@@ -284,61 +380,165 @@ components:
         response (query graph, knowledge graph, and results). The status, description,
         and logs properties provide additional details about the response.
       example:
+        schema_version: 1.4.0
         workflow: ""
+        biolink_version: 3.1.2
         description: Success. 42 results found.
         message:
           knowledge_graph: ""
+          auxiliary_graphs:
+            key: '{}'
           results:
-          - score: 163.233
-            edge_bindings:
-              key:
-              - attributes:
-                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-                  attribute_source: UniProtKB
-                  value_type_id: EDAM:data_1187
-                  description: Assertion Authored By Dr. Trans L. Ator
-                  attribute_type_id: attribute_type_id
-                  attributes:
-                  - null
-                  - null
-                  original_attribute_name: p-value
-                  value: 0.000153
-                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-                  attribute_source: UniProtKB
-                  value_type_id: EDAM:data_1187
-                  description: Assertion Authored By Dr. Trans L. Ator
-                  attribute_type_id: attribute_type_id
-                  attributes:
-                  - null
-                  - null
-                  original_attribute_name: p-value
-                  value: 0.000153
-                id: id
-              - attributes:
-                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-                  attribute_source: UniProtKB
-                  value_type_id: EDAM:data_1187
-                  description: Assertion Authored By Dr. Trans L. Ator
-                  attribute_type_id: attribute_type_id
-                  attributes:
-                  - null
-                  - null
-                  original_attribute_name: p-value
-                  value: 0.000153
-                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-                  attribute_source: UniProtKB
-                  value_type_id: EDAM:data_1187
-                  description: Assertion Authored By Dr. Trans L. Ator
-                  attribute_type_id: attribute_type_id
-                  attributes:
-                  - null
-                  - null
-                  original_attribute_name: p-value
-                  value: 0.000153
-                id: id
+          - analyses:
+            - scoring_method: scoring_method
+              score: 163.233
+              edge_bindings:
+                key:
+                - attributes:
+                  - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                    attribute_source: UniProtKB
+                    value_type_id: EDAM:data_1187
+                    description: Assertion Authored By Dr. Trans L. Ator
+                    attribute_type_id: attribute_type_id
+                    attributes:
+                    - null
+                    - null
+                    original_attribute_name: p-value
+                    value: 0.000153
+                  - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                    attribute_source: UniProtKB
+                    value_type_id: EDAM:data_1187
+                    description: Assertion Authored By Dr. Trans L. Ator
+                    attribute_type_id: attribute_type_id
+                    attributes:
+                    - null
+                    - null
+                    original_attribute_name: p-value
+                    value: 0.000153
+                  id: id
+                - attributes:
+                  - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                    attribute_source: UniProtKB
+                    value_type_id: EDAM:data_1187
+                    description: Assertion Authored By Dr. Trans L. Ator
+                    attribute_type_id: attribute_type_id
+                    attributes:
+                    - null
+                    - null
+                    original_attribute_name: p-value
+                    value: 0.000153
+                  - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                    attribute_source: UniProtKB
+                    value_type_id: EDAM:data_1187
+                    description: Assertion Authored By Dr. Trans L. Ator
+                    attribute_type_id: attribute_type_id
+                    attributes:
+                    - null
+                    - null
+                    original_attribute_name: p-value
+                    value: 0.000153
+                  id: id
+              resource_id: resource_id
+              attributes:
+              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                attribute_source: UniProtKB
+                value_type_id: EDAM:data_1187
+                description: Assertion Authored By Dr. Trans L. Ator
+                attribute_type_id: attribute_type_id
+                attributes:
+                - null
+                - null
+                original_attribute_name: p-value
+                value: 0.000153
+              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                attribute_source: UniProtKB
+                value_type_id: EDAM:data_1187
+                description: Assertion Authored By Dr. Trans L. Ator
+                attribute_type_id: attribute_type_id
+                attributes:
+                - null
+                - null
+                original_attribute_name: p-value
+                value: 0.000153
+              support_graphs:
+              - support_graphs
+              - support_graphs
+            - scoring_method: scoring_method
+              score: 163.233
+              edge_bindings:
+                key:
+                - attributes:
+                  - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                    attribute_source: UniProtKB
+                    value_type_id: EDAM:data_1187
+                    description: Assertion Authored By Dr. Trans L. Ator
+                    attribute_type_id: attribute_type_id
+                    attributes:
+                    - null
+                    - null
+                    original_attribute_name: p-value
+                    value: 0.000153
+                  - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                    attribute_source: UniProtKB
+                    value_type_id: EDAM:data_1187
+                    description: Assertion Authored By Dr. Trans L. Ator
+                    attribute_type_id: attribute_type_id
+                    attributes:
+                    - null
+                    - null
+                    original_attribute_name: p-value
+                    value: 0.000153
+                  id: id
+                - attributes:
+                  - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                    attribute_source: UniProtKB
+                    value_type_id: EDAM:data_1187
+                    description: Assertion Authored By Dr. Trans L. Ator
+                    attribute_type_id: attribute_type_id
+                    attributes:
+                    - null
+                    - null
+                    original_attribute_name: p-value
+                    value: 0.000153
+                  - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                    attribute_source: UniProtKB
+                    value_type_id: EDAM:data_1187
+                    description: Assertion Authored By Dr. Trans L. Ator
+                    attribute_type_id: attribute_type_id
+                    attributes:
+                    - null
+                    - null
+                    original_attribute_name: p-value
+                    value: 0.000153
+                  id: id
+              resource_id: resource_id
+              attributes:
+              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                attribute_source: UniProtKB
+                value_type_id: EDAM:data_1187
+                description: Assertion Authored By Dr. Trans L. Ator
+                attribute_type_id: attribute_type_id
+                attributes:
+                - null
+                - null
+                original_attribute_name: p-value
+                value: 0.000153
+              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                attribute_source: UniProtKB
+                value_type_id: EDAM:data_1187
+                description: Assertion Authored By Dr. Trans L. Ator
+                attribute_type_id: attribute_type_id
+                attributes:
+                - null
+                - null
+                original_attribute_name: p-value
+                value: 0.000153
+              support_graphs:
+              - support_graphs
+              - support_graphs
             node_bindings:
               key:
-              - query_id: query_id
+              - query_id: ""
                 attributes:
                 - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
                   attribute_source: UniProtKB
@@ -361,7 +561,7 @@ components:
                   original_attribute_name: p-value
                   value: 0.000153
                 id: id
-              - query_id: query_id
+              - query_id: ""
                 attributes:
                 - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
                   attribute_source: UniProtKB
@@ -384,56 +584,156 @@ components:
                   original_attribute_name: p-value
                   value: 0.000153
                 id: id
-          - score: 163.233
-            edge_bindings:
-              key:
-              - attributes:
-                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-                  attribute_source: UniProtKB
-                  value_type_id: EDAM:data_1187
-                  description: Assertion Authored By Dr. Trans L. Ator
-                  attribute_type_id: attribute_type_id
-                  attributes:
-                  - null
-                  - null
-                  original_attribute_name: p-value
-                  value: 0.000153
-                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-                  attribute_source: UniProtKB
-                  value_type_id: EDAM:data_1187
-                  description: Assertion Authored By Dr. Trans L. Ator
-                  attribute_type_id: attribute_type_id
-                  attributes:
-                  - null
-                  - null
-                  original_attribute_name: p-value
-                  value: 0.000153
-                id: id
-              - attributes:
-                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-                  attribute_source: UniProtKB
-                  value_type_id: EDAM:data_1187
-                  description: Assertion Authored By Dr. Trans L. Ator
-                  attribute_type_id: attribute_type_id
-                  attributes:
-                  - null
-                  - null
-                  original_attribute_name: p-value
-                  value: 0.000153
-                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-                  attribute_source: UniProtKB
-                  value_type_id: EDAM:data_1187
-                  description: Assertion Authored By Dr. Trans L. Ator
-                  attribute_type_id: attribute_type_id
-                  attributes:
-                  - null
-                  - null
-                  original_attribute_name: p-value
-                  value: 0.000153
-                id: id
+          - analyses:
+            - scoring_method: scoring_method
+              score: 163.233
+              edge_bindings:
+                key:
+                - attributes:
+                  - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                    attribute_source: UniProtKB
+                    value_type_id: EDAM:data_1187
+                    description: Assertion Authored By Dr. Trans L. Ator
+                    attribute_type_id: attribute_type_id
+                    attributes:
+                    - null
+                    - null
+                    original_attribute_name: p-value
+                    value: 0.000153
+                  - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                    attribute_source: UniProtKB
+                    value_type_id: EDAM:data_1187
+                    description: Assertion Authored By Dr. Trans L. Ator
+                    attribute_type_id: attribute_type_id
+                    attributes:
+                    - null
+                    - null
+                    original_attribute_name: p-value
+                    value: 0.000153
+                  id: id
+                - attributes:
+                  - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                    attribute_source: UniProtKB
+                    value_type_id: EDAM:data_1187
+                    description: Assertion Authored By Dr. Trans L. Ator
+                    attribute_type_id: attribute_type_id
+                    attributes:
+                    - null
+                    - null
+                    original_attribute_name: p-value
+                    value: 0.000153
+                  - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                    attribute_source: UniProtKB
+                    value_type_id: EDAM:data_1187
+                    description: Assertion Authored By Dr. Trans L. Ator
+                    attribute_type_id: attribute_type_id
+                    attributes:
+                    - null
+                    - null
+                    original_attribute_name: p-value
+                    value: 0.000153
+                  id: id
+              resource_id: resource_id
+              attributes:
+              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                attribute_source: UniProtKB
+                value_type_id: EDAM:data_1187
+                description: Assertion Authored By Dr. Trans L. Ator
+                attribute_type_id: attribute_type_id
+                attributes:
+                - null
+                - null
+                original_attribute_name: p-value
+                value: 0.000153
+              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                attribute_source: UniProtKB
+                value_type_id: EDAM:data_1187
+                description: Assertion Authored By Dr. Trans L. Ator
+                attribute_type_id: attribute_type_id
+                attributes:
+                - null
+                - null
+                original_attribute_name: p-value
+                value: 0.000153
+              support_graphs:
+              - support_graphs
+              - support_graphs
+            - scoring_method: scoring_method
+              score: 163.233
+              edge_bindings:
+                key:
+                - attributes:
+                  - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                    attribute_source: UniProtKB
+                    value_type_id: EDAM:data_1187
+                    description: Assertion Authored By Dr. Trans L. Ator
+                    attribute_type_id: attribute_type_id
+                    attributes:
+                    - null
+                    - null
+                    original_attribute_name: p-value
+                    value: 0.000153
+                  - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                    attribute_source: UniProtKB
+                    value_type_id: EDAM:data_1187
+                    description: Assertion Authored By Dr. Trans L. Ator
+                    attribute_type_id: attribute_type_id
+                    attributes:
+                    - null
+                    - null
+                    original_attribute_name: p-value
+                    value: 0.000153
+                  id: id
+                - attributes:
+                  - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                    attribute_source: UniProtKB
+                    value_type_id: EDAM:data_1187
+                    description: Assertion Authored By Dr. Trans L. Ator
+                    attribute_type_id: attribute_type_id
+                    attributes:
+                    - null
+                    - null
+                    original_attribute_name: p-value
+                    value: 0.000153
+                  - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                    attribute_source: UniProtKB
+                    value_type_id: EDAM:data_1187
+                    description: Assertion Authored By Dr. Trans L. Ator
+                    attribute_type_id: attribute_type_id
+                    attributes:
+                    - null
+                    - null
+                    original_attribute_name: p-value
+                    value: 0.000153
+                  id: id
+              resource_id: resource_id
+              attributes:
+              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                attribute_source: UniProtKB
+                value_type_id: EDAM:data_1187
+                description: Assertion Authored By Dr. Trans L. Ator
+                attribute_type_id: attribute_type_id
+                attributes:
+                - null
+                - null
+                original_attribute_name: p-value
+                value: 0.000153
+              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                attribute_source: UniProtKB
+                value_type_id: EDAM:data_1187
+                description: Assertion Authored By Dr. Trans L. Ator
+                attribute_type_id: attribute_type_id
+                attributes:
+                - null
+                - null
+                original_attribute_name: p-value
+                value: 0.000153
+              support_graphs:
+              - support_graphs
+              - support_graphs
             node_bindings:
               key:
-              - query_id: query_id
+              - query_id: ""
                 attributes:
                 - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
                   attribute_source: UniProtKB
@@ -456,7 +756,7 @@ components:
                   original_attribute_name: p-value
                   value: 0.000153
                 id: id
-              - query_id: query_id
+              - query_id: ""
                 attributes:
                 - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
                   attribute_source: UniProtKB
@@ -505,17 +805,26 @@ components:
           nullable: true
           type: string
         logs:
-          description: Log entries containing errors, warnings, debugging information,
-            etc
+          description: A list of LogEntry items, containing errors, warnings, debugging
+            information, etc. List items MUST be in chronological order with earliest
+            first.
           items:
             $ref: '#/components/schemas/LogEntry'
           nullable: true
           type: array
         workflow:
-          allOf:
-          - $ref: '#/components/schemas/schema'
           description: List of workflow steps that were executed.
           nullable: true
+          oneOf:
+          - $ref: http://standards.ncats.io/workflow/1.3.2/schema
+        schema_version:
+          description: Version label of the TRAPI schema used in this document
+          example: 1.4.0
+          type: string
+        biolink_version:
+          description: Version label of the Biolink model used in this document
+          example: 3.1.2
+          type: string
       required:
       - message
       type: object
@@ -530,57 +839,159 @@ components:
         and the TRAPI operation requested.'
       example:
         knowledge_graph: ""
+        auxiliary_graphs:
+          key: '{}'
         results:
-        - score: 163.233
-          edge_bindings:
-            key:
-            - attributes:
-              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-                attribute_source: UniProtKB
-                value_type_id: EDAM:data_1187
-                description: Assertion Authored By Dr. Trans L. Ator
-                attribute_type_id: attribute_type_id
-                attributes:
-                - null
-                - null
-                original_attribute_name: p-value
-                value: 0.000153
-              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-                attribute_source: UniProtKB
-                value_type_id: EDAM:data_1187
-                description: Assertion Authored By Dr. Trans L. Ator
-                attribute_type_id: attribute_type_id
-                attributes:
-                - null
-                - null
-                original_attribute_name: p-value
-                value: 0.000153
-              id: id
-            - attributes:
-              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-                attribute_source: UniProtKB
-                value_type_id: EDAM:data_1187
-                description: Assertion Authored By Dr. Trans L. Ator
-                attribute_type_id: attribute_type_id
-                attributes:
-                - null
-                - null
-                original_attribute_name: p-value
-                value: 0.000153
-              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-                attribute_source: UniProtKB
-                value_type_id: EDAM:data_1187
-                description: Assertion Authored By Dr. Trans L. Ator
-                attribute_type_id: attribute_type_id
-                attributes:
-                - null
-                - null
-                original_attribute_name: p-value
-                value: 0.000153
-              id: id
+        - analyses:
+          - scoring_method: scoring_method
+            score: 163.233
+            edge_bindings:
+              key:
+              - attributes:
+                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                  attribute_source: UniProtKB
+                  value_type_id: EDAM:data_1187
+                  description: Assertion Authored By Dr. Trans L. Ator
+                  attribute_type_id: attribute_type_id
+                  attributes:
+                  - null
+                  - null
+                  original_attribute_name: p-value
+                  value: 0.000153
+                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                  attribute_source: UniProtKB
+                  value_type_id: EDAM:data_1187
+                  description: Assertion Authored By Dr. Trans L. Ator
+                  attribute_type_id: attribute_type_id
+                  attributes:
+                  - null
+                  - null
+                  original_attribute_name: p-value
+                  value: 0.000153
+                id: id
+              - attributes:
+                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                  attribute_source: UniProtKB
+                  value_type_id: EDAM:data_1187
+                  description: Assertion Authored By Dr. Trans L. Ator
+                  attribute_type_id: attribute_type_id
+                  attributes:
+                  - null
+                  - null
+                  original_attribute_name: p-value
+                  value: 0.000153
+                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                  attribute_source: UniProtKB
+                  value_type_id: EDAM:data_1187
+                  description: Assertion Authored By Dr. Trans L. Ator
+                  attribute_type_id: attribute_type_id
+                  attributes:
+                  - null
+                  - null
+                  original_attribute_name: p-value
+                  value: 0.000153
+                id: id
+            resource_id: resource_id
+            attributes:
+            - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+              attribute_source: UniProtKB
+              value_type_id: EDAM:data_1187
+              description: Assertion Authored By Dr. Trans L. Ator
+              attribute_type_id: attribute_type_id
+              attributes:
+              - null
+              - null
+              original_attribute_name: p-value
+              value: 0.000153
+            - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+              attribute_source: UniProtKB
+              value_type_id: EDAM:data_1187
+              description: Assertion Authored By Dr. Trans L. Ator
+              attribute_type_id: attribute_type_id
+              attributes:
+              - null
+              - null
+              original_attribute_name: p-value
+              value: 0.000153
+            support_graphs:
+            - support_graphs
+            - support_graphs
+          - scoring_method: scoring_method
+            score: 163.233
+            edge_bindings:
+              key:
+              - attributes:
+                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                  attribute_source: UniProtKB
+                  value_type_id: EDAM:data_1187
+                  description: Assertion Authored By Dr. Trans L. Ator
+                  attribute_type_id: attribute_type_id
+                  attributes:
+                  - null
+                  - null
+                  original_attribute_name: p-value
+                  value: 0.000153
+                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                  attribute_source: UniProtKB
+                  value_type_id: EDAM:data_1187
+                  description: Assertion Authored By Dr. Trans L. Ator
+                  attribute_type_id: attribute_type_id
+                  attributes:
+                  - null
+                  - null
+                  original_attribute_name: p-value
+                  value: 0.000153
+                id: id
+              - attributes:
+                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                  attribute_source: UniProtKB
+                  value_type_id: EDAM:data_1187
+                  description: Assertion Authored By Dr. Trans L. Ator
+                  attribute_type_id: attribute_type_id
+                  attributes:
+                  - null
+                  - null
+                  original_attribute_name: p-value
+                  value: 0.000153
+                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                  attribute_source: UniProtKB
+                  value_type_id: EDAM:data_1187
+                  description: Assertion Authored By Dr. Trans L. Ator
+                  attribute_type_id: attribute_type_id
+                  attributes:
+                  - null
+                  - null
+                  original_attribute_name: p-value
+                  value: 0.000153
+                id: id
+            resource_id: resource_id
+            attributes:
+            - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+              attribute_source: UniProtKB
+              value_type_id: EDAM:data_1187
+              description: Assertion Authored By Dr. Trans L. Ator
+              attribute_type_id: attribute_type_id
+              attributes:
+              - null
+              - null
+              original_attribute_name: p-value
+              value: 0.000153
+            - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+              attribute_source: UniProtKB
+              value_type_id: EDAM:data_1187
+              description: Assertion Authored By Dr. Trans L. Ator
+              attribute_type_id: attribute_type_id
+              attributes:
+              - null
+              - null
+              original_attribute_name: p-value
+              value: 0.000153
+            support_graphs:
+            - support_graphs
+            - support_graphs
           node_bindings:
             key:
-            - query_id: query_id
+            - query_id: ""
               attributes:
               - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
                 attribute_source: UniProtKB
@@ -603,7 +1014,7 @@ components:
                 original_attribute_name: p-value
                 value: 0.000153
               id: id
-            - query_id: query_id
+            - query_id: ""
               attributes:
               - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
                 attribute_source: UniProtKB
@@ -626,56 +1037,156 @@ components:
                 original_attribute_name: p-value
                 value: 0.000153
               id: id
-        - score: 163.233
-          edge_bindings:
-            key:
-            - attributes:
-              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-                attribute_source: UniProtKB
-                value_type_id: EDAM:data_1187
-                description: Assertion Authored By Dr. Trans L. Ator
-                attribute_type_id: attribute_type_id
-                attributes:
-                - null
-                - null
-                original_attribute_name: p-value
-                value: 0.000153
-              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-                attribute_source: UniProtKB
-                value_type_id: EDAM:data_1187
-                description: Assertion Authored By Dr. Trans L. Ator
-                attribute_type_id: attribute_type_id
-                attributes:
-                - null
-                - null
-                original_attribute_name: p-value
-                value: 0.000153
-              id: id
-            - attributes:
-              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-                attribute_source: UniProtKB
-                value_type_id: EDAM:data_1187
-                description: Assertion Authored By Dr. Trans L. Ator
-                attribute_type_id: attribute_type_id
-                attributes:
-                - null
-                - null
-                original_attribute_name: p-value
-                value: 0.000153
-              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-                attribute_source: UniProtKB
-                value_type_id: EDAM:data_1187
-                description: Assertion Authored By Dr. Trans L. Ator
-                attribute_type_id: attribute_type_id
-                attributes:
-                - null
-                - null
-                original_attribute_name: p-value
-                value: 0.000153
-              id: id
+        - analyses:
+          - scoring_method: scoring_method
+            score: 163.233
+            edge_bindings:
+              key:
+              - attributes:
+                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                  attribute_source: UniProtKB
+                  value_type_id: EDAM:data_1187
+                  description: Assertion Authored By Dr. Trans L. Ator
+                  attribute_type_id: attribute_type_id
+                  attributes:
+                  - null
+                  - null
+                  original_attribute_name: p-value
+                  value: 0.000153
+                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                  attribute_source: UniProtKB
+                  value_type_id: EDAM:data_1187
+                  description: Assertion Authored By Dr. Trans L. Ator
+                  attribute_type_id: attribute_type_id
+                  attributes:
+                  - null
+                  - null
+                  original_attribute_name: p-value
+                  value: 0.000153
+                id: id
+              - attributes:
+                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                  attribute_source: UniProtKB
+                  value_type_id: EDAM:data_1187
+                  description: Assertion Authored By Dr. Trans L. Ator
+                  attribute_type_id: attribute_type_id
+                  attributes:
+                  - null
+                  - null
+                  original_attribute_name: p-value
+                  value: 0.000153
+                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                  attribute_source: UniProtKB
+                  value_type_id: EDAM:data_1187
+                  description: Assertion Authored By Dr. Trans L. Ator
+                  attribute_type_id: attribute_type_id
+                  attributes:
+                  - null
+                  - null
+                  original_attribute_name: p-value
+                  value: 0.000153
+                id: id
+            resource_id: resource_id
+            attributes:
+            - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+              attribute_source: UniProtKB
+              value_type_id: EDAM:data_1187
+              description: Assertion Authored By Dr. Trans L. Ator
+              attribute_type_id: attribute_type_id
+              attributes:
+              - null
+              - null
+              original_attribute_name: p-value
+              value: 0.000153
+            - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+              attribute_source: UniProtKB
+              value_type_id: EDAM:data_1187
+              description: Assertion Authored By Dr. Trans L. Ator
+              attribute_type_id: attribute_type_id
+              attributes:
+              - null
+              - null
+              original_attribute_name: p-value
+              value: 0.000153
+            support_graphs:
+            - support_graphs
+            - support_graphs
+          - scoring_method: scoring_method
+            score: 163.233
+            edge_bindings:
+              key:
+              - attributes:
+                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                  attribute_source: UniProtKB
+                  value_type_id: EDAM:data_1187
+                  description: Assertion Authored By Dr. Trans L. Ator
+                  attribute_type_id: attribute_type_id
+                  attributes:
+                  - null
+                  - null
+                  original_attribute_name: p-value
+                  value: 0.000153
+                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                  attribute_source: UniProtKB
+                  value_type_id: EDAM:data_1187
+                  description: Assertion Authored By Dr. Trans L. Ator
+                  attribute_type_id: attribute_type_id
+                  attributes:
+                  - null
+                  - null
+                  original_attribute_name: p-value
+                  value: 0.000153
+                id: id
+              - attributes:
+                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                  attribute_source: UniProtKB
+                  value_type_id: EDAM:data_1187
+                  description: Assertion Authored By Dr. Trans L. Ator
+                  attribute_type_id: attribute_type_id
+                  attributes:
+                  - null
+                  - null
+                  original_attribute_name: p-value
+                  value: 0.000153
+                - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                  attribute_source: UniProtKB
+                  value_type_id: EDAM:data_1187
+                  description: Assertion Authored By Dr. Trans L. Ator
+                  attribute_type_id: attribute_type_id
+                  attributes:
+                  - null
+                  - null
+                  original_attribute_name: p-value
+                  value: 0.000153
+                id: id
+            resource_id: resource_id
+            attributes:
+            - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+              attribute_source: UniProtKB
+              value_type_id: EDAM:data_1187
+              description: Assertion Authored By Dr. Trans L. Ator
+              attribute_type_id: attribute_type_id
+              attributes:
+              - null
+              - null
+              original_attribute_name: p-value
+              value: 0.000153
+            - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+              attribute_source: UniProtKB
+              value_type_id: EDAM:data_1187
+              description: Assertion Authored By Dr. Trans L. Ator
+              attribute_type_id: attribute_type_id
+              attributes:
+              - null
+              - null
+              original_attribute_name: p-value
+              value: 0.000153
+            support_graphs:
+            - support_graphs
+            - support_graphs
           node_bindings:
             key:
-            - query_id: query_id
+            - query_id: ""
               attributes:
               - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
                 attribute_source: UniProtKB
@@ -698,7 +1209,7 @@ components:
                 original_attribute_name: p-value
                 value: 0.000153
               id: id
-            - query_id: query_id
+            - query_id: ""
               attributes:
               - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
                 attribute_source: UniProtKB
@@ -732,17 +1243,24 @@ components:
           nullable: true
           type: array
         query_graph:
-          allOf:
-          - $ref: '#/components/schemas/QueryGraph'
           description: QueryGraph object that contains a serialization of a query
             in the form of a graph
           nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/QueryGraph'
         knowledge_graph:
-          allOf:
-          - $ref: '#/components/schemas/KnowledgeGraph'
           description: KnowledgeGraph object that contains lists of nodes and edges
             in the thought graph corresponding to the message
           nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/KnowledgeGraph'
+        auxiliary_graphs:
+          additionalProperties:
+            $ref: '#components/schemas/AuxiliaryGraph'
+          description: Dictionary of AuxiliaryGraph instances that are used by Knowledge
+            Graph Edges and Result Analyses. These are referenced elsewhere by the
+            dictionary key.
+          type: object
       type: object
     LogEntry:
       additionalProperties: true
@@ -760,15 +1278,18 @@ components:
         timestamp: 2020-09-03T18:13:49Z
       properties:
         timestamp:
-          description: Timestamp in ISO 8601 format
+          description: Timestamp in ISO 8601 format, providing the LogEntry time either
+            in univeral coordinated time (UTC) using the 'Z' tag (e.g 2020-09-03T18:13:49Z),
+            or, if local time is provided, the timezone offset must be provided (e.g.
+            2020-09-03T18:13:49-04:00).
           example: 2020-09-03T18:13:49Z
           format: date-time
-          nullable: true
+          nullable: false
           type: string
         level:
-          allOf:
-          - $ref: '#/components/schemas/LogLevel'
           nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/LogLevel'
         code:
           description: One of a standardized set of short codes e.g. QueryNotTraversable,
             KPNotAvailable, KPResponseMalformed
@@ -776,8 +1297,11 @@ components:
           type: string
         message:
           description: A human-readable log message
-          nullable: true
+          nullable: false
           type: string
+      required:
+      - message
+      - timestamp
       type: object
     LogLevel:
       description: Logging level
@@ -795,6 +1319,297 @@ components:
         graph node mappings) and an EdgeBindings object (list of query graph edge
         to knowledge graph edge mappings).
       example:
+        analyses:
+        - scoring_method: scoring_method
+          score: 163.233
+          edge_bindings:
+            key:
+            - attributes:
+              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                attribute_source: UniProtKB
+                value_type_id: EDAM:data_1187
+                description: Assertion Authored By Dr. Trans L. Ator
+                attribute_type_id: attribute_type_id
+                attributes:
+                - null
+                - null
+                original_attribute_name: p-value
+                value: 0.000153
+              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                attribute_source: UniProtKB
+                value_type_id: EDAM:data_1187
+                description: Assertion Authored By Dr. Trans L. Ator
+                attribute_type_id: attribute_type_id
+                attributes:
+                - null
+                - null
+                original_attribute_name: p-value
+                value: 0.000153
+              id: id
+            - attributes:
+              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                attribute_source: UniProtKB
+                value_type_id: EDAM:data_1187
+                description: Assertion Authored By Dr. Trans L. Ator
+                attribute_type_id: attribute_type_id
+                attributes:
+                - null
+                - null
+                original_attribute_name: p-value
+                value: 0.000153
+              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                attribute_source: UniProtKB
+                value_type_id: EDAM:data_1187
+                description: Assertion Authored By Dr. Trans L. Ator
+                attribute_type_id: attribute_type_id
+                attributes:
+                - null
+                - null
+                original_attribute_name: p-value
+                value: 0.000153
+              id: id
+          resource_id: resource_id
+          attributes:
+          - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+            attribute_source: UniProtKB
+            value_type_id: EDAM:data_1187
+            description: Assertion Authored By Dr. Trans L. Ator
+            attribute_type_id: attribute_type_id
+            attributes:
+            - null
+            - null
+            original_attribute_name: p-value
+            value: 0.000153
+          - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+            attribute_source: UniProtKB
+            value_type_id: EDAM:data_1187
+            description: Assertion Authored By Dr. Trans L. Ator
+            attribute_type_id: attribute_type_id
+            attributes:
+            - null
+            - null
+            original_attribute_name: p-value
+            value: 0.000153
+          support_graphs:
+          - support_graphs
+          - support_graphs
+        - scoring_method: scoring_method
+          score: 163.233
+          edge_bindings:
+            key:
+            - attributes:
+              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                attribute_source: UniProtKB
+                value_type_id: EDAM:data_1187
+                description: Assertion Authored By Dr. Trans L. Ator
+                attribute_type_id: attribute_type_id
+                attributes:
+                - null
+                - null
+                original_attribute_name: p-value
+                value: 0.000153
+              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                attribute_source: UniProtKB
+                value_type_id: EDAM:data_1187
+                description: Assertion Authored By Dr. Trans L. Ator
+                attribute_type_id: attribute_type_id
+                attributes:
+                - null
+                - null
+                original_attribute_name: p-value
+                value: 0.000153
+              id: id
+            - attributes:
+              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                attribute_source: UniProtKB
+                value_type_id: EDAM:data_1187
+                description: Assertion Authored By Dr. Trans L. Ator
+                attribute_type_id: attribute_type_id
+                attributes:
+                - null
+                - null
+                original_attribute_name: p-value
+                value: 0.000153
+              - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+                attribute_source: UniProtKB
+                value_type_id: EDAM:data_1187
+                description: Assertion Authored By Dr. Trans L. Ator
+                attribute_type_id: attribute_type_id
+                attributes:
+                - null
+                - null
+                original_attribute_name: p-value
+                value: 0.000153
+              id: id
+          resource_id: resource_id
+          attributes:
+          - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+            attribute_source: UniProtKB
+            value_type_id: EDAM:data_1187
+            description: Assertion Authored By Dr. Trans L. Ator
+            attribute_type_id: attribute_type_id
+            attributes:
+            - null
+            - null
+            original_attribute_name: p-value
+            value: 0.000153
+          - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+            attribute_source: UniProtKB
+            value_type_id: EDAM:data_1187
+            description: Assertion Authored By Dr. Trans L. Ator
+            attribute_type_id: attribute_type_id
+            attributes:
+            - null
+            - null
+            original_attribute_name: p-value
+            value: 0.000153
+          support_graphs:
+          - support_graphs
+          - support_graphs
+        node_bindings:
+          key:
+          - query_id: ""
+            attributes:
+            - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+              attribute_source: UniProtKB
+              value_type_id: EDAM:data_1187
+              description: Assertion Authored By Dr. Trans L. Ator
+              attribute_type_id: attribute_type_id
+              attributes:
+              - null
+              - null
+              original_attribute_name: p-value
+              value: 0.000153
+            - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+              attribute_source: UniProtKB
+              value_type_id: EDAM:data_1187
+              description: Assertion Authored By Dr. Trans L. Ator
+              attribute_type_id: attribute_type_id
+              attributes:
+              - null
+              - null
+              original_attribute_name: p-value
+              value: 0.000153
+            id: id
+          - query_id: ""
+            attributes:
+            - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+              attribute_source: UniProtKB
+              value_type_id: EDAM:data_1187
+              description: Assertion Authored By Dr. Trans L. Ator
+              attribute_type_id: attribute_type_id
+              attributes:
+              - null
+              - null
+              original_attribute_name: p-value
+              value: 0.000153
+            - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+              attribute_source: UniProtKB
+              value_type_id: EDAM:data_1187
+              description: Assertion Authored By Dr. Trans L. Ator
+              attribute_type_id: attribute_type_id
+              attributes:
+              - null
+              - null
+              original_attribute_name: p-value
+              value: 0.000153
+            id: id
+      properties:
+        node_bindings:
+          additionalProperties:
+            items:
+              $ref: '#/components/schemas/NodeBinding'
+            type: array
+          description: The dictionary of Input Query Graph to Result Knowledge Graph
+            node bindings where the dictionary keys are the key identifiers of the
+            Query Graph nodes and the associated values of those keys are instances
+            of NodeBinding schema type (see below). This value is an array of NodeBindings
+            since a given query node may have multiple knowledge graph Node bindings
+            in the result.
+          type: object
+        analyses:
+          description: The list of all Analysis components that contribute to the
+            result. See below for Analysis components.
+          items:
+            $ref: '#/components/schemas/Analysis'
+          type: array
+      required:
+      - analyses
+      - node_bindings
+      type: object
+    NodeBinding:
+      additionalProperties: true
+      description: An instance of NodeBinding is a single KnowledgeGraph Node mapping,
+        identified by the corresponding 'id' object key identifier of the Node within
+        the Knowledge Graph. Instances of NodeBinding may include extra annotation
+        in the form of additional properties. (such annotation is not yet fully standardized).
+        Each Node Binding must bind directly to node in the original Query Graph.
+      example:
+        query_id: ""
+        attributes:
+        - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+          attribute_source: UniProtKB
+          value_type_id: EDAM:data_1187
+          description: Assertion Authored By Dr. Trans L. Ator
+          attribute_type_id: attribute_type_id
+          attributes:
+          - null
+          - null
+          original_attribute_name: p-value
+          value: 0.000153
+        - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+          attribute_source: UniProtKB
+          value_type_id: EDAM:data_1187
+          description: Assertion Authored By Dr. Trans L. Ator
+          attribute_type_id: attribute_type_id
+          attributes:
+          - null
+          - null
+          original_attribute_name: p-value
+          value: 0.000153
+        id: id
+      properties:
+        id:
+          description: A Compact URI, consisting of a prefix and a reference separated
+            by a colon, such as UniProtKB:P00738. Via an external context definition,
+            the CURIE prefix and colon may be replaced by a URI prefix, such as http://identifiers.org/uniprot/,
+            to form a full URI.
+          externalDocs:
+            url: https://www.w3.org/TR/2010/NOTE-curie-20101216/
+          type: string
+        query_id:
+          description: An optional property to provide the CURIE in the QueryGraph
+            to which this binding applies. If the bound QNode does not have an an
+            'id' property or if it is empty, then this query_id MUST be null or absent.
+            If the bound QNode has one or more CURIEs as an 'id' and this NodeBinding's
+            'id' refers to a QNode 'id' in a manner where the CURIEs are different
+            (typically due to the NodeBinding.id being a descendant of a QNode.id),
+            then this query_id MUST be provided. In other cases, there is no ambiguity,
+            and this query_id SHOULD NOT be provided.
+          nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/CURIE'
+        attributes:
+          description: A list of attributes providing further information about the
+            node binding. This is not intended for capturing node attributes and should
+            only be used for properties that vary from result to result.
+          items:
+            $ref: '#/components/schemas/Attribute'
+          nullable: true
+          type: array
+      required:
+      - id
+      type: object
+    Analysis:
+      additionalProperties: true
+      description: An analysis is a dictionary that contains information about the
+        result tied to a particular service. Each Analysis is generated by a single
+        reasoning service, and describes the outputs of analyses performed by the
+        reasoner on a particular Result (e.g. a result score), along with provenance
+        information supporting the analysis (e.g. method or data that supported generation
+        of the score).
+      example:
+        scoring_method: scoring_method
         score: 163.233
         edge_bindings:
           key:
@@ -842,79 +1657,40 @@ components:
               original_attribute_name: p-value
               value: 0.000153
             id: id
-        node_bindings:
-          key:
-          - query_id: query_id
-            attributes:
-            - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-              attribute_source: UniProtKB
-              value_type_id: EDAM:data_1187
-              description: Assertion Authored By Dr. Trans L. Ator
-              attribute_type_id: attribute_type_id
-              attributes:
-              - null
-              - null
-              original_attribute_name: p-value
-              value: 0.000153
-            - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-              attribute_source: UniProtKB
-              value_type_id: EDAM:data_1187
-              description: Assertion Authored By Dr. Trans L. Ator
-              attribute_type_id: attribute_type_id
-              attributes:
-              - null
-              - null
-              original_attribute_name: p-value
-              value: 0.000153
-            id: id
-          - query_id: query_id
-            attributes:
-            - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-              attribute_source: UniProtKB
-              value_type_id: EDAM:data_1187
-              description: Assertion Authored By Dr. Trans L. Ator
-              attribute_type_id: attribute_type_id
-              attributes:
-              - null
-              - null
-              original_attribute_name: p-value
-              value: 0.000153
-            - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-              attribute_source: UniProtKB
-              value_type_id: EDAM:data_1187
-              description: Assertion Authored By Dr. Trans L. Ator
-              attribute_type_id: attribute_type_id
-              attributes:
-              - null
-              - null
-              original_attribute_name: p-value
-              value: 0.000153
-            id: id
+        resource_id: resource_id
+        attributes:
+        - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+          attribute_source: UniProtKB
+          value_type_id: EDAM:data_1187
+          description: Assertion Authored By Dr. Trans L. Ator
+          attribute_type_id: attribute_type_id
+          attributes:
+          - null
+          - null
+          original_attribute_name: p-value
+          value: 0.000153
+        - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
+          attribute_source: UniProtKB
+          value_type_id: EDAM:data_1187
+          description: Assertion Authored By Dr. Trans L. Ator
+          attribute_type_id: attribute_type_id
+          attributes:
+          - null
+          - null
+          original_attribute_name: p-value
+          value: 0.000153
+        support_graphs:
+        - support_graphs
+        - support_graphs
       properties:
-        node_bindings:
-          additionalProperties:
-            items:
-              $ref: '#/components/schemas/NodeBinding'
-            type: array
-          description: The dictionary of Input Query Graph to Result Knowledge Graph
-            node bindings where the dictionary keys are the key identifiers of the
-            Query Graph nodes and the associated values of those keys are instances
-            of NodeBinding schema type (see below). This value is an array of NodeBindings
-            since a given query node may have multiple knowledge graph Node bindings
-            in the result.
-          type: object
-        edge_bindings:
-          additionalProperties:
-            items:
-              $ref: '#/components/schemas/EdgeBinding'
-            type: array
-          description: The dictionary of Input Query Graph to Result Knowledge Graph
-            edge bindings where the dictionary keys are the key identifiers of the
-            Query Graph edges and the associated values of those keys are instances
-            of EdgeBinding schema type (see below). This value is an array of EdgeBindings
-            since a given query edge may resolve to multiple knowledge graph edges
-            in the result.
-          type: object
+        resource_id:
+          description: A Compact URI, consisting of a prefix and a reference separated
+            by a colon, such as UniProtKB:P00738. Via an external context definition,
+            the CURIE prefix and colon may be replaced by a URI prefix, such as http://identifiers.org/uniprot/,
+            to form a full URI.
+          externalDocs:
+            url: https://www.w3.org/TR/2010/NOTE-curie-20101216/
+          type: string
         score:
           description: A numerical score associated with this result indicating the
             relevance or confidence of this result relative to others in the returned
@@ -923,74 +1699,48 @@ components:
           format: float
           nullable: true
           type: number
-      required:
-      - edge_bindings
-      - node_bindings
-      type: object
-    NodeBinding:
-      additionalProperties: true
-      description: An instance of NodeBinding is a single KnowledgeGraph Node mapping,
-        identified by the corresponding 'id' object key identifier of the Node within
-        the Knowledge Graph. Instances of NodeBinding may include extra annotation
-        in the form of additional properties. (such annotation is not yet fully standardized).
-      example:
-        query_id: query_id
-        attributes:
-        - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-          attribute_source: UniProtKB
-          value_type_id: EDAM:data_1187
-          description: Assertion Authored By Dr. Trans L. Ator
-          attribute_type_id: attribute_type_id
-          attributes:
-          - null
-          - null
-          original_attribute_name: p-value
-          value: 0.000153
-        - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
-          attribute_source: UniProtKB
-          value_type_id: EDAM:data_1187
-          description: Assertion Authored By Dr. Trans L. Ator
-          attribute_type_id: attribute_type_id
-          attributes:
-          - null
-          - null
-          original_attribute_name: p-value
-          value: 0.000153
-        id: id
-      properties:
-        id:
-          description: A Compact URI, consisting of a prefix and a reference separated
-            by a colon, such as UniProtKB:P00738. Via an external context definition,
-            the CURIE prefix and colon may be replaced by a URI prefix, such as http://identifiers.org/uniprot/,
-            to form a full URI.
-          externalDocs:
-            url: https://www.w3.org/TR/2010/NOTE-curie-20101216/
-          type: string
-        query_id:
-          description: A Compact URI, consisting of a prefix and a reference separated
-            by a colon, such as UniProtKB:P00738. Via an external context definition,
-            the CURIE prefix and colon may be replaced by a URI prefix, such as http://identifiers.org/uniprot/,
-            to form a full URI.
-          externalDocs:
-            url: https://www.w3.org/TR/2010/NOTE-curie-20101216/
+        edge_bindings:
+          additionalProperties:
+            items:
+              $ref: '#/components/schemas/EdgeBinding'
+            type: array
+          description: The dictionary of input Query Graph to Knowledge Graph edge
+            bindings where the dictionary keys are the key identifiers of the Query
+            Graph edges and the associated values of those keys are instances of EdgeBinding
+            schema type (see below). This value is an array of EdgeBindings since
+            a given query edge may resolve to multiple Knowledge Graph Edges.
+          type: object
+        support_graphs:
+          description: This is a list of references to Auxiliary Graph instances that
+            supported the analysis of a Result as performed by the reasoning service.
+            Each item in the list is the key of a single Auxiliary Graph.
+          items:
+            type: string
+          nullable: true
+          type: array
+        scoring_method:
+          description: An identifier and link to an explanation for the method used
+            to generate the score
+          nullable: true
           type: string
         attributes:
-          description: A list of attributes providing further information about the
-            node binding. This is not intended for capturing node attributes and should
-            only be used for properties that vary from result to result.
+          description: The attributes of this particular Analysis.
           items:
             $ref: '#/components/schemas/Attribute'
           nullable: true
           type: array
       required:
-      - id
+      - edge_bindings
+      - resource_id
       type: object
     EdgeBinding:
       additionalProperties: true
       description: A instance of EdgeBinding is a single KnowledgeGraph Edge mapping,
         identified by the corresponding 'id' object key identifier of the Edge within
         the Knowledge Graph. Instances of EdgeBinding may include extra annotation
-        (such annotation is not yet fully standardized).
+        (such annotation is not yet fully standardized). Edge bindings are captured
+        within a specific reasoner's Analysis object because the Edges in the Knowledge
+        Graph that get bound to the input Query Graph may differ between reasoners.
       example:
         attributes:
         - value_url: https://pubmed.ncbi.nlm.nih.gov/32529952
@@ -1028,6 +1778,33 @@ components:
           type: array
       required:
       - id
+      type: object
+    AuxiliaryGraph:
+      additionalProperties: true
+      description: A single AuxiliaryGraph instance that is used by Knowledge Graph
+        Edges and Result Analyses. Edges comprising an Auxiliary Graph are a subset
+        of the Knowledge Graph in the message. Data creators can create an AuxiliaryGraph
+        to assemble a specific collections of edges from the Knowledge Graph into
+        a named graph that can be referenced from an Edge as evidence/explanation
+        supporting that Edge, or from a Result Analysis as information used to generate
+        a score.
+      properties:
+        edges:
+          description: List of edges that form the Auxiliary Graph. Each item is a
+            reference to a single Knowledge Graph edge
+          items:
+            type: string
+          minItems: 1
+          nullable: false
+          type: array
+        attributes:
+          description: Attributes of the Auxiliary Graph
+          items:
+            $ref: '#/components/schemas/Attribute'
+          nullable: true
+          type: array
+      required:
+      - edges
       type: object
     KnowledgeGraph:
       additionalProperties: true
@@ -1093,6 +1870,9 @@ components:
           nullable: true
           type: array
         categories:
+          description: These should be Biolink Model categories and are allowed to
+            be of type 'abstract' or 'mixin' (only in QGraphs!). Use of 'deprecated'
+            categories should be avoided.
           items:
             $ref: '#/components/schemas/BiolinkEntity'
           minItems: 1
@@ -1112,7 +1892,7 @@ components:
           type: boolean
         constraints:
           default: []
-          description: A list of contraints applied to a query node. If there are
+          description: A list of constraints applied to a query node. If there are
             multiple items, they must all be true (equivalent to AND)
           items:
             $ref: '#/components/schemas/AttributeConstraint'
@@ -1120,7 +1900,7 @@ components:
       type: object
     QEdge:
       additionalProperties: true
-      description: An edge in the QueryGraph used as an filter pattern specification
+      description: An edge in the QueryGraph used as a filter pattern specification
         in a query. If the optional predicate property is not specified, it is assumed
         to be a wildcard match to the target knowledge space. If specified, the ontological
         inheritance hierarchy associated with the term provided is assumed, such that
@@ -1140,6 +1920,9 @@ components:
           nullable: true
           type: string
         predicates:
+          description: These should be Biolink Model predicates and are allowed to
+            be of type 'abstract' or 'mixin' (only in QGraphs!). Use of 'deprecated'
+            predicates should be avoided.
           items:
             $ref: '#/components/schemas/BiolinkPredicate'
           minItems: 1
@@ -1157,7 +1940,7 @@ components:
           type: string
         attribute_constraints:
           default: []
-          description: A list of attribute contraints applied to a query edge. If
+          description: A list of attribute constraints applied to a query edge. If
             there are multiple items, they must all be true (equivalent to AND)
           items:
             $ref: '#/components/schemas/AttributeConstraint'
@@ -1188,6 +1971,9 @@ components:
           nullable: true
           type: string
         categories:
+          description: These should be Biolink Model categories and are NOT allowed
+            to be of type 'abstract' or 'mixin'. Returning 'deprecated' categories
+            should also be avoided.
           items:
             $ref: '#/components/schemas/BiolinkEntity'
           nullable: true
@@ -1243,14 +2029,14 @@ components:
           description: Value of the attribute. May be any data type, including a list.
           example: 0.000153
         value_type_id:
-          allOf:
-          - $ref: '#/components/schemas/CURIE'
           description: CURIE describing the semantic type of an  attribute's value.
             Use a Biolink class if possible, otherwise a term from an external ontology.
             If a suitable CURIE/identifier does not exist, enter a descriptive phrase
             here and submit the new type for consideration by the appropriate authority.
           example: EDAM:data_1187
           nullable: true
+          oneOf:
+          - $ref: '#/components/schemas/CURIE'
         attribute_source:
           description: The source of the core assertion made by the key-value pair
             of an attribute object. Use a CURIE or namespace designator for this resource
@@ -1289,25 +2075,28 @@ components:
         a query upon the underlying knowledge source.
       properties:
         predicate:
-          allOf:
+          description: The type of relationship between the subject and object for
+            the statement expressed in an Edge. These should be Biolink Model predicate
+            terms and are NOT allowed to be of type 'abstract' or 'mixin'. Returning
+            'deprecated' predicate terms should also be avoided.
+          example: biolink:gene_associated_with_condition
+          nullable: false
+          oneOf:
           - $ref: '#/components/schemas/BiolinkPredicate'
-          nullable: true
         subject:
-          description: A Compact URI, consisting of a prefix and a reference separated
-            by a colon, such as UniProtKB:P00738. Via an external context definition,
-            the CURIE prefix and colon may be replaced by a URI prefix, such as http://identifiers.org/uniprot/,
-            to form a full URI.
-          externalDocs:
-            url: https://www.w3.org/TR/2010/NOTE-curie-20101216/
-          type: string
+          description: Corresponds to the map key CURIE of the subject concept node
+            of this relationship edge.
+          example: MONDO:0011382
+          nullable: false
+          oneOf:
+          - $ref: '#/components/schemas/CURIE'
         object:
-          description: A Compact URI, consisting of a prefix and a reference separated
-            by a colon, such as UniProtKB:P00738. Via an external context definition,
-            the CURIE prefix and colon may be replaced by a URI prefix, such as http://identifiers.org/uniprot/,
-            to form a full URI.
-          externalDocs:
-            url: https://www.w3.org/TR/2010/NOTE-curie-20101216/
-          type: string
+          description: Corresponds to the map key CURIE of the object concept node
+            of this relationship edge.
+          example: UniProtKB:P00738
+          nullable: false
+          oneOf:
+          - $ref: '#/components/schemas/CURIE'
         attributes:
           description: A list of additional attributes for this edge
           items:
@@ -1321,8 +2110,20 @@ components:
             $ref: '#/components/schemas/Qualifier'
           nullable: true
           type: array
+        sources:
+          description: A list of RetrievalSource objects that provide information
+            about how a particular Information Resource served as a source from which
+            the knowledge expressed in an Edge, or data used to generate this knowledge,
+            was retrieved.
+          items:
+            $ref: '#/components/schemas/RetrievalSource'
+          minItems: 1
+          nullable: false
+          type: array
       required:
       - object
+      - predicate
+      - sources
       - subject
       type: object
     Qualifier:
@@ -1330,17 +2131,20 @@ components:
       description: An additional nuance attached to an assertion
       properties:
         qualifier_type_id:
-          description: The category of the qualifier, drawn from a hierarchy of qualifier
-            slots in the Biolink model (e.g. subject_aspect, subject_direction, object_aspect,
-            object_direction, etc).
-          example: subject_aspect
-          nullable: false
+          description: A Compact URI, consisting of a prefix and a reference separated
+            by a colon, such as UniProtKB:P00738. Via an external context definition,
+            the CURIE prefix and colon may be replaced by a URI prefix, such as http://identifiers.org/uniprot/,
+            to form a full URI.
+          externalDocs:
+            url: https://www.w3.org/TR/2010/NOTE-curie-20101216/
           type: string
         qualifier_value:
           description: The value associated with the type of the qualifier, drawn
             from a set of controlled values by the type as specified in the Biolink
-            model (e.g. 'expression' or 'abundance' for the qualifier type 'subject_aspect',
-            etc).
+            model (e.g. 'expression' or 'abundance' for the qualifier type 'biolink:subject_aspect_qualifier',
+            etc). The enumeration of qualifier values for a given qualifier type is
+            generally going to be constrained by the category of edge (i.e. biolink:Association
+            subtype) of the (Q)Edge.
           example: expression
           nullable: false
           type: string
@@ -1354,7 +2158,8 @@ components:
         of a set of Qualifiers attached to an edge. For example, it can constrain
         a "ChemicalX - affects - ?Gene" query to return only edges where ChemicalX
         specifically affects the 'expression' of the Gene, by constraining on the
-        qualifier_type "object_aspect" with a qualifier_value of "expression".
+        qualifier_type "biolink:object_aspect_qualifier" with a qualifier_value of
+        "expression".
       properties:
         qualifier_set:
           description: A set of Qualifiers that serves to add nuance to a query, by
@@ -1426,6 +2231,16 @@ components:
           - knowledge_types
           - knowledge_types
           subject: biolink:PhenotypicFeature
+          qualifiers:
+          - applicable_values:
+            - '["expression","activity","abundance","degradation"]'
+            - '["expression","activity","abundance","degradation"]'
+            qualifier_type_id: qualifier_type_id
+          - applicable_values:
+            - '["expression","activity","abundance","degradation"]'
+            - '["expression","activity","abundance","degradation"]'
+            qualifier_type_id: qualifier_type_id
+          association: biolink:PhenotypicFeature
           attributes:
           - attribute_source: infores:chembl
             original_attribute_names:
@@ -1447,6 +2262,16 @@ components:
           - knowledge_types
           - knowledge_types
           subject: biolink:PhenotypicFeature
+          qualifiers:
+          - applicable_values:
+            - '["expression","activity","abundance","degradation"]'
+            - '["expression","activity","abundance","degradation"]'
+            qualifier_type_id: qualifier_type_id
+          - applicable_values:
+            - '["expression","activity","abundance","degradation"]'
+            - '["expression","activity","abundance","degradation"]'
+            qualifier_type_id: qualifier_type_id
+          association: biolink:PhenotypicFeature
           attributes:
           - attribute_source: infores:chembl
             original_attribute_names:
@@ -1535,6 +2360,16 @@ components:
         - knowledge_types
         - knowledge_types
         subject: biolink:PhenotypicFeature
+        qualifiers:
+        - applicable_values:
+          - '["expression","activity","abundance","degradation"]'
+          - '["expression","activity","abundance","degradation"]'
+          qualifier_type_id: qualifier_type_id
+        - applicable_values:
+          - '["expression","activity","abundance","degradation"]'
+          - '["expression","activity","abundance","degradation"]'
+          qualifier_type_id: qualifier_type_id
+        association: biolink:PhenotypicFeature
         attributes:
         - attribute_source: infores:chembl
           original_attribute_names:
@@ -1598,10 +2433,50 @@ components:
             $ref: '#/components/schemas/MetaAttribute'
           nullable: true
           type: array
+        qualifiers:
+          description: Qualifiers that are possible to be found on this edge type.
+          items:
+            $ref: '#/components/schemas/MetaQualifier'
+          nullable: true
+          type: array
+        association:
+          description: Compact URI (CURIE) for a Biolink class, biolink:NamedThing
+            or a child thereof. The CURIE must use the prefix 'biolink:' followed
+            by the PascalCase class name.
+          example: biolink:PhenotypicFeature
+          externalDocs:
+            description: Biolink model entities
+            url: https://biolink.github.io/biolink-model/docs/NamedThing.html
+          pattern: ^biolink:[A-Z][a-zA-Z]*$
+          type: string
       required:
       - object
       - predicate
       - subject
+      type: object
+    MetaQualifier:
+      example:
+        applicable_values:
+        - '["expression","activity","abundance","degradation"]'
+        - '["expression","activity","abundance","degradation"]'
+        qualifier_type_id: qualifier_type_id
+      properties:
+        qualifier_type_id:
+          description: A Compact URI, consisting of a prefix and a reference separated
+            by a colon, such as UniProtKB:P00738. Via an external context definition,
+            the CURIE prefix and colon may be replaced by a URI prefix, such as http://identifiers.org/uniprot/,
+            to form a full URI.
+          externalDocs:
+            url: https://www.w3.org/TR/2010/NOTE-curie-20101216/
+          type: string
+        applicable_values:
+          description: The list of values that are possible for this qualifier.
+          items:
+            example: '["expression","activity","abundance","degradation"]'
+            type: string
+          type: array
+      required:
+      - qualifier_type_id
       type: object
     MetaAttribute:
       example:
@@ -1651,14 +2526,14 @@ components:
       description: Generic query constraint for a query node or query edge
       properties:
         id:
-          allOf:
-          - $ref: '#/components/schemas/CURIE'
           description: CURIE of the concept being constrained. For properties defined
             by the Biolink model this SHOULD be a biolink CURIE. otherwise, if possible,
             from the EDAM ontology. If a suitable CURIE does not exist, enter a descriptive
             phrase here and submit the new type for consideration by the appropriate
             authority.
           example: EDAM:data_0844
+          oneOf:
+          - $ref: '#/components/schemas/CURIE'
         name:
           description: Human-readable name or label for the constraint concept. If
             appropriate, it SHOULD be the term name of the CURIE used as the 'id'.
@@ -1724,823 +2599,95 @@ components:
       - operator
       - value
       type: object
+    RetrievalSource:
+      additionalProperties: true
+      description: Provides information about how a particular InformationResource
+        served as a source from which knowledge expressed in an Edge, or data used
+        to generate this knowledge, was retrieved.
+      properties:
+        resource_id:
+          description: A Compact URI, consisting of a prefix and a reference separated
+            by a colon, such as UniProtKB:P00738. Via an external context definition,
+            the CURIE prefix and colon may be replaced by a URI prefix, such as http://identifiers.org/uniprot/,
+            to form a full URI.
+          externalDocs:
+            url: https://www.w3.org/TR/2010/NOTE-curie-20101216/
+          type: string
+        resource_role:
+          $ref: '#/components/schemas/ResourceRoleEnum'
+        upstream_resource_ids:
+          description: An upstream InformationResource from which the resource being
+            described directly retrieved a record of the knowledge expressed in the
+            Edge, or data used to generate this knowledge. This is an array because
+            there are cases where a merged Edge holds knowledge that was retrieved
+            from multiple sources. e.g. an Edge provided by the ARAGORN ARA can expressing
+            knowledge it retrieved from both the automat-mychem-info and molepro KPs,
+            which both provided it with records of this single fact.
+          example:
+          - infores:automat-mychem-info
+          - infores:molepro
+          items:
+            $ref: '#/components/schemas/CURIE'
+          type: array
+        source_record_urls:
+          description: 'A URL linking to a specific web page or document provided
+            by the  source, that contains a record of the knowledge expressed in the  Edge.
+            If the knowledge is contained in more than one web page on  an Information
+            Resource''s site, urls MAY be provided for each.  For example, Therapeutic
+            Targets Database (TTD) has separate web  pages for ''Imatinib'' and its
+            protein target KIT, both of which hold  the claim that ''the KIT protein
+            is a therapeutic target for Imatinib''.         '
+          example: '[https://db.idrblab.net/ttd/data/drug/details/d0az3c,  https://db.idrblab.net/ttd/data/target/details/t57700]'
+          items:
+            type: string
+          type: array
+      required:
+      - resource_id
+      - resource_role
+      type: object
+    ResourceRoleEnum:
+      description: The role played by the InformationResource in serving as a source
+        for an Edge. Note that a given Edge should have one and only one 'primary'
+        source, and may have any number of 'aggregator' or 'supporting data' sources.  This
+        enumeration is found in Biolink Model, but is repeated here for convenience.
+      enum:
+      - primary_knowledge_source
+      - aggregator_knowledge_source
+      - supporting_data_source
+      type: string
     schema:
       items:
-        $ref: '#/components/schemas/schema_2'
+        $ref: https://standards.ncats.io/operation/1.3.2/schema
       type: array
     schema_2:
       anyOf:
-      - $ref: '#/components/schemas/OperationAnnotate'
-      - $ref: '#/components/schemas/OperationAnnotateEdges'
-      - $ref: '#/components/schemas/OperationAnnotateNodes'
-      - $ref: '#/components/schemas/OperationBind'
-      - $ref: '#/components/schemas/OperationCompleteResults'
-      - $ref: '#/components/schemas/OperationEnrichResults'
-      - $ref: '#/components/schemas/OperationFill'
-      - $ref: '#/components/schemas/OperationFilterKgraph'
-      - $ref: '#/components/schemas/OperationFilterKgraphContinuousKedgeAttribute'
-      - $ref: '#/components/schemas/OperationFilterKgraphDiscreteKedgeAttribute'
-      - $ref: '#/components/schemas/OperationFilterKgraphDiscreteKnodeAttribute'
-      - $ref: '#/components/schemas/OperationFilterKgraphOrphans'
-      - $ref: '#/components/schemas/OperationFilterKgraphPercentile'
-      - $ref: '#/components/schemas/OperationFilterKgraphStdDev'
-      - $ref: '#/components/schemas/OperationFilterKgraphTopN'
-      - $ref: '#/components/schemas/OperationFilterResults'
-      - $ref: '#/components/schemas/OperationFilterResultsTopN'
-      - $ref: '#/components/schemas/OperationLookup'
-      - $ref: '#/components/schemas/OperationOverlay'
-      - $ref: '#/components/schemas/OperationOverlayComputeJaccard'
-      - $ref: '#/components/schemas/OperationOverlayComputeNgd'
-      - $ref: '#/components/schemas/OperationOverlayConnectKnodes'
-      - $ref: '#/components/schemas/OperationOverlayFisherExactTest'
-      - $ref: '#/components/schemas/OperationRestate'
-      - $ref: '#/components/schemas/OperationScore'
-      - $ref: '#/components/schemas/OperationSortResults'
-      - $ref: '#/components/schemas/OperationSortResultsEdgeAttribute'
-      - $ref: '#/components/schemas/OperationSortResultsNodeAttribute'
-      - $ref: '#/components/schemas/OperationSortResultsScore'
-    OperationAnnotate:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - annotate
-          type: string
-        parameters: {}
-      required:
-      - id
-      type: object
-    OperationAnnotateEdges:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - annotate_edges
-          type: string
-        parameters:
-          $ref: '#/components/schemas/OperationAnnotateEdges_parameters'
-      required:
-      - id
-      type: object
-    OperationAnnotateNodes:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - annotate_nodes
-          type: string
-        parameters:
-          $ref: '#/components/schemas/OperationAnnotateNodes_parameters'
-      required:
-      - id
-      type: object
-    OperationBind:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - bind
-          type: string
-        parameters: {}
-      required:
-      - id
-      type: object
-    OperationCompleteResults:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - complete_results
-          type: string
-        parameters: {}
-      required:
-      - id
-      type: object
-    OperationEnrichResults:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - enrich_results
-          type: string
-        parameters:
-          $ref: '#/components/schemas/OperationEnrichResults_parameters'
-      required:
-      - id
-      type: object
-    OperationFill:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - fill
-          type: string
-        parameters:
-          oneOf:
-          - additionalProperties: false
-            properties:
-              allowlist:
-                description: List of knowledge providers/sources that may be used
-                  to provide knowledge.
-                example:
-                - icees
-                items:
-                  type: string
-                minLength: 1
-                type: array
-            type: object
-          - additionalProperties: false
-            properties:
-              denylist:
-                description: List of knowledge providers/sources that may NOT be used
-                  to provide knowledge.
-                example:
-                - ctd
-                items:
-                  type: string
-                minLength: 1
-                type: array
-            type: object
-          type: object
-      required:
-      - id
-      type: object
-    OperationFilterKgraph:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - filter_kgraph
-          type: string
-        parameters: {}
-      required:
-      - id
-      type: object
-    OperationFilterKgraphContinuousKedgeAttribute:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - filter_kgraph_continuous_kedge_attribute
-          type: string
-        parameters:
-          $ref: '#/components/schemas/OperationFilterKgraphContinuousKedgeAttribute_parameters'
-      required:
-      - id
-      - parameters
-      type: object
-    OperationFilterKgraphDiscreteKedgeAttribute:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - filter_kgraph_discrete_kedge_attribute
-          type: string
-        parameters:
-          $ref: '#/components/schemas/OperationFilterKgraphDiscreteKedgeAttribute_parameters'
-      required:
-      - id
-      - parameters
-      type: object
-    OperationFilterKgraphDiscreteKnodeAttribute:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - filter_kgraph_discrete_knode_attribute
-          type: string
-        parameters:
-          $ref: '#/components/schemas/OperationFilterKgraphDiscreteKnodeAttribute_parameters'
-      required:
-      - id
-      - parameters
-      type: object
-    OperationFilterKgraphOrphans:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - filter_kgraph_orphans
-          type: string
-        parameters: {}
-      required:
-      - id
-      type: object
-    OperationFilterKgraphPercentile:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - filter_kgraph_percentile
-          type: string
-        parameters:
-          $ref: '#/components/schemas/OperationFilterKgraphPercentile_parameters'
-      required:
-      - id
-      - parameters
-      type: object
-    OperationFilterKgraphStdDev:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - filter_kgraph_std_dev
-          type: string
-        parameters:
-          $ref: '#/components/schemas/OperationFilterKgraphStdDev_parameters'
-      required:
-      - id
-      - parameters
-      type: object
-    OperationFilterKgraphTopN:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - filter_kgraph_top_n
-          type: string
-        parameters:
-          $ref: '#/components/schemas/OperationFilterKgraphTopN_parameters'
-      required:
-      - id
-      - parameters
-      type: object
-    OperationFilterResults:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - filter_results
-          type: string
-        parameters: {}
-      required:
-      - id
-      type: object
-    OperationFilterResultsTopN:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - filter_results_top_n
-          type: string
-        parameters:
-          $ref: '#/components/schemas/OperationFilterResultsTopN_parameters'
-      required:
-      - id
-      - parameters
-      type: object
-    OperationLookup:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - lookup
-          type: string
-        parameters: {}
-      required:
-      - id
-      type: object
-    OperationOverlay:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - overlay
-          type: string
-        parameters: {}
-      required:
-      - id
-      type: object
-    OperationOverlayComputeJaccard:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - overlay_compute_jaccard
-          type: string
-        parameters:
-          $ref: '#/components/schemas/OperationOverlayComputeJaccard_parameters'
-      required:
-      - id
-      - parameters
-      type: object
-    OperationOverlayComputeNgd:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - overlay_compute_ngd
-          type: string
-        parameters:
-          $ref: '#/components/schemas/OperationOverlayComputeNgd_parameters'
-      required:
-      - id
-      - parameters
-      type: object
-    OperationOverlayConnectKnodes:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - overlay_connect_knodes
-          type: string
-        parameters: {}
-      required:
-      - id
-      type: object
-    OperationOverlayFisherExactTest:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - overlay_fisher_exact_test
-          type: string
-        parameters:
-          $ref: '#/components/schemas/OperationOverlayFisherExactTest_parameters'
-      required:
-      - id
-      - parameters
-      type: object
-    OperationRestate:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - restate
-          type: string
-        parameters: {}
-      required:
-      - id
-      type: object
-    OperationScore:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - score
-          type: string
-        parameters: {}
-      required:
-      - id
-      type: object
-    OperationSortResults:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - sort_results
-          type: string
-        parameters: {}
-      required:
-      - id
-      type: object
-    OperationSortResultsEdgeAttribute:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - sort_results_edge_attribute
-          type: string
-        parameters:
-          $ref: '#/components/schemas/OperationSortResultsEdgeAttribute_parameters'
-      required:
-      - id
-      - parameters
-      type: object
-    OperationSortResultsNodeAttribute:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - sort_results_node_attribute
-          type: string
-        parameters:
-          $ref: '#/components/schemas/OperationSortResultsNodeAttribute_parameters'
-      required:
-      - id
-      - parameters
-      type: object
-    OperationSortResultsScore:
-      additionalProperties: false
-      properties:
-        id:
-          enum:
-          - sort_results_score
-          type: string
-        parameters:
-          $ref: '#/components/schemas/OperationSortResultsScore_parameters'
-      required:
-      - id
-      - parameters
-      type: object
-    OperationAnnotateEdges_parameters:
-      properties:
-        attributes:
-          description: A list of attributes to annotate the edges with. If not included
-            then all available data will be annotated.
-          example:
-          - pmids
-          items:
-            type: string
-          type: array
-      type: object
-    OperationAnnotateNodes_parameters:
-      properties:
-        attributes:
-          description: A list of attributes to annotate the nodes with. If not included
-            then all available data will be annotated.
-          example:
-          - pmids
-          items:
-            type: string
-          type: array
-      type: object
-    OperationEnrichResults_parameters:
-      properties:
-        pvalue_threshold:
-          description: The cutoff p-value for enrichment.
-          example: 1E-7
-          maximum: 1
-          minimum: 0
-          type: number
-        qnode_keys:
-          description: If specified, then only knodes bound to these qnodes will be
-            examined for enrichment and combination.
-          example:
-          - n01
-          items:
-            type: string
-          type: array
-      type: object
-    OperationFilterKgraphContinuousKedgeAttribute_parameters:
-      properties:
-        edge_attribute:
-          description: The name of the edge attribute to filter on.
-          example: normalized_google_distance
-          type: string
-        threshold:
-          description: The value to compare attribute values to.
-          example: 1.2
-          type: number
-        remove_above_or_below:
-          description: Indicates whether to remove above or below the given threshold.
-          enum:
-          - above
-          - below
-          type: string
-        qedge_keys:
-          description: This indicates if you only want to remove edges with specific
-            edge_keys. If not provided or empty, all edges will be filtered on.
-          example:
-          - e01
-          items:
-            type: string
-          type: array
-        qnode_keys:
-          default: []
-          description: This indicates if you only want nodes corresponding to a specific
-            list of qnode_keys to be removed. If not provided or empty, no nodes will
-            be removed when filtering. Allows us to know what to do with the nodes
-            connected to edges that are removed.
-          example:
-          - n01
-          items:
-            type: string
-          type: array
-      required:
-      - edge_attribute
-      - remove_above_or_below
-      - threshold
-      type: object
-    OperationFilterKgraphDiscreteKedgeAttribute_parameters:
-      properties:
-        edge_attribute:
-          description: The name of the edge attribute to filter on.
-          example: provided_by
-          type: string
-        remove_value:
-          description: The value for which all edges containing this value in the
-            specified edge_attribute should be removed.
-          example: infores:semmeddb
-        qedge_keys:
-          description: This indicates if you only want to remove edges with specific
-            edge_keys. If not provided or empty, all edges will be filtered on.
-          example:
-          - e01
-          items:
-            type: string
-          type: array
-        qnode_keys:
-          default: []
-          description: This indicates if you only want nodes corresponding to a specific
-            list of qnode_keys to be removed. If not provided or empty, no nodes will
-            be removed when filtering. Allows us to know what to do with the nodes
-            connected to edges that are removed
-          example:
-          - n01
-          items:
-            type: string
-          type: array
-      required:
-      - edge_attribute
-      - remove_value
-      type: object
-    OperationFilterKgraphDiscreteKnodeAttribute_parameters:
-      properties:
-        node_attribute:
-          description: The name of the node attribute to filter on.
-          example: molecule_type
-          type: string
-        remove_value:
-          description: The value for which all edges containing this value in the
-            specified edge_attribute should be removed.
-          example: small_molecule
-        qnode_keys:
-          description: This indicates if you only want to remove nodes corresponding
-            to a specific list of qnode_keys to be removed. If not provided or empty,
-            all nodes will be considered when filtering.
-          example:
-          - n01
-          items:
-            type: string
-          type: array
-      required:
-      - node_attribute
-      - remove_value
-      type: object
-    OperationFilterKgraphPercentile_parameters:
-      properties:
-        edge_attribute:
-          description: The name of the edge attribute to filter on.
-          example: normalized_google_distance
-          type: string
-        threshold:
-          default: 95
-          description: The percentile to threshold on.
-          example: 96.8
-          maximum: 100
-          minimum: 0
-          type: number
-        remove_above_or_below:
-          default: below
-          description: Indicates whether to remove above or below the given threshold.
-          enum:
-          - above
-          - below
-          type: string
-        qedge_keys:
-          description: This indicates if you only want to filter on specific edge_keys.
-            If not provided or empty, all edges will be filtered on.
-          example:
-          - e01
-          items:
-            type: string
-          type: array
-        qnode_keys:
-          default: []
-          description: This indicates if you only want nodes corresponding to a specific
-            list of qnode_keys to be removed. If not provided or empty, no nodes will
-            be removed when filtering. Allows us to know what to do with the nodes
-            connected to edges that are removed.
-          example:
-          - n01
-          items:
-            type: string
-          type: array
-      required:
-      - edge_attribute
-      type: object
-    OperationFilterKgraphStdDev_parameters:
-      properties:
-        edge_attribute:
-          description: The name of the edge attribute to filter on.
-          example: normalized_google_distance
-          type: string
-        num_sigma:
-          default: 1
-          description: The number of standard deviations to threshold on.
-          example: 1.2
-          minimum: 0
-          type: number
-        remove_above_or_below:
-          default: below
-          description: Indictes whether to remove above or below the given threshold.
-          enum:
-          - above
-          - below
-          type: string
-        plus_or_minus_std_dev:
-          default: plus
-          description: Indicate whether or not the threshold should be found using
-            plus or minus the standard deviation. E.g. when plus_or_minus_std_dev
-            is set to plus will set the cutoff for filtering as the mean + num_sigma
-            * std_dev while setting plus_or_minus_std_dev to minus will set the cutoff
-            as the mean - num_sigma * std_dev.
-          enum:
-          - plus
-          - minus
-          type: string
-        qedge_keys:
-          description: This indicates if you only want to filter on specific edge_keys.
-            If not provided or empty, all edges will be filtered on.
-          example:
-          - e01
-          items:
-            type: string
-          type: array
-        qnode_keys:
-          default: []
-          description: This indicates if you only want nodes corresponding to a specific
-            list of qnode_keys to be removed. If not provided or empty, no nodes will
-            be removed when filtering.
-          example:
-          - n01
-          items:
-            type: string
-          type: array
-      required:
-      - edge_attribute
-      type: object
-    OperationFilterKgraphTopN_parameters:
-      properties:
-        edge_attribute:
-          description: The name of the edge attribute to filter on.
-          example: normalized_google_distance
-          type: string
-        max_edges:
-          default: 50
-          description: The number of edges to keep.
-          example: 10
-          minimum: 0
-          type: integer
-        keep_top_or_bottom:
-          default: top
-          description: Indicate whether or not the the top or bottom n values should
-            be kept.
-          enum:
-          - top
-          - bottom
-          type: string
-        qedge_keys:
-          description: This indicates if you only want to filter on specific edge_keys.
-            If not provided or empty, all edges will be filtered on.
-          example:
-          - e01
-          items:
-            type: string
-          type: array
-        qnode_keys:
-          default: []
-          description: This indicates if you only want nodes corresponding to a specific
-            list of qnode_keys to be removed. If not provided or empty, no nodes will
-            be removed when filtering. Allows us to know what to do with the nodes
-            connected to edges that are removed.
-          example:
-          - n01
-          items:
-            type: string
-          type: array
-      required:
-      - edge_attribute
-      type: object
-    OperationFilterResultsTopN_parameters:
-      properties:
-        max_results:
-          description: The maximum number of results to return.
-          example: 50
-          minimum: 0
-          type: integer
-      required:
-      - max_results
-      type: object
-    OperationOverlayComputeJaccard_parameters:
-      properties:
-        intermediate_node_key:
-          description: A qnode key specifying the intermediate node.
-          example: n1
-          type: string
-        end_node_keys:
-          description: A list of qnode keys specifying the ending nodes.
-          example:
-          - n0
-          - n2
-          items:
-            type: string
-          type: array
-        virtual_relation_label:
-          description: The key of the query graph edge that corresponds to the knowledge
-            graph edges that were added by this operation.
-          example: J1
-          type: string
-      required:
-      - end_node_keys
-      - intermediate_node_key
-      - virtual_relation_label
-      type: object
-    OperationOverlayComputeNgd_parameters:
-      properties:
-        virtual_relation_label:
-          description: An label to help identify the virtual edge in the relation
-            field
-          example: NGD1
-          type: string
-        qnode_keys:
-          description: A list of qnode keys to overlay pairwise edges onto. Must be
-            be a list of at least 2 valid qnodes.
-          example:
-          - n00
-          - n01
-          items:
-            type: string
-          type: array
-      required:
-      - qnode_keys
-      - virtual_relation_label
-      type: object
-    OperationOverlayFisherExactTest_parameters:
-      properties:
-        subject_qnode_key:
-          description: A specific subject query node id.
-          example: n1
-          type: string
-        object_qnode_key:
-          description: A specific object query node id.
-          example: n2
-          type: string
-        virtual_relation_label:
-          description: An label to help identify the virtual edge.
-          example: f1
-          type: string
-        rel_edge_key:
-          description: A specific Qedge id connected to both subject nodes and object
-            nodes in message KG (optional, otherwise all edges connected to both subject
-            nodes and object nodes in message KG are considered).
-          example: e01
-          type: string
-      required:
-      - object_qnode_key
-      - subject_qnode_key
-      - virtual_relation_label
-      type: object
-    OperationSortResultsEdgeAttribute_parameters:
-      properties:
-        edge_attribute:
-          description: The name of the edge attribute to order by.
-          example: normalized_google_distance
-          type: string
-        ascending_or_descending:
-          description: Indicates whether results should be sorted in ascending or
-            descending order.
-          enum:
-          - ascending
-          - descending
-          type: string
-        qedge_keys:
-          description: This indicates if you only want to consider edges with specific
-            edge_keys. If not provided or empty, all edges will be looked at.
-          example:
-          - e01
-          items:
-            type: string
-          type: array
-      required:
-      - ascending_or_descending
-      - edge_attribute
-      type: object
-    OperationSortResultsNodeAttribute_parameters:
-      properties:
-        node_attribute:
-          description: The name of the node attribute to order by.
-          example: normalized_google_distance
-          type: string
-        ascending_or_descending:
-          description: Indicates whether results should be sorted in ascending or
-            descending order.
-          enum:
-          - ascending
-          - descending
-          type: string
-        qnode_keys:
-          description: This indicates if you only want to consider nodes with specific
-            node_keys. If not provided or empty, all nodes will be looked at.
-          example:
-          - e01
-          items:
-            type: string
-          type: array
-      required:
-      - ascending_or_descending
-      - node_attribute
-      type: object
-    OperationSortResultsScore_parameters:
-      properties:
-        ascending_or_descending:
-          description: Indicates whether results should be sorted in ascending or
-            descending order.
-          enum:
-          - ascending
-          - descending
-          type: string
-      required:
-      - ascending_or_descending
-      type: object
+      - $ref: '#/$defs/OperationAnnotate'
+      - $ref: '#/$defs/OperationAnnotateEdges'
+      - $ref: '#/$defs/OperationAnnotateNodes'
+      - $ref: '#/$defs/OperationBind'
+      - $ref: '#/$defs/OperationCompleteResults'
+      - $ref: '#/$defs/OperationEnrichResults'
+      - $ref: '#/$defs/OperationFill'
+      - $ref: '#/$defs/OperationFilterKgraph'
+      - $ref: '#/$defs/OperationFilterKgraphContinuousKedgeAttribute'
+      - $ref: '#/$defs/OperationFilterKgraphDiscreteKedgeAttribute'
+      - $ref: '#/$defs/OperationFilterKgraphDiscreteKnodeAttribute'
+      - $ref: '#/$defs/OperationFilterKgraphOrphans'
+      - $ref: '#/$defs/OperationFilterKgraphPercentile'
+      - $ref: '#/$defs/OperationFilterKgraphStdDev'
+      - $ref: '#/$defs/OperationFilterKgraphTopN'
+      - $ref: '#/$defs/OperationFilterResults'
+      - $ref: '#/$defs/OperationFilterResultsTopN'
+      - $ref: '#/$defs/OperationLookup'
+      - $ref: '#/$defs/OperationLookupAndScore'
+      - $ref: '#/$defs/OperationOverlay'
+      - $ref: '#/$defs/OperationOverlayComputeJaccard'
+      - $ref: '#/$defs/OperationOverlayComputeNgd'
+      - $ref: '#/$defs/OperationOverlayConnectKnodes'
+      - $ref: '#/$defs/OperationOverlayFisherExactTest'
+      - $ref: '#/$defs/OperationRestate'
+      - $ref: '#/$defs/OperationScore'
+      - $ref: '#/$defs/OperationSortResults'
+      - $ref: '#/$defs/OperationSortResultsEdgeAttribute'
+      - $ref: '#/$defs/OperationSortResultsNodeAttribute'
+      - $ref: '#/$defs/OperationSortResultsScore'

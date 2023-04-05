@@ -86,6 +86,7 @@ class QNode(Model):
     def categories(self):
         """Gets the categories of this QNode.
 
+        These should be Biolink Model categories and are allowed to be of type 'abstract' or 'mixin' (only in QGraphs!). Use of 'deprecated' categories should be avoided.  # noqa: E501
 
         :return: The categories of this QNode.
         :rtype: List[str]
@@ -96,6 +97,7 @@ class QNode(Model):
     def categories(self, categories):
         """Sets the categories of this QNode.
 
+        These should be Biolink Model categories and are allowed to be of type 'abstract' or 'mixin' (only in QGraphs!). Use of 'deprecated' categories should be avoided.  # noqa: E501
 
         :param categories: The categories of this QNode.
         :type categories: List[str]
@@ -130,7 +132,7 @@ class QNode(Model):
     def constraints(self):
         """Gets the constraints of this QNode.
 
-        A list of contraints applied to a query node. If there are multiple items, they must all be true (equivalent to AND)  # noqa: E501
+        A list of constraints applied to a query node. If there are multiple items, they must all be true (equivalent to AND)  # noqa: E501
 
         :return: The constraints of this QNode.
         :rtype: List[AttributeConstraint]
@@ -141,7 +143,7 @@ class QNode(Model):
     def constraints(self, constraints):
         """Sets the constraints of this QNode.
 
-        A list of contraints applied to a query node. If there are multiple items, they must all be true (equivalent to AND)  # noqa: E501
+        A list of constraints applied to a query node. If there are multiple items, they must all be true (equivalent to AND)  # noqa: E501
 
         :param constraints: The constraints of this QNode.
         :type constraints: List[AttributeConstraint]

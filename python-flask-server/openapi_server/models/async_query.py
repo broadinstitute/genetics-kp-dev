@@ -6,13 +6,15 @@ from datetime import date, datetime  # noqa: F401
 from typing import List, Dict  # noqa: F401
 
 from openapi_server.models.base_model_ import Model
-from openapi_server.models.log_level import LogLevel
 from openapi_server.models.message import Message
+from openapi_server.models.one_of_log_level import OneOfLogLevel
+from openapi_server.models.one_ofobject import OneOfobject
 import re
 from openapi_server import util
 
-from openapi_server.models.log_level import LogLevel  # noqa: E501
 from openapi_server.models.message import Message  # noqa: E501
+from openapi_server.models.one_of_log_level import OneOfLogLevel  # noqa: E501
+from openapi_server.models.one_ofobject import OneOfobject  # noqa: E501
 import re  # noqa: E501
 
 class AsyncQuery(Model):
@@ -29,17 +31,17 @@ class AsyncQuery(Model):
         :param message: The message of this AsyncQuery.  # noqa: E501
         :type message: Message
         :param log_level: The log_level of this AsyncQuery.  # noqa: E501
-        :type log_level: LogLevel
+        :type log_level: OneOfLogLevel
         :param workflow: The workflow of this AsyncQuery.  # noqa: E501
-        :type workflow: List
+        :type workflow: OneOfobject
         :param submitter: The submitter of this AsyncQuery.  # noqa: E501
         :type submitter: str
         """
         self.openapi_types = {
             'callback': str,
             'message': Message,
-            'log_level': LogLevel,
-            'workflow': List,
+            'log_level': OneOfLogLevel,
+            'workflow': OneOfobject,
             'submitter': str
         }
 
@@ -125,7 +127,7 @@ class AsyncQuery(Model):
         The least critical level of logs to return  # noqa: E501
 
         :return: The log_level of this AsyncQuery.
-        :rtype: LogLevel
+        :rtype: OneOfLogLevel
         """
         return self._log_level
 
@@ -136,7 +138,7 @@ class AsyncQuery(Model):
         The least critical level of logs to return  # noqa: E501
 
         :param log_level: The log_level of this AsyncQuery.
-        :type log_level: LogLevel
+        :type log_level: OneOfLogLevel
         """
 
         self._log_level = log_level
@@ -148,7 +150,7 @@ class AsyncQuery(Model):
         List of workflow steps to be executed.  # noqa: E501
 
         :return: The workflow of this AsyncQuery.
-        :rtype: List
+        :rtype: OneOfobject
         """
         return self._workflow
 
@@ -159,7 +161,7 @@ class AsyncQuery(Model):
         List of workflow steps to be executed.  # noqa: E501
 
         :param workflow: The workflow of this AsyncQuery.
-        :type workflow: List
+        :type workflow: OneOfobject
         """
 
         self._workflow = workflow
