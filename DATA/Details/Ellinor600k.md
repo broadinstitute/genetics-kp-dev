@@ -1,4 +1,4 @@
-## Description of the Ellinor 600k Loss of Function Study
+## Description of the Ellinor 600k Loss of Function Variant Study
 
 # Paper
 - TBD 
