@@ -19,7 +19,7 @@
 | score_translator             | double    | - prob score for translator ranking
 | study_secondary_id           | int       | - FK to comb_study table
 | publication_ids              | varchar   | - array of PMIDs
-| has_qualifiers               | enum      | - if data is qualified (trapi 1.3)
+| has_qualifiers               | enum      | - if data is qualified (trapi 1.3)  - DEPRECATED
 | p_value                      | double    |
 | beta                         | double    |
 | standard_error               | double    |
