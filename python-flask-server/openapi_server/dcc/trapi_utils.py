@@ -31,7 +31,7 @@ PROVENANCE_INFORES_CLINVAR='infores:clinvar'
 PROVENANCE_INFORES_CLINGEN='infores:clingen'
 PROVENANCE_INFORES_GENCC='infores:gencc'
 PROVENANCE_INFORES_GENEBASS='infores:genebass'
-PROVENANCE_INFORES_RICHARDS='infores:richards'
+PROVENANCE_INFORES_RICHARDS='infores:regl'
 
 # provenance attributes
 # aggregator sources
