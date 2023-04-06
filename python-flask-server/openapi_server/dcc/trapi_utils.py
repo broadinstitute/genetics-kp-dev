@@ -5,6 +5,7 @@ import six
 import copy
 import os
 import time 
+import yaml 
 
 from openapi_server.models.message import Message
 from openapi_server.models.knowledge_graph import KnowledgeGraph
@@ -26,6 +27,22 @@ from openapi_server.dcc.creative_model import CreativeResult, CreativeEdge, Crea
 from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger, build_pubmed_ids, get_normalize_curies
 from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
 import openapi_server.dcc.query_builder as qbuilder
+
+# set up the logger
+log = get_logger("trapi_utils")
+
+# read trapi and biolink versions
+VERSION_BIOLINK = 0.1
+VERSION_TRAPI = 1.0
+with open("./openapi_server/openapi/openapi.yaml", "r") as stream:
+    try:
+        map_openapi = yaml.safe_load(stream)
+        VERSION_BIOLINK = map_openapi.get('info').get('x-translator').get('biolink-version')
+        VERSION_TRAPI = map_openapi.get('info').get('x-trapi').get('version')
+        # print(yaml.safe_load(stream))
+    except yaml.YAMLError as exc:
+        print(exc)
+log.info("Using biolink version: {} and trapi version: {}".format(VERSION_BIOLINK, VERSION_TRAPI))
 
 
 # infores
@@ -195,7 +212,7 @@ def build_results_creative(results_list, query_graph):
 
     # build out the message
     message = Message(results=results, query_graph=query_graph, knowledge_graph=knowledge_graph)
-    results_response = Response(message = message)
+    results_response = Response(message = message, schema_version=VERSION_TRAPI, biolink_version=VERSION_BIOLINK)
 
     # return
     return results_response
@@ -299,7 +316,7 @@ def build_results(results_list: list, query_graph) -> Response:
 
     # build out the message
     message: Message = Message(results=results, query_graph=query_graph, knowledge_graph=knowledge_graph)
-    results_response: Response = Response(message = message)
+    results_response: Response = Response(message = message, schema_version=VERSION_TRAPI, biolink_version=VERSION_BIOLINK)
 
     # return
     return results_response
