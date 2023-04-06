@@ -30,6 +30,7 @@ import openapi_server.dcc.query_builder as qbuilder
 
 # infores
 PROVENANCE_INFORES_KP_GENETICS='infores:genetics-data-provider'
+PROVENANCE_INFORES_KP_MOLEPRO='infores:molepro'
 PROVENANCE_INFORES_CLINVAR='infores:clinvar'
 PROVENANCE_INFORES_CLINGEN='infores:clingen'
 PROVENANCE_INFORES_GENCC='infores:gencc'
@@ -84,31 +85,44 @@ PROVENANCE_PRIMARY_GENEBASS = Attribute(value = PROVENANCE_INFORES_GENEBASS,
     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
 
 # new source structure
-SOURCE_AGGREGATOR_KP_GENETICS = RetrievalSource(resource_id=PROVENANCE_INFORES_KP_GENETICS,
+SOURCE_AGGREGATOR_KP_GENETICS = RetrievalSource(
+    resource_id=PROVENANCE_INFORES_KP_GENETICS,
     resource_role=ResourceRoleEnum.AGGREGATOR_KNOWLEDGE_SOURCE,
     source_record_urls=['https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/geneticsKp.md'])
-SOURCE_PRIMARY_KP_GENETICS = RetrievalSource(resource_id=PROVENANCE_INFORES_KP_GENETICS,
+SOURCE_PRIMARY_KP_GENETICS = RetrievalSource(
+    resource_id=PROVENANCE_INFORES_KP_GENETICS,
     resource_role=ResourceRoleEnum.PRIMARY_KNOWLEDGE_SOURCE,
     source_record_urls=['https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/magmaData.md'])
-SOURCE_PRIMARY_RICHARDS = RetrievalSource(resource_id=PROVENANCE_INFORES_RICHARDS,
+SOURCE_PRIMARY_KP_MOLEPRO = RetrievalSource(
+    resource_id=PROVENANCE_INFORES_KP_MOLEPRO,
+    resource_role=ResourceRoleEnum.PRIMARY_KNOWLEDGE_SOURCE,
+    source_record_urls=['https://github.com/broadinstitute/molecular-data-provider'])
+SOURCE_PRIMARY_RICHARDS = RetrievalSource(
+    resource_id=PROVENANCE_INFORES_RICHARDS,
     resource_role=ResourceRoleEnum.PRIMARY_KNOWLEDGE_SOURCE,
     source_record_urls=['https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/richardsList.md'])
-SOURCE_PRIMARY_CLINVAR = RetrievalSource(resource_id=PROVENANCE_INFORES_CLINVAR,
+SOURCE_PRIMARY_CLINVAR = RetrievalSource(
+    resource_id=PROVENANCE_INFORES_CLINVAR,
     resource_role=ResourceRoleEnum.PRIMARY_KNOWLEDGE_SOURCE,
     source_record_urls=['https://www.ncbi.nlm.nih.gov/clinvar/'])
-SOURCE_PRIMARY_CLINGEN = RetrievalSource(resource_id=PROVENANCE_INFORES_CLINGEN,
+SOURCE_PRIMARY_CLINGEN = RetrievalSource(
+    resource_id=PROVENANCE_INFORES_CLINGEN,
     resource_role=ResourceRoleEnum.PRIMARY_KNOWLEDGE_SOURCE,
     source_record_urls=['https://clinicalgenome.org/'])
-SOURCE_PRIMARY_GENCC = RetrievalSource(resource_id=PROVENANCE_INFORES_GENCC,
+SOURCE_PRIMARY_GENCC = RetrievalSource(
+    resource_id=PROVENANCE_INFORES_GENCC,
     resource_role=ResourceRoleEnum.PRIMARY_KNOWLEDGE_SOURCE,
     source_record_urls=['https://thegencc.org/'])
-SOURCE_PRIMARY_GENCC = RetrievalSource(resource_id=PROVENANCE_INFORES_GENEBASS,
+SOURCE_PRIMARY_GENCC = RetrievalSource(
+    resource_id=PROVENANCE_INFORES_GENEBASS,
     resource_role=ResourceRoleEnum.PRIMARY_KNOWLEDGE_SOURCE,
     source_record_urls=['https://genebass.org/'])
-SOURCE_PRIMARY_GENEBASS = RetrievalSource(resource_id=PROVENANCE_INFORES_GENEBASS,
+SOURCE_PRIMARY_GENEBASS = RetrievalSource(
+    resource_id=PROVENANCE_INFORES_GENEBASS,
     resource_role=ResourceRoleEnum.PRIMARY_KNOWLEDGE_SOURCE,
     source_record_urls=['https://genebass.org/'])
-SOURCE_PRIMARY_600k = RetrievalSource(resource_id=PROVENANCE_INFORES_KP_GENETICS,
+SOURCE_PRIMARY_600k = RetrievalSource(
+    resource_id=PROVENANCE_INFORES_KP_GENETICS,
     resource_role=ResourceRoleEnum.PRIMARY_KNOWLEDGE_SOURCE,
     source_record_urls=['https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/Ellinor600k.md'])
 
@@ -116,7 +130,7 @@ SOURCE_PRIMARY_600k = RetrievalSource(resource_id=PROVENANCE_INFORES_KP_GENETICS
 # build map for study types
 MAP_PROVENANCE = {1: PROVENANCE_PRIMARY_KP_GENETICS, 4: PROVENANCE_PRIMARY_RICHARDS, 5: PROVENANCE_PRIMARY_CLINGEN, 6: PROVENANCE_PRIMARY_CLINVAR, 7: PROVENANCE_PRIMARY_GENCC, 17: PROVENANCE_PRIMARY_GENEBASS}
 MAP_SOURCE = {1: SOURCE_PRIMARY_KP_GENETICS, 4: SOURCE_PRIMARY_RICHARDS, 5: SOURCE_PRIMARY_CLINGEN, 6: SOURCE_PRIMARY_CLINVAR, 7: SOURCE_PRIMARY_GENCC, 
-              17: SOURCE_PRIMARY_GENEBASS, 18: SOURCE_PRIMARY_600k}
+              17: SOURCE_PRIMARY_GENEBASS, 18: SOURCE_PRIMARY_600k, 99:SOURCE_PRIMARY_KP_MOLEPRO}
 
 
 def build_results_creative(results_list, query_graph):
@@ -138,7 +152,7 @@ def build_results_creative(results_list, query_graph):
         for edge_element in creative_result.list_edges:
 
             # build the provenance data
-            list_sources = get_retrieval_source_list(study_id=1)
+            list_sources = get_retrieval_source_list(list_study_id=[1, 99])
             list_attributes = []
 
             # add in the pvalue/probability if applicable
@@ -205,7 +219,7 @@ def build_results(results_list: list, query_graph) -> Response:
 
         # add the edge
         # build the provenance data
-        list_sources = get_retrieval_source_list(study_id=edge_element.study_type_id)
+        list_sources = get_retrieval_source_list(list_study_id=[edge_element.study_type_id])
 
         # add in the attributes
         list_attributes = []
@@ -291,7 +305,7 @@ def build_results(results_list: list, query_graph) -> Response:
     return results_response
 
 # TODO - write unit test
-def get_retrieval_source_list(study_id=None, log=False):
+def get_retrieval_source_list(list_study_id=None, log=False):
     '''
     will create the source retrieval list for the study id given
     '''
@@ -300,12 +314,18 @@ def get_retrieval_source_list(study_id=None, log=False):
     # add genetics KP as aggregator 
     source_aggregator = copy.deepcopy(SOURCE_AGGREGATOR_KP_GENETICS)
     list_sources.append(source_aggregator)
+    list_primary_ids = []
 
     # add in the primary source
-    source_primary = MAP_SOURCE.get(study_id)
-    if source_primary:
-        source_aggregator.upstream_resource_ids = [source_primary.resource_id]
-        list_sources.append(source_primary)
+    for study_id in list_study_id:
+        source_primary = MAP_SOURCE.get(study_id)
+        if source_primary:
+            list_primary_ids.append(source_primary.resource_id)
+            list_sources.append(source_primary)
+
+    # add the primary sources to the aggregator source
+    if list_primary_ids and len(list_primary_ids) > 0:
+        source_aggregator.upstream_resource_ids = list_primary_ids
 
     # return
     return list_sources
