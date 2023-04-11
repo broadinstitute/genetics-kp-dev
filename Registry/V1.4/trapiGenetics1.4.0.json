@@ -825,21 +825,20 @@
                 "example": {
                     "query_graph": {
                         "edges": {
-                          "e00": {
-                            "subject": "n01",
-                            "object": "n00"
-                          }
+                            "e00": {
+                                "subject": "n00",
+                                "object": "n01"
+                            }
                         },
                         "nodes": {
-                          "n00": {
-                            "categories": ["biolink:Gene"]
-                          },
-                          "n01": {
-                            "ids": ["MONDO:0020066"],
-                            "categories": ["biolink:DiseaseOrPhenotypicFeature"]
-                          }
+                            "n00": {
+                                "categories": ["biolink:Gene"]
+                            },
+                            "n01": {
+                                "ids": ["MONDO:0020066"],
+                                "categories": ["biolink:DiseaseOrPhenotypicFeature"]
+                            }
                         }
-                      }
                     }
                 },
                 "properties": {
