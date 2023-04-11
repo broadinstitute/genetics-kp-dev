@@ -153,6 +153,28 @@
                         "application/json": {
                             "schema": {
                                 "$ref": "#/components/schemas/Query"
+                            },
+                            "example": {
+                                "message": {
+                                    "query_graph": {
+                                      "edges": {
+                                        "e00": {
+                                          "subject": "n01",
+                                          "object": "n00"
+                                        }
+                                      },
+                                      "nodes": {
+                                        "n00": {
+                                          "categories": ["biolink:Gene"]
+                                        },
+                                        "n01": {
+                                          "ids": ["MONDO:0020066"],
+                                          "categories": ["biolink:DiseaseOrPhenotypicFeature"]
+                                        }
+                                      }
+                                    }
+                                  },
+                                  "workflow": [{"id": "lookup"}]
                             }
                         }
                     },
