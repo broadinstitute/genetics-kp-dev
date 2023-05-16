@@ -19,7 +19,7 @@ class QEdge(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, knowledge_type=None, predicates=None, subject=None, object=None, attribute_constraints=None, qualifier_constraints=None):  # noqa: E501
+    def __init__(self, knowledge_type=None, predicates=None, subject=None, object=None, attribute_constraints=[], qualifier_constraints=[]):  # noqa: E501
         """QEdge - a model defined in OpenAPI
 
         :param knowledge_type: The knowledge_type of this QEdge.  # noqa: E501
@@ -98,6 +98,7 @@ class QEdge(Model):
     def predicates(self):
         """Gets the predicates of this QEdge.
 
+        These should be Biolink Model predicates and are allowed to be of type 'abstract' or 'mixin' (only in QGraphs!). Use of 'deprecated' predicates should be avoided.  # noqa: E501
 
         :return: The predicates of this QEdge.
         :rtype: List[str]
@@ -108,10 +109,13 @@ class QEdge(Model):
     def predicates(self, predicates):
         """Sets the predicates of this QEdge.
 
+        These should be Biolink Model predicates and are allowed to be of type 'abstract' or 'mixin' (only in QGraphs!). Use of 'deprecated' predicates should be avoided.  # noqa: E501
 
         :param predicates: The predicates of this QEdge.
         :type predicates: List[str]
         """
+        if predicates is not None and len(predicates) < 1:
+            raise ValueError("Invalid value for `predicates`, number of items must be greater than or equal to `1`")  # noqa: E501
 
         self._predicates = predicates
 
@@ -169,7 +173,7 @@ class QEdge(Model):
     def attribute_constraints(self):
         """Gets the attribute_constraints of this QEdge.
 
-        A list of attribute contraints applied to a query edge. If there are multiple items, they must all be true (equivalent to AND)  # noqa: E501
+        A list of attribute constraints applied to a query edge. If there are multiple items, they must all be true (equivalent to AND)  # noqa: E501
 
         :return: The attribute_constraints of this QEdge.
         :rtype: List[AttributeConstraint]
@@ -180,7 +184,7 @@ class QEdge(Model):
     def attribute_constraints(self, attribute_constraints):
         """Sets the attribute_constraints of this QEdge.
 
-        A list of attribute contraints applied to a query edge. If there are multiple items, they must all be true (equivalent to AND)  # noqa: E501
+        A list of attribute constraints applied to a query edge. If there are multiple items, they must all be true (equivalent to AND)  # noqa: E501
 
         :param attribute_constraints: The attribute_constraints of this QEdge.
         :type attribute_constraints: List[AttributeConstraint]

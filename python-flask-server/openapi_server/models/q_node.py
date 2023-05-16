@@ -17,7 +17,7 @@ class QNode(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, ids=None, categories=None, is_set=False, constraints=None):  # noqa: E501
+    def __init__(self, ids=None, categories=None, is_set=False, constraints=[]):  # noqa: E501
         """QNode - a model defined in OpenAPI
 
         :param ids: The ids of this QNode.  # noqa: E501
@@ -79,6 +79,8 @@ class QNode(Model):
         :param ids: The ids of this QNode.
         :type ids: List[str]
         """
+        if ids is not None and len(ids) < 1:
+            raise ValueError("Invalid value for `ids`, number of items must be greater than or equal to `1`")  # noqa: E501
 
         self._ids = ids
 
@@ -86,6 +88,7 @@ class QNode(Model):
     def categories(self):
         """Gets the categories of this QNode.
 
+        These should be Biolink Model categories and are allowed to be of type 'abstract' or 'mixin' (only in QGraphs!). Use of 'deprecated' categories should be avoided.  # noqa: E501
 
         :return: The categories of this QNode.
         :rtype: List[str]
@@ -96,10 +99,13 @@ class QNode(Model):
     def categories(self, categories):
         """Sets the categories of this QNode.
 
+        These should be Biolink Model categories and are allowed to be of type 'abstract' or 'mixin' (only in QGraphs!). Use of 'deprecated' categories should be avoided.  # noqa: E501
 
         :param categories: The categories of this QNode.
         :type categories: List[str]
         """
+        if categories is not None and len(categories) < 1:
+            raise ValueError("Invalid value for `categories`, number of items must be greater than or equal to `1`")  # noqa: E501
 
         self._categories = categories
 
@@ -130,7 +136,7 @@ class QNode(Model):
     def constraints(self):
         """Gets the constraints of this QNode.
 
-        A list of contraints applied to a query node. If there are multiple items, they must all be true (equivalent to AND)  # noqa: E501
+        A list of constraints applied to a query node. If there are multiple items, they must all be true (equivalent to AND)  # noqa: E501
 
         :return: The constraints of this QNode.
         :rtype: List[AttributeConstraint]
@@ -141,7 +147,7 @@ class QNode(Model):
     def constraints(self, constraints):
         """Sets the constraints of this QNode.
 
-        A list of contraints applied to a query node. If there are multiple items, they must all be true (equivalent to AND)  # noqa: E501
+        A list of constraints applied to a query node. If there are multiple items, they must all be true (equivalent to AND)  # noqa: E501
 
         :param constraints: The constraints of this QNode.
         :type constraints: List[AttributeConstraint]

@@ -15,7 +15,7 @@ class OperationFilterKgraphStdDevParameters(Model):
     Do not edit the class manually.
     """
 
-    def __init__(self, edge_attribute=None, num_sigma=1, remove_above_or_below='below', plus_or_minus_std_dev='plus', qedge_keys=None, qnode_keys=None):  # noqa: E501
+    def __init__(self, edge_attribute=None, num_sigma=1, remove_above_or_below='below', plus_or_minus_std_dev='plus', qedge_keys=None, qnode_keys=[]):  # noqa: E501
         """OperationFilterKgraphStdDevParameters - a model defined in OpenAPI
 
         :param edge_attribute: The edge_attribute of this OperationFilterKgraphStdDevParameters.  # noqa: E501

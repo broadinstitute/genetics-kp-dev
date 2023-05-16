@@ -1,3 +1,6 @@
 
-java -jar ~/Apps/Libs/OpenAPI/openapi-generator-cli.jar generate -i TranslatorReasonersAPI.yaml -g python-flask -o python-flask-server
 
+# java -jar ~/Apps/Libs/OpenAPI/openapi-generator-cli.jar generate -i TranslatorReasonersAPI.yaml --skip-validate-spec -g python-flask -o python-flask-server
+# java -jar ~/Apps/Libs/OpenAPI/openapi-generator-cli.jar generate -i TranslatorReasonersAPI.yaml -g python-flask -o python-flask-server
+
+java -jar ~/Apps/Libs/OpenAPI/openapi-generator-cli-6.3.0.jar generate -i TranslatorReasonersAPI.yaml -g python-flask -o python-flask-server
