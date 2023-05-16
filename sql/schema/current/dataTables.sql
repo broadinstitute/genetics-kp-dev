@@ -98,3 +98,19 @@ create table comb_cache_curie (
 );
 alter table comb_cache_curie add index comb_cac_cur_idx (node_curie_id);
 
+
+-- new cached curie table 
+-- add index on searched synonym 
+drop table if exists comb_cache_ancestor_curie;
+create table comb_cache_ancestor_curie (
+  id                        int not null auto_increment primary key,
+  genepro_node_id,          int(9) not null,
+  genepro_curie_id          varchar(100) not null,
+  parent_curie_id           varchar(100) not null,
+  parent_node_name          varchar(1000),
+  date_created              datetime DEFAULT CURRENT_TIMESTAMP
+);
+alter table comb_cache_ancestor_curie add index comb_cac_anc_cur_nod_idx (genepro_node_id);
+alter table comb_cache_ancestor_curie add index comb_cac_anc_cur_par_idx (parent_curie_id);
+
+

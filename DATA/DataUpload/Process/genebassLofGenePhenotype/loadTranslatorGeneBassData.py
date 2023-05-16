@@ -7,6 +7,7 @@ import pymysql as mdb
 import requests 
 import numpy as np
 import math 
+import os
 
 # constants
 file_input = "/home/javaprog/Data/Broad/Translator/Genebass/Filtered/part-00000-2ff22837-6b57-4167-b3f8-f870919ba8cb-c000.csv"
@@ -14,9 +15,19 @@ list_filter_out_source = ['ClinGen']
 url_node_normalizer = "https://nodenormalization-sri.renci.org/1.1/get_normalized_nodes?curie={}"
 is_insert_data = True
 is_update_data = True
+DB_PASSWD = os.environ.get('DB_PASSWD')
+DB_SCHEMA = "tran_dataload"
 
 # methods
-# methods
+def get_connection():
+    ''' 
+    get the db connection 
+    '''
+    conn = mdb.connect(host='localhost', user='root', password=DB_PASSWD, charset='utf8', db=DB_SCHEMA)
+
+    # return
+    return conn 
+
 def calculate_abf(standard_error, effect_size, variance=0.396):
     ''' calculates the approximate bayes factor '''
     V = standard_error ** 2
@@ -73,6 +84,7 @@ def get_normalizer_data(curie_id, ontology, debug=True):
     # return
     return result_name, result_id
 
+
 # main program
 if __name__ == "__main__":
     # load the data and display
@@ -88,7 +100,7 @@ if __name__ == "__main__":
 
     # create connection
     # conn = mdb.connect(host='localhost', user='root', password='this aint no password', charset='utf8', db='tran_genepro')
-    conn = mdb.connect(host='localhost', user='root', password='yoyoma', charset='utf8', db='tran_dataload')
+    conn = get_connection()
     cur = conn.cursor()
 
     sql_insert = """insert into `data_genebass_gene_phenotype` (gene, phenotype_genebass, phenotype_ontology_id, pheno_num_genebass, pheno_coding_genebass,
