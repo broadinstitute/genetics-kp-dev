@@ -19,7 +19,7 @@ RUN pip3 install PyMySQL==0.10.1
 RUN pip3 install gunicorn
 RUN pip3 install pathlib
 RUN pip3 install swagger_ui_bundle
-RUN pip3 install flask==2.2.3
+RUN pip3 install flask==2.1.1
 RUN pip3 install connexion==2.7.0
 RUN pip3 install six==1.15.0
 RUN pip3 install openapi-spec-validator==0.2.9
