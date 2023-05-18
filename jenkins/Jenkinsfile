@@ -91,7 +91,7 @@ pipeline {
                     configFile(fileId: 'prepare.sh', targetLocation: 'prepare.sh')
                 ]){
                     script {
-                        sh '''
+                        sh '''#!/bin/bash
                         aws --region ${AWS_REGION} eks update-kubeconfig --name ${KUBERNETES_CLUSTER_NAME}
                         source prepare.sh
                         mv values-ncats.yaml translator-ops/ops/geneticskp/values-ncats.yaml
