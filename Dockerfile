@@ -1,4 +1,5 @@
-FROM python:3-alpine
+# FROM python:3-alpine
+FROM python:3.8-alpine
 
 LABEL author="Marc Duby, Broad Institute"
 LABEL description="The Flannick's Lab's TRAPI Genetics KP"
