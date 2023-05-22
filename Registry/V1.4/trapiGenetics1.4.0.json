@@ -49,6 +49,12 @@
     },
     "servers": [
         {
+            "description": "ITRB CI 1.4 server",
+            "x-maturity": "staging",
+            "x-location": "ITRB",
+            "url": "https://genetics-kp.ci.transltr.io/genetics_provider/trapi/v1.4"
+        },
+        {
             "description": "Genetics KP TRAPI 1.4 Development Server",
             "x-location": "Broad Institute",
             "x-maturity": "development",
