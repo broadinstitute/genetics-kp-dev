@@ -2,7 +2,7 @@
 # imports
 import pymysql as mdb
 import requests 
-
+import os
 
 # steps 
 # 1 - delete old cache and upkeep cache status table 
@@ -14,15 +14,25 @@ import requests
 # 4 - save for each 30 batch and mark curies as done 
 
 # constants 
+DB_PASSWD = os.environ.get('DB_PASSWD')
 DB_SCHEMA = "tran_test_202303"
+DB_TABLE_CURIE_LIST = "comb_cache_curie_list"
+DB_TABLE_CURIE_LINK = "comb_cache_curie_link"
 
 # sql statements
-SQL_DELETE_NODE = "delete from {}.comb_cache_ancestor_curie where genepro_node_id = {}"
+SQL_DELETE_STATEMENT = "delete from {}.{}"
+
+SQL_INSERT_CURIE = """
+    insert into {}.{} (curie_id, curie_name, is_genepro)
+    values(%s, %s, %s)
+    """.format(DB_SCHEMA, DB_TABLE_CURIE_LIST)
+
 SQL_INSERT_LINK = """
-    insert into {}.comb_cache_ancestor_curie (genepro_node_id, genepro_node_id, parent_curie_id, parent_node_name)
-    values({}, {}, {}, {})
-    """
-SQL_COUNT = "select count(id) from {}.comb_cache_ancestor_curie"
+    insert into {}.{}} (genepro_list_id, synonym_list_id, is_synonym, is_ancestor)
+    values(%s, %s, %s, %s)
+    """.format(DB_SCHEMA, DB_TABLE_CURIE_LINK)
+
+SQL_COUNT_STATEMENT = "select count(id) from {}.{}"
 
 
 def get_connection():
@@ -36,17 +46,17 @@ def clear_cache_table(conn, log=False):
     '''
     clears the existing cache table 
     '''
-
-
-def delete_rows_for_node_id(conn, node_id, log=False):
-    '''
-    deletes the entries for the given node_id
-    '''
-    # initialize
+    # get cursor
     cursor = conn.cursor()
 
-    # run the sql 
-    cursor.execute(SQL_DELETE_NODE.format(DB_SCHEMA, node_id))
+    # clear link table
+    cursor.execute(SQL_DELETE_STATEMENT.format(DB_SCHEMA, DB_TABLE_CURIE_LINK), ())
+
+    # clear list table
+    cursor.execute(SQL_DELETE_STATEMENT.format(DB_SCHEMA, DB_TABLE_CURIE_LIST), ())
+
+    # commit
+    conn.commit()
 
 
 def log_cache_entries(conn, log=False):
@@ -55,11 +65,17 @@ def log_cache_entries(conn, log=False):
     '''
     # intialize 
     count = 0
+    cursor = conn.cursor()
 
-    # run the sql
+    # count the list 
+    cursor.execute(SQL_COUNT_STATEMENT.format(DB_SCHEMA, DB_TABLE_CURIE_LIST))
+    results = cursor.fetchall()
+    print("have curie list of size: {}".format(results[0][0]))
 
-    # print 
-    print("the translator database: {} has cache row count of: {}".format(DB_SCHEMA, count))
+    # count the link
+    cursor.execute(SQL_COUNT_STATEMENT.format(DB_SCHEMA, DB_TABLE_CURIE_LINK))
+    results = cursor.fetchall()
+    print("have curie synonym link of size: {}".format(results[0][0]))
 
 
 

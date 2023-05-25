@@ -177,7 +177,7 @@ where id = 44469 and node_code = 'ChildObesity';
 
 -- | 44407 | Cancer                                   |           12 | NULL        | NULL             | Any cancer                                                                         |
 update comb_node_ontology set ontology_id = 'MONDO:0004992', node_type_id = (select type_id from comb_lookup_type where type_name = 'biolink:Disease'), 
-ontology_type_id = (select ontology_id from comb_ontology_type where ontology_name like 'MONDO%') 
+ontology_type_id = (select ontology_id from comb_ontology_type where ontology_name like 'MONDO%')
 where id = 44407 and node_code = 'Cancer';
 
 -- | 44408 | Dermatophytosis                          |           12 | NULL        | NULL             | Dermatophytosis                                                                    |

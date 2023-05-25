@@ -100,17 +100,27 @@ alter table comb_cache_curie add index comb_cac_cur_idx (node_curie_id);
 
 
 -- new cached curie table 
--- add index on searched synonym 
-drop table if exists comb_cache_ancestor_curie;
-create table comb_cache_ancestor_curie (
+drop table if exists comb_cache_curie_list;
+create table comb_curie_cache_link (
   id                        int not null auto_increment primary key,
-  genepro_node_id,          int(9) not null,
-  genepro_curie_id          varchar(100) not null,
-  parent_curie_id           varchar(100) not null,
-  parent_node_name          varchar(1000),
+  curie_id                  varchar(100) not null,
+  curie_name                varchar(1000) not null,
+  is_genepro                enum('N', 'Y') default 'Y',
   date_created              datetime DEFAULT CURRENT_TIMESTAMP
 );
-alter table comb_cache_ancestor_curie add index comb_cac_anc_cur_nod_idx (genepro_node_id);
-alter table comb_cache_ancestor_curie add index comb_cac_anc_cur_par_idx (parent_curie_id);
+
+
+-- add index on searched synonym 
+drop table if exists comb_cache_curie_link;
+create table comb_curie_cache_link (
+  id                        int not null auto_increment primary key,
+  genepro_list_id           int(9) not null,
+  synonym_list_id           int(9) not null,
+  is_synonym                enum('N', 'Y') default 'N',
+  is_ancestor               enum('N', 'Y') default 'N',
+  date_created              datetime DEFAULT CURRENT_TIMESTAMP
+);
+alter table comb_cache_curie_link add index comb_cac_cur_lnk_gen_idx (genepro_list_id);
+alter table comb_cache_curie_link add index comb_cac_cur_lnk_syn_idx (synonym_list_id);
 
 
