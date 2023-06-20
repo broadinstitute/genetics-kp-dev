@@ -18,6 +18,9 @@ ALTER TABLE infe_drug_gene CONVERT TO CHARACTER SET utf8mb4 COLLATE utf8mb4_unic
 -- indices
 alter table infe_drug_gene add index infe_drug_gene_gen_id_idx (gene_node_id);
 
+-- 20230620 - add predicate index
+alter table infe_drug_gene add index infe_drug_gene_pred_id_idx (predicate_biolink_id);
+
 -- populate table from the tran_upkeep schema data
 insert into infe_drug_gene
 (gene_node_id, gene_ontology_id, gene_code, drug_ontology_id, drug_name, drug_category_biolink_id, predicate_biolink_id)
