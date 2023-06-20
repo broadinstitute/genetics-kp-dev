@@ -531,7 +531,8 @@ def sub_query_creative(body, query_graph, request_body, log=False):
         # logger.info("running query for web query object: {}\n".format(web_request_object))
 
         # make sure it is not an unbounded query (that we have matched with at leat one source/target)
-        if len(web_request_object.get_list_source_id()) > 0 or len(web_request_object.get_list_target_id()) > 0:
+        # add in filter on biolink:affects predicate
+        if (len(web_request_object.get_list_source_id()) > 0 or len(web_request_object.get_list_target_id()) > 0) and 'biolink:affects' in web_request_object.get_edge_types():
             queries = qbuilder.build_creative_query(web_request_object, log=True)
 
             # if results
@@ -571,7 +572,7 @@ def sub_query_creative(body, query_graph, request_body, log=False):
                             pathway_gene = CreativeEdge(db_record['path_gene_row_id'], pathway, gene, 'biolink:has_part', None)
                             pathway_disease = CreativeEdge(db_record['path_disease_row_id'], pathway, disease, 'biolink:genetic_association', db_record['pathway_score'])
                             creative_result = CreativeResult(db_record['result_id'], gene, pathway, disease, drug, pathway_gene, gene_disease, pathway_disease, drug_gene, 
-                                                             web_request_object.get_edge_type(), web_request_object.get_edge_key())
+                                                             'biolink:affects', web_request_object.get_edge_key())
 
     # def __int__(self, row_id, gene, pathway, disease, drug, pathway_gene, gene_disease, pathway_disease, drug_gene):
 

@@ -248,9 +248,9 @@ def build_results_creative14(results_list, query_graph):
     creative_result: CreativeResult
     for index, creative_result in enumerate(results_list):
         # DEBUG
-        if index > 0:
-            print("{} - BREAK".format(index))
-            break
+        # if index > 0:
+        #     print("{} - BREAK".format(index))
+        #     break
 
         # initialize
         edge_binding_map = {}
@@ -278,7 +278,6 @@ def build_results_creative14(results_list, query_graph):
 
         # create the creative edge
         edge_creative: Edge = Edge(predicate=creative_result.predicate, subject=creative_result.drug.id, object=creative_result.disease.id, sources=[SOURCE_PRIMARY_KP_GENETICS])
-        print(edge_creative)
         edge_creative_id = "{}_creative".format(index)
         knowledge_graph.edges[edge_creative_id] = edge_creative
 
