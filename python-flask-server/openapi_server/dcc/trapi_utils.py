@@ -249,12 +249,13 @@ def build_results_creative14(results_list, query_graph):
     for index, creative_result in enumerate(results_list):
         # DEBUG
         if index > 0:
-            continue
+            print("{} - BREAK".format(index))
+            break
 
         # initialize
         edge_binding_map = {}
         node_binding_map = {}
-
+        list_aux_graph_edges = []
         # 1.4 - for each result, 
         # inferred edges go into auxiliary graph and referenced back to 
 
@@ -276,7 +277,8 @@ def build_results_creative14(results_list, query_graph):
         edge_element :CreativeEdge
 
         # create the creative edge
-        edge_creative: Edge = Edge(predicate=creative_result.predicate, subject=creative_result.drug, object=creative_result.disease, sources=[SOURCE_PRIMARY_KP_GENETICS])
+        edge_creative: Edge = Edge(predicate=creative_result.predicate, subject=creative_result.drug.id, object=creative_result.disease.id, sources=[SOURCE_PRIMARY_KP_GENETICS])
+        print(edge_creative)
         edge_creative_id = "{}_creative".format(index)
         knowledge_graph.edges[edge_creative_id] = edge_creative
 
@@ -284,25 +286,29 @@ def build_results_creative14(results_list, query_graph):
         edge_element = creative_result.drug_gene
         edge_drug_gene: Edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, attributes=create_list_attributes14(edge_element), sources=[SOURCE_PRIMARY_KP_MOLEPRO, SOURCE_AGGREGATOR_KP_GENETICS])
         knowledge_graph.edges[edge_element.edge_id] = edge_drug_gene
+        list_aux_graph_edges.append(edge_element.edge_id)
 
         # add in gene_disease edge
         edge_element = creative_result.gene_disease
         edge_gene_disease: Edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, attributes=create_list_attributes14(edge_element), sources=[SOURCE_PRIMARY_KP_GENETICS])
         knowledge_graph.edges[edge_element.edge_id] = edge_gene_disease
         score_result = edge_element.probability
+        list_aux_graph_edges.append(edge_element.edge_id)
 
         # add in gene_pathway edge
         edge_element = creative_result.pathway_gene
         edge_gene_pathway: Edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, attributes=create_list_attributes14(edge_element), sources=[SOURCE_PRIMARY_KP_GENETICS])
         knowledge_graph.edges[edge_element.edge_id] = edge_gene_pathway
+        list_aux_graph_edges.append(edge_element.edge_id)
 
         # add in pathway_disease edge
         edge_element = creative_result.pathway_disease
         edge_pathway_disease: Edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, attributes=create_list_attributes14(edge_element), sources=[SOURCE_PRIMARY_KP_GENETICS])
         knowledge_graph.edges[edge_element.edge_id] = edge_pathway_disease
+        list_aux_graph_edges.append(edge_element.edge_id)
 
         # create auxiliary_graphs map entry with all supporting edges
-        graph_aux = AuxiliaryGraph(edges=[edge_drug_gene, edge_gene_disease, edge_gene_pathway, edge_pathway_disease])
+        graph_aux = AuxiliaryGraph(edges=list_aux_graph_edges)
         graph_aux_id = "{}_graph_aux".format(index)
         auxiliary_graphs[graph_aux_id] = graph_aux
 
@@ -312,7 +318,7 @@ def build_results_creative14(results_list, query_graph):
 
         # in analyses, only add creative edge in edge_bindings
         edge_binding = EdgeBinding(id=edge_creative_id)
-        edge_binding_map[edge_element.query_edge_binding_key] = [edge_binding]
+        edge_binding_map[creative_result.edge_key] = [edge_binding]
 
         # add all nodes to knowledge_graph/nodes map
         for edge_element in creative_result.list_edges:
@@ -329,7 +335,8 @@ def build_results_creative14(results_list, query_graph):
 
         # add the analysis
         # in analyses, add genetics_kp as resource_id with score of gene probability
-        analysis = Analysis(resource_id=PROVENANCE_INFORES_KP_GENETICS, edge_bindings=edge_binding_map, score=score_result)
+        # analysis = Analysis(resource_id=PROVENANCE_INFORES_KP_GENETICS, edge_bindings=edge_binding_map, score=score_result)
+        analysis = Analysis(resource_id=PROVENANCE_INFORES_KP_GENETICS, edge_bindings=edge_binding_map, score=None)
 
         # add the bindings to the result
         results.append(Result(node_binding_map, analyses=[analysis]))
