@@ -49,7 +49,13 @@
     },
     "servers": [
         {
-            "description": "ITRB CI 1.4 server",
+            "description": "Genetics KP ITRB Test 1.4 server",
+            "x-maturity": "testing",
+            "x-location": "ITRB",
+            "url": "https://genetics-kp.test.transltr.io/genetics_provider/trapi/v1.4"
+        },
+        {
+            "description": "Genetics KP ITRB CI 1.4 server",
             "x-maturity": "staging",
             "x-location": "ITRB",
             "url": "https://genetics-kp.ci.transltr.io/genetics_provider/trapi/v1.4"

@@ -20,7 +20,7 @@ from openapi_server.models.attribute import Attribute
 from openapi_server import util
 
 from openapi_server.dcc.creative_model import CreativeResult, CreativeEdge, CreativeNode
-from openapi_server.dcc.trapi_utils import build_results, build_results_creative
+from openapi_server.dcc.trapi_utils import build_results, build_results_creative14
 from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger, build_pubmed_ids, get_normalize_curies
 from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
 import openapi_server.dcc.query_builder as qbuilder
@@ -525,12 +525,14 @@ def sub_query_creative(body, query_graph, request_body, log=False):
 
     # log
     logger.info("looping through queries for CREATIVE web query object list: {}\n".format(request_input))
+    web_request_object: GeneticsModel
     for web_request_object in request_input:
         # log
         # logger.info("running query for web query object: {}\n".format(web_request_object))
 
         # make sure it is not an unbounded query (that we have matched with at leat one source/target)
-        if len(web_request_object.get_list_source_id()) > 0 or len(web_request_object.get_list_target_id()) > 0:
+        # add in filter on biolink:affects predicate
+        if (len(web_request_object.get_list_source_id()) > 0 or len(web_request_object.get_list_target_id()) > 0) and 'biolink:affects' in web_request_object.get_edge_types():
             queries = qbuilder.build_creative_query(web_request_object, log=True)
 
             # if results
@@ -569,7 +571,8 @@ def sub_query_creative(body, query_graph, request_body, log=False):
                             gene_disease = CreativeEdge(db_record['gene_disease_row_id'], gene, disease, 'biolink:genetic_association', db_record['gene_score'])
                             pathway_gene = CreativeEdge(db_record['path_gene_row_id'], pathway, gene, 'biolink:has_part', None)
                             pathway_disease = CreativeEdge(db_record['path_disease_row_id'], pathway, disease, 'biolink:genetic_association', db_record['pathway_score'])
-                            creative_result = CreativeResult(db_record['result_id'], gene, pathway, disease, drug, pathway_gene, gene_disease, pathway_disease, drug_gene)
+                            creative_result = CreativeResult(db_record['result_id'], gene, pathway, disease, drug, pathway_gene, gene_disease, pathway_disease, drug_gene, 
+                                                             'biolink:affects', web_request_object.get_edge_key())
 
     # def __int__(self, row_id, gene, pathway, disease, drug, pathway_gene, gene_disease, pathway_disease, drug_gene):
 
@@ -628,7 +631,7 @@ def sub_query_creative(body, query_graph, request_body, log=False):
 
 
     # build the response
-    query_response = build_results_creative(results_list=genetics_results, query_graph=query_graph)
+    query_response = build_results_creative14(results_list=genetics_results, query_graph=query_graph)
 
     # tag and print the time elapsed
     end = time.time()

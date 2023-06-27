@@ -494,6 +494,9 @@ where path_disease.source_node_id = pathway.id and path_disease.target_node_id =
     # and path_disease.score < 0.0005 and (gene_disease.score < 0.000006 or gene_disease.score_translator > 0.7)
     # and pathway.node_type_id = 4 and gene.node_type_id = 2 and disease.node_type_id = 1
 
+    # new trapi 1.4 query with new pvalue/beta direction of effect
+
+
     if web_query_object.get_list_source_id():
         list_input = web_query_object.get_list_source_id()
         sql_string = add_in_in(sql=sql_string, term="gene.ontology_id", list_input=list_input, is_first=False)
