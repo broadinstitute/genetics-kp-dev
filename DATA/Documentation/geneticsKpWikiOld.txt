@@ -1,0 +1,78 @@
+[**Back to Home**](https://github.com/NCATSTranslator/NCATSTranslator.github.io/wiki)
+
+**Team Description**
+
+The Genetics Provider Team is composed of members from the Broad Institute's Flannick Lab. The lab's focus is on genetic association studies, teasing out signals from statistical analysis of population genetic studies. The Genetics KP REST server data includes gene to disease correlation measures, as well as the results of applying quatitative in silico methods such as the Richards and Magma algorithms to leverage multiple datasets.
+
+**_Team Members_**
+* Jason Flannick - Principal Investigator and Team Lead
+* Noel Burt -  Director, Operations and Development, Knowledge Portals
+* Marc Duby (mduby@broadinstitute.org) - Principal Software Engineer - (_contact with questions_)
+* Ryan Koesterer - Senior Computational Analyst
+* Maria Costanzo - Manager, Knowledge Portals
+
+**_Team Tools_** - (List all tools supported/maintained/created by this team. Each item must be a link within this wiki that takes the user to the tool page that includes a high level explanation what is this tool used for, link to SmartAPI registration which will give the metadata about the resource, and a how-to guide for the tools.) See example below.
+* [Genetics KP](https://smart-api.info/ui/99592dd5fc3a69d3ed27692f3f278e47): A tool to curate genetic associations for complex diseases, interpret their biological effects, and make these data available to the Translator project through the Translator API (trapi).
+
+**_Data Available_**
+The Genetics KP provides the following data
+* Richards method gene/phenotype associations
+  * Forgetta V, Jiang L, Vulpescu NA, et al. An Effector Index to Predict Causal Genes at GWAS Loci. Submitted for publication, 2020.
+        [BioRxiv](https://www.biorxiv.org/content/10.1101/2020.06.28.171561v1)
+
+* Magma gene/phenotype associations and Magma pathway/phenotype associations
+  * de Leeuw CA, et al. MAGMA: generalized gene-set analysis of GWAS data. PLoS Comput Biol. 2015 Apr 17;11(4):e1004219. doi: 10.1371/journal.pcbi.1004219.
+        PMID: 25885710
+        [software](https://ctg.cncr.nl/software/magma),
+        [paper](https://journals.plos.org/ploscompbiol/article?id=10.1371%2Fjournal.pcbi.1004219)
+
+* ABC method gene to phenotype associations
+  * Fulco JP, Nasser J., et al. Activity-by-contact model of enhancer-promoter regulation from thousands of CRISPR perturbations. 
+      Nat Genet. 2019 Dec;51(12):1664-1669.     
+      doi: 10.1038/s41588-019-0538-0.
+      PMID: 31784727
+      [paper](https://www.nature.com/articles/s41588-019-0538-0?proof=t)
+
+* Experimental Integrated Genetics method (Flannick Lab); under development
+
+
+# Interfaces
+
+## Translator Reasoner API
+
+https://translator.broadinstitute.org/genetics_provider/trapi/v1.1
+
+### Sample query POST input
+
+```
+  {
+    "message": {
+      "query_graph": {
+        "edges": {
+          "e00": {
+            "subject": "n00",
+            "object": "n01"
+          }
+        },
+        "nodes": {
+          "n00": {
+            "ids": ["ENSEMBL:ENSG00000133401"],
+            "categories": ["biolink:Gene"]
+          },
+          "n01": {
+            "categories": ["biolink:Disease"]
+          }
+        }
+      }
+    }
+  }
+```
+
+# Knowledge Sources
+
+Aggregated pValue calculations are based on a combination of the 
+[datasets listed](https://hugeamp.org:8000/datasets.html)
+
+# Source Code
+
+https://github.com/broadinstitute/genetics-kp-dev
