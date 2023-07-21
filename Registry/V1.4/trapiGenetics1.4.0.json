@@ -49,6 +49,12 @@
     },
     "servers": [
         {
+            "description": "Broad Production 1.4 server",
+            "x-maturity": "production",
+            "x-location": "ITRB",
+            "url": "https://genetics-kp.transltr.io/genetics_provider/trapi/v1.4"
+        },
+        {
             "description": "Genetics KP ITRB Test 1.4 server",
             "x-maturity": "testing",
             "x-location": "ITRB",
