@@ -2,11 +2,23 @@
 
 # Description
 
-We developed the Genetics Knowledge Provider (KP), a knowledge-centric data provider for computation based genetic association results, as part of the NCATS Biomedical Data Translator (“Translator”). The Genetics KP aims to (1) integrate Genome Widre Association Studies (GWAS) data sources in an unbiased way, and (2) provide a curated, unified framework for genetic associations to deepen our understanding of gene/disease biology. The Genetics KP takes advantage of broad access to disease specific GWAS datasets, portals, and computational tools, to integrate information available for diseases and their associated genes, including similarity-based connections. We follow a stringent procedure to avoid expert bias, including data scouting and recording data provenance, to create a unified framework for gene/disease associations. We bring to the Translator project computational genetics expertise, and using signal aggregating algorithms and tools to combine genetic signals across GWAS studies.
+We developed the Genetics Knowledge Provider (KP), a knowledge-centric data provider for computation based genetic association results, 
+as part of the NCATS Biomedical Data Translator (“Translator”). The Genetics KP aims to 
+* integrate Genome Wide Association Studies (GWAS) data sources in an unbiased way, and 
+* provide a curated, unified framework for genetic associations to deepen our understanding of gene/disease biology. 
 
-## Team Contact:
+The Genetics KP takes advantage of broad access to disease specific GWAS datasets, portals, and computational tools, 
+to integrate information available for diseases and their associated genes, including similarity-based connections. We follow a stringent 
+procedure to avoid expert bias, including data scouting and recording data provenance, to create a unified framework for gene/disease associations. 
 
-mduby@broadinstitute.org
+We bring to the Translator project computational genetics expertise, and using signal aggregating algorithms and tools to combine genetic signals across GWAS studies.
+
+#_Team Members_
+* Jason Flannick - Principal Investigator and Team Lead
+* Noel Burt -  Director, Operations and Development, Knowledge Portals
+* Marc Duby (mduby@broadinstitute.org) - Principal Software Engineer - (_contact with questions_)
+* Ryan Koesterer - Senior Computational Analyst
+* Maria Costanzo - Manager, Knowledge Portals
 
 # Interfaces
 
@@ -16,37 +28,24 @@ https://genetics-kp.test.transltr.io/genetics_provider/trapi/v1.4/
 
 # Knowledge Sources
 
-* _PubChem_ https://pubchem.ncbi.nlm.nih.gov/
-* _ChEMBL_ https://www.ebi.ac.uk/chembl/
-* _DrugBank_	https://www.drugbank.ca/	
-* _ChemBank_	http://chembank.broadinstitute.org/	
-* _ChEBI_	https://www.ebi.ac.uk/chebi	
-* _Drug Repurposing Hub_	https://clue.io/repurposing	
-* _DGIdb_	http://dgidb.org/	
-* _GtoPdb_	https://www.guidetopharmacology.org/	
-* _HMDB_	https://www.hmdb.ca/	
-* _Inxight:Drugs_	https://drugs.ncats.io/	
-* _STITCH_	http://stitch.embl.de	
-* _RxNorm_	https://www.nlm.nih.gov/research/umls/rxnorm/index.html	
-* _DrugCentral_	http://drugcentral.org/privacy	
-* _CMAP_	https://clue.io/	
-* _CTRP_	http://portals.broadinstitute.org/ctrp/	
-* _CTD_         http://ctdbase.org/
-* _ProbeMiner_  https://probeminer.icr.ac.uk/#/
-* _BiGG Models_ http://bigg.ucsd.edu/
-* _DepMap_	https://depmap.org/portal/	
-* _BigGIM_	http://biggim.ncats.io/api/	
-* _MSigDB_	https://www.gsea-msigdb.org/gsea/msigdb/index.jsp	
-* _STRING_	https://string-db.org/	
+* _Genebass_ https://app.genebass.org/
+* _GenCC_ https://thegencc.org/
+* _ClinVar_	https://www.ncbi.nlm.nih.gov/clinvar/
+* _ClinGen_	https://clinicalgenome.org/
+* _GWAS Dataset List_ https://hugeamp.org:8000/datasets.html
 
+# Computational Tools
 
-For additional details about ingested data source see [Catalog of MolePro knowledge sources](https://translator.broadinstitute.org/molecular_data_provider/transformers) (JSON formatted output).
+* _Magma_ https://ctg.cncr.nl/software/magma
+
 
 # Source Code
 
-[![MolePro](https://img.shields.io/github/stars/broadinstitute/molecular-data-provider?label=molecular-data-provider&style=social)](https://github.com/broadinstitute/molecular-data-provider)
+* _GeneticsKP_ https://github.com/broadinstitute/genetics-kp-dev
 
 # External Documentation
 
-[Additional MolePro documentation in GitGub](https://github.com/broadinstitute/molecular-data-provider)
+* _Additional Genetics KP documentation in GitGub_ https://github.com/broadinstitute/genetics-kp-dev
+* _Gene Level Meta Analysis Method_ https://hugeamp.org:8000/help.html?page=955
+* _Calculating Gene/Disease Probability Method_ https://hugeamp.org:8000/help.html?page=961
 
