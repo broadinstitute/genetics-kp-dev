@@ -3,7 +3,7 @@
 import openapi_server.dcc.result_utils as rutils
 
 # constants
-url_trapi_service = "https://translator.broadinstitute.org/genetics_provider/trapi/v1.3/{}"
+url_trapi_service = "https://translator.broadinstitute.org/genetics_provider/trapi/v1.4/{}"
 
 # tests
 def test_query_api():
@@ -54,10 +54,10 @@ def test_primary_knowledge_sources_for_edge():
     # test
     for (name, edge) in list_edges:
         # get the attributes amd make sure one is a primary KS
-        list_attributes = edge.get('attributes')
+        list_attributes = edge.get('sources')
         has_primary = False
         for attribute in list_attributes:
-            if attribute.get('attribute_type_id') == 'biolink:primary_knowledge_source':
+            if attribute.get('resource_role') == 'primary_knowledge_source':
                 has_primary = True
                 break
         assert has_primary
