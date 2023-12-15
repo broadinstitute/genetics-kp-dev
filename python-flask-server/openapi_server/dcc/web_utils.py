@@ -442,9 +442,18 @@ def sub_query_lookup(body, query_graph, request_body, log=False):
                             publications = record[11]
                             score_translator = record[12]
                             id_db_edge = record[13]
-                            probability = None
-                            pValue = None 
-                            beta = None 
+
+                            # TODO - add when direction of effect is ready to go
+                            # pValue = record[14]
+                            # beta = record[15]
+                            # standardError = record[16]
+                            # probability = record[17]
+                            # probability_bayes = record[18]
+
+                            # # replace probability with bayes probability if available
+                            # if probability_bayes:
+                            #     probability = probability_bayes
+                            # TODO - add when direction of effect is ready to go
 
 
                             # 20230213 - add qualifiers is available
