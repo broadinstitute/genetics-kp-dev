@@ -27,10 +27,10 @@ try:
     from opentelemetry.instrumentation.requests import RequestsInstrumentor
     # from opentelemetry.instrumentation.pymysql import PyMySQLInstrumentor
     OTEL_ENABLED = True
-    logger.info("OPENTELEMETRY imported")
+    logger.info("OPENTELEMETRY imported; OTEL_ENABLED set to: {}".format(OTEL_ENABLED))
 except ImportError:
     OTEL_ENABLED = False
-    logger.info("OPENTELEMETRY import FAILED")
+    logger.info("OPENTELEMETRY import FAILED; OTEL_ENABLED set to: {}".format(OTEL_ENABLED))
 
 
 # def main():
@@ -49,8 +49,8 @@ app.add_api('openapi.yaml',
             arguments={'title': 'Genetics Data Provider for NCATS Biomedical Translator Reasoners'},
             pythonic_params=True)
 
-def load_otel():
-    if OTEL_ENABLED:
+def load_otel(otel_enabled=False):
+    if otel_enabled:
         logger.info('About to instrument app for OTEL')
 
         # set the service name for our trace provider
@@ -80,7 +80,8 @@ def load_otel():
 def main():
     # start open telemetry
     if not IS_DEV:
-        load_otel()
+        logger.info("initializing opentelemetry with OTEL_ENABLED set to: {}".format(OTEL_ENABLED))
+        load_otel(otel_enabled=OTEL_ENABLED)
 
     # config
     network_port = os.environ.get('FLASK_PORT')
