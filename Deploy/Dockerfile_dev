@@ -21,6 +21,12 @@ RUN pip3 install connexion==2.7.0
 RUN pip3 install six==1.15.0
 RUN pip3 install openapi-spec-validator==0.2.9
 
+# opentelemetry
+RUN pip3 install opentelemetry-sdk==1.22.0
+RUN pip3 install opentelemetry-instrumentation-flask==0.43b0
+RUN pip3 install opentelemetry-exporter-jaeger==1.21.0
+RUN pip3 install opentelemetry-instrumentation-requests==0.43b0
+
 # get/set the environment variables
 # NOTE: set this below checkout code to speed up testing (can use cached tag for checkout)
 ARG fl_port
