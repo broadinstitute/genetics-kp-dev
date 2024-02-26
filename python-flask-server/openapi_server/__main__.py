@@ -54,16 +54,11 @@ def load_otel():
         logger.info('About to instrument app for OTEL')
 
         # set the service name for our trace provider
-        # this will tag every trace with the service name given
-        # otel_service_name = app.config.get('OTEL_SERVICE_NAME', 'GeneticsKP')
-        otel_service_name = 'GeneticsKP'
+        otel_service_name = 'genetics-data-provider'
         tp = TracerProvider(
                 resource=Resource.create({telemetery_service_name_key: otel_service_name})
             )
         # create an exporter to jaeger
-        # jaeger_host = app.config.get('JAEGER_HOST', 'jaeger-otel-agent.sri')
-        # jaeger_port = app.config.get('JAEGER_PORT', 6831)
-        # deployment_env = app.config.get('DEPLOYMENT_ENV', 'dev')
         jaeger_host = 'jaeger-otel-agent.sri'
         jaeger_port = 6831
         jaeger_exporter = JaegerExporter(
