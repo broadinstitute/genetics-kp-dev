@@ -79,6 +79,7 @@ def load_otel(otel_enabled=False):
 
 def main():
     # start open telemetry
+    print("in main(), IS_DEV set to: {}".format(IS_DEV))
     if not IS_DEV:
         logger.info("initializing opentelemetry with OTEL_ENABLED set to: {}".format(OTEL_ENABLED))
         load_otel(otel_enabled=OTEL_ENABLED)
