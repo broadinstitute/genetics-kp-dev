@@ -33,23 +33,8 @@ except ImportError:
     logger.info("OPENTELEMETRY import FAILED; OTEL_ENABLED set to: {}".format(OTEL_ENABLED))
 
 
-# def main():
-#     app = connexion.App(__name__, specification_dir='./openapi/')
-#     app.app.json_encoder = encoder.JSONEncoder
-#     app.add_api('openapi.yaml',
-#                 arguments={'title': 'Genetics Data Provider for NCATS Biomedical Translator Reasoners'},
-#                 pythonic_params=True)
-
-#     app.run(port=8080)
-
-
-app = connexion.App(__name__, specification_dir='./openapi/')
-app.app.json_encoder = encoder.JSONEncoder
-app.add_api('openapi.yaml',
-            arguments={'title': 'Genetics Data Provider for NCATS Biomedical Translator Reasoners'},
-            pythonic_params=True)
-
-def load_otel(otel_enabled=False):
+# methods
+def load_otel(gen_app, otel_enabled=False):
     if otel_enabled:
         logger.info('About to instrument app for OTEL')
 
@@ -72,26 +57,40 @@ def load_otel(otel_enabled=False):
         trace.set_tracer_provider(
             tp
         )
-        otel_excluded_urls = 'health,api/health,api/dev/.*'
-        FlaskInstrumentor().instrument_app(app.app, excluded_urls=otel_excluded_urls)
+        otel_excluded_urls = 'api/dev/.*'
+        FlaskInstrumentor().instrument_app(gen_app.app, excluded_urls=otel_excluded_urls)
         RequestsInstrumentor().instrument()
         logger.info('Finished instrumenting app for OTEL')
 
 def main():
-    # start open telemetry
-    print("in main(), IS_DEV set to: {}".format(IS_DEV))
-    if not IS_DEV:
-        logger.info("initializing opentelemetry with OTEL_ENABLED set to: {}".format(OTEL_ENABLED))
-        load_otel(otel_enabled=OTEL_ENABLED)
-
     # config
     network_port = os.environ.get('FLASK_PORT')
     app.run(port=network_port)
 
+# def main():
+#     app = connexion.App(__name__, specification_dir='./openapi/')
+#     app.app.json_encoder = encoder.JSONEncoder
+#     app.add_api('openapi.yaml',
+#                 arguments={'title': 'Genetics Data Provider for NCATS Biomedical Translator Reasoners'},
+#                 pythonic_params=True)
+
+#     app.run(port=8080)
 
 
+# run by gunicorn (doesn't enter main)
+app = connexion.App(__name__, specification_dir='./openapi/')
+app.app.json_encoder = encoder.JSONEncoder
+app.add_api('openapi.yaml',
+            arguments={'title': 'Genetics Data Provider for NCATS Biomedical Translator Reasoners'},
+            pythonic_params=True)
+
+# start open telemetry
+if not IS_DEV:
+    logger.info("initializing opentelemetry with OTEL_ENABLED set to: {}".format(OTEL_ENABLED))
+    load_otel(gen_app=app, otel_enabled=OTEL_ENABLED)
 
 
+# main
 if __name__ == '__main__':
     main()
 
