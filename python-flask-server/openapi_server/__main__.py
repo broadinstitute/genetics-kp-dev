@@ -57,7 +57,8 @@ def load_otel(gen_app, otel_enabled=False):
         trace.set_tracer_provider(
             tp
         )
-        otel_excluded_urls = 'api/dev/.*'
+        # otel_excluded_urls = 'api/dev/.*'
+        otel_excluded_urls = 'ui/.*'
         FlaskInstrumentor().instrument_app(gen_app.app, excluded_urls=otel_excluded_urls)
         RequestsInstrumentor().instrument()
         logger.info('Finished instrumenting app for OTEL')
