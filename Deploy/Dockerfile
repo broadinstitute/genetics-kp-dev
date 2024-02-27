@@ -19,12 +19,16 @@ RUN pip3 install PyMySQL==0.10.1
 RUN pip3 install gunicorn
 RUN pip3 install pathlib
 RUN pip3 install swagger_ui_bundle==0.0.9
-# RUN pip3 install connexion[swagger-ui]==2.7.0
 RUN pip3 install connexion==2.14.1
-# RUN pip3 install flask==2.1.1
 RUN pip3 install flask==2.2.5
 RUN pip3 install six==1.15.0
 RUN pip3 install openapi-spec-validator==0.2.9
+
+# opentelemetry
+RUN pip3 install opentelemetry-sdk==1.22.0
+RUN pip3 install opentelemetry-instrumentation-flask==0.43b0
+RUN pip3 install opentelemetry-exporter-jaeger==1.21.0
+RUN pip3 install opentelemetry-instrumentation-requests==0.43b0
 
 # get/set the environment variables
 # NOTE: set this below checkout code to speed up testing (can use cached tag for checkout)
