@@ -1,7 +1,7 @@
 openapi: 3.0.1
 info:
   description: Genetics Data Provider for NCATS Biomedical Translator Reasoners
-  version: 1.5.0.0
+  version: 1.4.0.0
   title: Genetics Data Provider for NCATS Biomedical Translator Reasoners
   contact:
     email: mduby@broadinstitute.org
@@ -15,7 +15,7 @@ info:
     component: KP
     team:
       - Genetics Data Provider
-    biolink-version: 4.1.6
+    biolink-version: 3.2.0
     infores: "infores:genetics-data-provider"
     externalDocs:
       description: >-
@@ -24,11 +24,10 @@ info:
       url: https://github.com/NCATSTranslator/translator_extensions/blob/\
         production/x-translator/
   x-trapi:
-    version: 1.5.0
+    version: 1.4.0
     asyncquery: false
     operations:
       - lookup
-    batch_size_limit: 100000
     test_data_location: https://github.com/broadinstitute/genetics-kp-dev/blob/master/TestData
     externalDocs:
       description: >-
@@ -37,8 +36,8 @@ info:
       url: https://github.com/NCATSTranslator/translator_extensions/blob/\
         production/x-trapi/
 servers:
-  - url: https://translator.broadinstitute.org/genetics_provider/trapi/v1.5
-    description: TRAPI development service for the Translator Genetics Data Provider
+  - url: https://translator.broadinstitute.org/genetics_provider/trapi/v1.3
+    description: TRAPI production service for the Translator Genetics Data Provider
     x-maturity: development
 externalDocs:
   description: >-
@@ -255,9 +254,7 @@ components:
       type: object
       properties:
         message:
-          oneOf:
-            - $ref: '#/components/schemas/Message'
-          nullable: false
+          $ref: '#/components/schemas/Message'
           description: >-
             The query Message is a serialization of the user request. Content
             of the Message object depends on the intended TRAPI operation. For
@@ -272,7 +269,7 @@ components:
         workflow:
           description: List of workflow steps to be executed.
           oneOf:
-            - $ref: https://standards.ncats.io/workflow/1.3.5/schema
+            - $ref: http://standards.ncats.io/workflow/1.3.2/schema
           nullable: true
         submitter:
           type: string
@@ -281,31 +278,7 @@ components:
             purpose of this optional field is to aid in the tracking of
             the source of queries for development and issue resolution.
           nullable: true
-        bypass_cache:
-          type: boolean
-          default: false
-          description: >-
-            Set to true in order to request that the agent obtain
-            fresh information from its sources in all cases where
-            it has a viable choice between requesting fresh information
-            in real time and using cached information. The agent
-            receiving this flag MUST also include it in TRAPI sent to
-            downstream sources (e.g., ARS -> ARAs -> KPs -> NodeNorm).
       additionalProperties: true
-      example:
-        message:
-          query_graph:
-            edges:
-              e00:
-                subject: n00
-                predicates: ['biolink:affects']
-                object: n01
-            nodes:
-              n00:
-                ids: ['PUBCHEM.COMPOUND:2244']
-                categories: ['biolink:SmallMolecule']
-              n01:
-                categories: ['biolink:Gene']
       required:
         - message
     AsyncQuery:
@@ -317,7 +290,6 @@ components:
       properties:
         callback:
           type: string
-          nullable: false
           format: uri
           pattern: ^https?://
           description: >-
@@ -330,9 +302,7 @@ components:
             does not succeed, the server SHOULD retry the POST at least
             once.
         message:
-          oneOf:
-            - $ref: '#/components/schemas/Message'
-          nullable: false
+          $ref: '#/components/schemas/Message'
           description: >-
             The query Message is a serialization of the user request. Content
             of the Message object depends on the intended TRAPI operation. For
@@ -347,7 +317,7 @@ components:
         workflow:
           description: List of workflow steps to be executed.
           oneOf:
-            - $ref: https://standards.ncats.io/workflow/1.3.5/schema
+            - $ref: http://standards.ncats.io/workflow/1.3.2/schema
           nullable: true
         submitter:
           type: string
@@ -356,16 +326,6 @@ components:
             purpose of this optional field is to aid in the tracking of
             the source of queries for development and issue resolution.
           nullable: true
-        bypass_cache:
-          type: boolean
-          default: false
-          description: >-
-            Set to true in order to request that the agent obtain
-            fresh information from its sources in all cases where
-            it has a viable choice between requesting fresh information
-            in real time and using cached information. The agent
-            receiving this flag MUST also include it in TRAPI sent to
-            downstream sources (e.g., ARS -> ARAs -> KPs -> NodeNorm).
       additionalProperties: true
       required:
         - callback
@@ -431,7 +391,6 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LogEntry'
-          minItems: 1
           nullable: false
         response_url:
           description: >-
@@ -459,9 +418,7 @@ components:
           description: >-
             Contains the knowledge of the response (query graph, knowledge
             graph, and results).
-          oneOf:
-            - $ref: '#/components/schemas/Message'
-          nullable: false
+          $ref: '#/components/schemas/Message'
         status:
           description: >-
             One of a standardized set of short codes,
@@ -482,23 +439,20 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/LogEntry'
-          minItems: 0
-          nullable: false
+          nullable: true
         workflow:
           description: List of workflow steps that were executed.
           oneOf:
-            - $ref: https://standards.ncats.io/workflow/1.3.5/schema
+            - $ref: http://standards.ncats.io/workflow/1.3.2/schema
           nullable: true
         schema_version:
           type: string
           example: 1.4.0
           description: Version label of the TRAPI schema used in this document
-          nullable: true
         biolink_version:
           type: string
           example: 3.1.2
           description: Version label of the Biolink model used in this document
-          nullable: true
       additionalProperties: true
       required:
         - message
@@ -518,16 +472,11 @@ components:
           description: >-
             List of all returned Result objects for the query posed.
             The list SHOULD NOT be assumed to be ordered. The 'score' property,
-            if present, MAY be used to infer result rankings. If Results are
-            not expected (such as for a query Message), this property SHOULD
-            be null or absent. If Results are expected (such as for a response
-            Message) and no Results are available, this property SHOULD be an
-            array with 0 Results in it.
+             if present, MAY be used to infer result rankings.
           type: array
           items:
             $ref: '#/components/schemas/Result'
           nullable: true
-          minItems: 0
         query_graph:
           description: >-
             QueryGraph object that contains a serialization of a query in the
@@ -549,8 +498,7 @@ components:
             Graph Edges and Result Analyses. These are referenced elsewhere by
             the dictionary key.
           additionalProperties:
-            $ref: '#/components/schemas/AuxiliaryGraph'
-          nullable: true
+            $ref: '#components/schemas/AuxiliaryGraph'
       additionalProperties: false
     LogEntry:
       description: >-
@@ -608,7 +556,8 @@ components:
         A Result object specifies the nodes and edges in the knowledge graph
         that satisfy the structure or conditions of a user-submitted query
         graph. It must contain a NodeBindings object (list of query graph node
-        to knowledge graph node mappings) and a list of Analysis objects.
+        to knowledge graph node mappings) and an EdgeBindings object (list of
+        query graph edge to knowledge graph edge mappings).
       properties:
         node_bindings:
           type: object
@@ -623,8 +572,6 @@ components:
             type: array
             items:
               $ref: '#/components/schemas/NodeBinding'
-            minItems: 1
-          nullable: false 
         analyses:
           type: array
           description: >-
@@ -632,8 +579,6 @@ components:
             See below for Analysis components.
           items:
             $ref: '#/components/schemas/Analysis'
-          minItems: 0
-          nullable: false 
       additionalProperties: true
       required:
         - node_bindings
@@ -649,9 +594,7 @@ components:
           Binding must bind directly to node in the original Query Graph.
       properties:
         id:
-          oneOf:
-            - $ref: '#/components/schemas/CURIE'
-          nullable: false
+          $ref: '#/components/schemas/CURIE'
           description: >-
             The CURIE of a Node within the Knowledge Graph.
         query_id:
@@ -677,12 +620,10 @@ components:
             result.
           items:
             $ref: '#/components/schemas/Attribute'
-          minItems: 0
-          nullable: false
+          nullable: true
       additionalProperties: true
       required:
         - id
-        - attributes
     Analysis:
       type: object
       description: >-
@@ -760,7 +701,6 @@ components:
         id:
           type: string
           description: The key identifier of a specific KnowledgeGraph Edge.
-          nullable: false
         attributes:
           type: array
           description: >-
@@ -770,12 +710,10 @@ components:
             result.
           items:
             $ref: '#/components/schemas/Attribute'
-          minItems: 0
-          nullable: false
+          nullable: true
       additionalProperties: true
       required:
         - id
-        - attributes
     AuxiliaryGraph:
       type: object
       description: >-
@@ -802,12 +740,10 @@ components:
             Attributes of the Auxiliary Graph
           items:
             $ref: '#/components/schemas/Attribute'
-          minItems: 0
-          nullable: false
+          nullable: true
       additionalProperties: true
       required:
         - edges
-        - attributes
     KnowledgeGraph:
       type: object
       description: >-
@@ -888,22 +824,20 @@ components:
             $ref: '#/components/schemas/BiolinkEntity'
           minItems: 1
           nullable: true
-        set_interpretation:
-          type: string
+        is_set:
+          type: boolean
           description: >-
-            Indicates how multiple CURIEs in the ids property MUST be
-            interpreted. BATCH indicates that the query is intended to be
-            a batch query and each CURIE is treated independently. ALL means
-            that all specified CURIES MUST appear in each Result.
-            MANY means that member CURIEs MUST form one or more
-            sets in the Results, and sets with more members are generally
-            considered more desirable that sets with fewer members.
-            If this property is missing or null, the default is BATCH.
-          enum:
-            - BATCH
-            - ALL
-            - MANY
-          nullable: true
+            Boolean that if set to true, indicates that this QNode MAY have
+            multiple KnowledgeGraph Nodes bound to it within each Result.
+            The nodes in a set should be considered as a set of independent
+            nodes, rather than a set of dependent nodes, i.e., the answer
+            would still be valid if the nodes in the set were instead returned
+            individually. Multiple QNodes may have is_set=True. If a QNode
+            (n1) with is_set=True is connected to a QNode (n2) with
+            is_set=False, each n1 must be connected to n2. If a QNode (n1)
+            with is_set=True is connected to a QNode (n2) with is_set=True,
+            each n1 must be connected to at least one n2.
+          default: false
         constraints:
           type: array
           description: >-
@@ -1009,25 +943,13 @@ components:
             categories should also be avoided.
           items:
             $ref: '#/components/schemas/BiolinkEntity'
-          minItems: 1
-          nullable: false
+          nullable: true
         attributes:
           type: array
           description: A list of attributes describing the node
           items:
             $ref: '#/components/schemas/Attribute'
-          minItems: 0
-          nullable: false
-        is_set:
-          type: boolean
-          description: >-
-            Indicates that the node represents a set of entities.
-            If this property is missing or null, it is assumed to be
-            false.
-          nullable: true        
-      required:
-        - categories
-        - attributes
+          nullable: true
       additionalProperties: false
     Attribute:
       type: object
@@ -1370,6 +1292,8 @@ components:
           nullable: true
           type: array
         association:
+          type: object
+          $ref: '#/components/schemas/BiolinkEntity'
           description: >-
             The Biolink association type (entity) that this edge represents.
             Associations are classes in Biolink
@@ -1380,8 +1304,7 @@ components:
             is filled out, then the testing harness can
             help validate that the qualifiers are being used
             correctly.
-          example: 'biolink:ChemicalToGeneAssociation'
-          $ref: '#/components/schemas/BiolinkEntity'
+          example: biolink:ChemicalToGeneAssociation
       required:
         - subject
         - predicate
@@ -1559,7 +1482,6 @@ components:
             'aggregator' or 'supporting data' sources.
         upstream_resource_ids:
           type: array
-          nullable: true
           items:
             $ref: '#/components/schemas/CURIE'
           description: >-
@@ -1574,7 +1496,6 @@ components:
           example: [infores:automat-mychem-info, infores:molepro]
         source_record_urls:
           type: array
-          nullable: true
           items: 
             type: string
           description: >-
