@@ -150,6 +150,18 @@ MAP_PROVENANCE = {1: PROVENANCE_PRIMARY_KP_GENETICS, 4: PROVENANCE_PRIMARY_RICHA
 MAP_SOURCE = {1: SOURCE_PRIMARY_KP_GENETICS, 4: SOURCE_PRIMARY_RICHARDS, 5: SOURCE_PRIMARY_CLINGEN, 6: SOURCE_PRIMARY_CLINVAR, 7: SOURCE_PRIMARY_GENCC, 
               17: SOURCE_PRIMARY_GENEBASS, 18: SOURCE_PRIMARY_600k, 99:SOURCE_PRIMARY_KP_MOLEPRO}
 
+# methods
+def get_biolink_version(log=False):
+    ''' 
+    returns the biolink version
+    '''
+    return VERSION_BIOLINK
+
+def get_trapi_version(log=False):
+    ''' 
+    returns the trapi version
+    '''
+    return VERSION_TRAPI
 
 def build_results_creative(results_list, query_graph):
     """ build the trapi v1.0 response from the genetics model """
