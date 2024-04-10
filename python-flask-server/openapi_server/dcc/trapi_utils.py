@@ -150,6 +150,18 @@ MAP_PROVENANCE = {1: PROVENANCE_PRIMARY_KP_GENETICS, 4: PROVENANCE_PRIMARY_RICHA
 MAP_SOURCE = {1: SOURCE_PRIMARY_KP_GENETICS, 4: SOURCE_PRIMARY_RICHARDS, 5: SOURCE_PRIMARY_CLINGEN, 6: SOURCE_PRIMARY_CLINVAR, 7: SOURCE_PRIMARY_GENCC, 
               17: SOURCE_PRIMARY_GENEBASS, 18: SOURCE_PRIMARY_600k, 99:SOURCE_PRIMARY_KP_MOLEPRO}
 
+# methods
+def get_biolink_version(log=False):
+    ''' 
+    returns the biolink version
+    '''
+    return VERSION_BIOLINK
+
+def get_trapi_version(log=False):
+    ''' 
+    returns the trapi version
+    '''
+    return VERSION_TRAPI
 
 def build_results_creative(results_list, query_graph):
     """ build the trapi v1.0 response from the genetics model """
@@ -218,186 +230,74 @@ def build_results_creative(results_list, query_graph):
     # return
     return results_response
 
-def create_list_attributes14(edge_element :CreativeEdge):
-    ''' 
-    creates a list fo attributes for the edge
-    '''
-    list_attributes = []
-
-    # add in pvalue if applicable
-    if edge_element.score:
-        list_attributes.append(Attribute(original_attribute_name='pvalue', value=edge_element.score, attribute_type_id='biolink:p_value'))
-
-    # return
-    return list_attributes
-
 def build_results_creative14(results_list, query_graph):
     """ build the trapi v1.0 response from the genetics model """
     # build the empty collections
     results = []
     knowledge_graph = KnowledgeGraph(nodes={}, edges={})
     nodes = {}
+    auxiliary_graph = {}    # will contain a new key/value pair for each result list of inferred only edges
     # edges = {}
-
-    # 1.4 - add auxiliary_graphs map at the message level
-    auxiliary_graphs = {}
-
-    # only returning for affects inferred predicate
 
     # loop through the results
     creative_result: CreativeResult
-    for index, creative_result in enumerate(results_list):
-        # DEBUG
-        # if index > 0:
-        #     print("{} - BREAK".format(index))
-        #     break
-
+    for creative_result in results_list:
         # initialize
         edge_binding_map = {}
         node_binding_map = {}
-        list_aux_graph_edges = []
-        # 1.4 - for each result, 
-        # inferred edges go into auxiliary graph and referenced back to 
 
-
-        #  - add all nodes to knowledge_graph/nodes map
-        #  - create creative edge with drug/disease relationship
-        #  - add all other edges to knowledge_graph/edges map, along with creative edge
-        #  - create auxiliary_graphs map entry with all supporting edges
-        #  - add in auxiliary_graphs entry above as biolink:support_graphs attribute to the creative edge
-        #  - only add drug and disease nodes in node bindings
-        #  - in analyses, only add creative edge in edge_bindings
-        #  - in analyses, add genetics_kp as resource_id with score of gene probability
-        # TODO - possible cleanup: add query_id to subject/object node bindings
-
-
-        # source lists
+        # only returning for affects inferred predicate
+        # create affects edge - create dummy drug/disease edge that will be only edge in results.analyses/edge_bindings
 
         # add all the edges for this result
         edge_element :CreativeEdge
-
-        # create the creative edge
-        edge_creative: Edge = Edge(predicate=creative_result.predicate, subject=creative_result.drug.id, object=creative_result.disease.id, sources=[SOURCE_PRIMARY_KP_GENETICS])
-        edge_creative_id = "{}_creative".format(index)
-        knowledge_graph.edges[edge_creative_id] = edge_creative
-
-        # add in drug_gene edge
-        edge_element = creative_result.drug_gene
-        edge_drug_gene: Edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, attributes=create_list_attributes14(edge_element), sources=[SOURCE_PRIMARY_KP_MOLEPRO, SOURCE_AGGREGATOR_KP_GENETICS])
-        knowledge_graph.edges[edge_element.edge_id] = edge_drug_gene
-        list_aux_graph_edges.append(edge_element.edge_id)
-
-        # add in gene_disease edge
-        edge_element = creative_result.gene_disease
-        edge_gene_disease: Edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, attributes=create_list_attributes14(edge_element), sources=[SOURCE_PRIMARY_KP_GENETICS])
-        knowledge_graph.edges[edge_element.edge_id] = edge_gene_disease
-        score_result = edge_element.probability
-        list_aux_graph_edges.append(edge_element.edge_id)
-
-        # add in gene_pathway edge
-        edge_element = creative_result.pathway_gene
-        edge_gene_pathway: Edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, attributes=create_list_attributes14(edge_element), sources=[SOURCE_PRIMARY_KP_GENETICS])
-        knowledge_graph.edges[edge_element.edge_id] = edge_gene_pathway
-        list_aux_graph_edges.append(edge_element.edge_id)
-
-        # add in pathway_disease edge
-        edge_element = creative_result.pathway_disease
-        edge_pathway_disease: Edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, attributes=create_list_attributes14(edge_element), sources=[SOURCE_PRIMARY_KP_GENETICS])
-        knowledge_graph.edges[edge_element.edge_id] = edge_pathway_disease
-        list_aux_graph_edges.append(edge_element.edge_id)
-
-        # create auxiliary_graphs map entry with all supporting edges
-        graph_aux = AuxiliaryGraph(edges=list_aux_graph_edges)
-        graph_aux_id = "{}_graph_aux".format(index)
-        auxiliary_graphs[graph_aux_id] = graph_aux
-
-        # add in auxiliary_graphs entry above as biolink:support_graphs attribute to the creative edge
-        attribute_creative = Attribute(attribute_type_id="biolink:support_graphs", value=[graph_aux_id])
-        edge_creative.attributes = [attribute_creative]
-
-        # in analyses, only add creative edge in edge_bindings
-        edge_binding = EdgeBinding(id=edge_creative_id)
-        edge_binding_map[creative_result.edge_key] = [edge_binding]
-
-        # add all nodes to knowledge_graph/nodes map
         for edge_element in creative_result.list_edges:
-            node = Node(name=edge_element.subject.name, categories=[edge_element.subject.category], attributes=None)
-            knowledge_graph.nodes[edge_element.subject.id] = node
-            node = Node(name=edge_element.target.name, categories=[edge_element.target.category], attributes=None)
-            knowledge_graph.nodes[edge_element.target.id] = node
 
-        # only add drug and disease nodes in node bindings
-        source_binding = NodeBinding(id=edge_element.subject.id)
-        target_binding = NodeBinding(id=edge_element.target.id)
-        node_binding_map[edge_element.subject.query_node_binding_key] = [source_binding]
-        node_binding_map[edge_element.target.query_node_binding_key] = [target_binding]
+            # build the provenance data
+            list_sources = get_retrieval_source_list(list_study_id=[1, 99])
+            list_attributes = []
+
+            # add in the pvalue/probability if applicable
+            if edge_element.score:
+                list_attributes.append(Attribute(original_attribute_name='pvalue', value=edge_element.score, attribute_type_id='biolink:p_value'))
+
+            # build the edge
+            edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, attributes=list_attributes, sources=list_sources)
+            knowledge_graph.edges[edge_element.edge_id] = edge
+            # edges[(source.node_key, target.node_key)] = edge
+
+            # add the subject node
+            if not nodes.get(edge_element.subject.id):
+                node = Node(name=edge_element.subject.name, categories=[edge_element.subject.category], attributes=None)
+                nodes[edge_element.subject.query_node_binding_key] = node           
+                knowledge_graph.nodes[edge_element.subject.id] = node
+
+            # add the target node
+            if not nodes.get(edge_element.target.id):
+                node = Node(name=edge_element.target.name, categories=[edge_element.target.category], attributes=None)
+                nodes[edge_element.target.query_node_binding_key] = node           
+                knowledge_graph.nodes[edge_element.target.id] = node
+
+            # build the bindings
+            # TODO - trapi 1.3
+            # TODO - source_binding = NodeBinding(id=source.curie, query_id=source.query_curie)
+            # TODO - target_binding = NodeBinding(id=target.curie, query_id=target.query_curie)
+            source_binding = NodeBinding(id=edge_element.subject.id)
+            edge_binding = EdgeBinding(id=edge_element.edge_id)
+            target_binding = NodeBinding(id=edge_element.target.id)
+            edge_binding_map[edge_element.query_edge_binding_key] = [edge_binding]
+            node_binding_map[edge_element.subject.query_node_binding_key] = [source_binding]
+            node_binding_map[edge_element.target.query_node_binding_key] = [target_binding]
 
         # add the analysis
-        # in analyses, add genetics_kp as resource_id with score of gene probability
-        # analysis = Analysis(resource_id=PROVENANCE_INFORES_KP_GENETICS, edge_bindings=edge_binding_map, score=score_result)
-        analysis = Analysis(resource_id=PROVENANCE_INFORES_KP_GENETICS, edge_bindings=edge_binding_map, score=None)
+        analysis = Analysis(resource_id=PROVENANCE_INFORES_KP_GENETICS, edge_bindings=edge_binding_map)
 
         # add the bindings to the result
         results.append(Result(node_binding_map, analyses=[analysis]))
 
     # build out the message
-    message = Message(results=results, query_graph=query_graph, knowledge_graph=knowledge_graph, auxiliary_graphs=auxiliary_graphs)
+    message = Message(results=results, query_graph=query_graph, knowledge_graph=knowledge_graph)
     results_response = Response(message = message, schema_version=VERSION_TRAPI, biolink_version=VERSION_BIOLINK)
-
-
-
-    # # ########################## OLD 1.3
-    # # loop through the results
-    # creative_result: CreativeResult
-    # for index, creative_result in enumerate(results_list):
-
-    #     for edge_element in creative_result.list_edges:
-
-    #         # build the provenance data
-    #         list_sources = get_retrieval_source_list(list_study_id=[1, 99])
-    #         list_attributes = []
-
-    #         # add in the pvalue/probability if applicable
-    #         if edge_element.score:
-    #             list_attributes.append(Attribute(original_attribute_name='pvalue', value=edge_element.score, attribute_type_id='biolink:p_value'))
-
-    #         # build the edge
-    #         edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, attributes=list_attributes, sources=list_sources)
-    #         knowledge_graph.edges[edge_element.edge_id] = edge
-    #         # edges[(source.node_key, target.node_key)] = edge
-
-    #         # add the subject node
-    #         if not nodes.get(edge_element.subject.id):
-    #             node = Node(name=edge_element.subject.name, categories=[edge_element.subject.category], attributes=None)
-    #             nodes[edge_element.subject.query_node_binding_key] = node           
-    #             knowledge_graph.nodes[edge_element.subject.id] = node
-
-    #         # add the target node
-    #         if not nodes.get(edge_element.target.id):
-    #             node = Node(name=edge_element.target.name, categories=[edge_element.target.category], attributes=None)
-    #             nodes[edge_element.target.query_node_binding_key] = node           
-    #             knowledge_graph.nodes[edge_element.target.id] = node
-
-    #         # build the bindings
-    #         # TODO - trapi 1.3
-    #         # TODO - source_binding = NodeBinding(id=source.curie, query_id=source.query_curie)
-    #         # TODO - target_binding = NodeBinding(id=target.curie, query_id=target.query_curie)
-    #         source_binding = NodeBinding(id=edge_element.subject.id)
-    #         edge_binding = EdgeBinding(id=edge_element.edge_id)
-    #         target_binding = NodeBinding(id=edge_element.target.id)
-    #         edge_binding_map[edge_element.query_edge_binding_key] = [edge_binding]
-    #         node_binding_map[edge_element.subject.query_node_binding_key] = [source_binding]
-    #         node_binding_map[edge_element.target.query_node_binding_key] = [target_binding]
-
-    #     # add the analysis
-    #     analysis = Analysis(resource_id=PROVENANCE_INFORES_KP_GENETICS, edge_bindings=edge_binding_map)
-
-    #     # add the bindings to the result
-    #     results.append(Result(node_binding_map, analyses=[analysis]))
-
-    # # build out the message
-    # message = Message(results=results, query_graph=query_graph, knowledge_graph=knowledge_graph, auxiliary_graphs=auxiliary_graphs)
-    # results_response = Response(message = message, schema_version=VERSION_TRAPI, biolink_version=VERSION_BIOLINK)
 
     # return
     return results_response
@@ -530,3 +430,5 @@ def get_retrieval_source_list(list_study_id=None, log=False):
 
     # return
     return list_sources
+
+

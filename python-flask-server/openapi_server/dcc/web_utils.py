@@ -16,14 +16,16 @@ from openapi_server.models.edge_binding import EdgeBinding
 from openapi_server.models.node_binding import NodeBinding
 from openapi_server.models.response import Response
 from openapi_server.models.attribute import Attribute
+from openapi_server.models.query import Query
 
 from openapi_server import util
 
 from openapi_server.dcc.creative_model import CreativeResult, CreativeEdge, CreativeNode
-from openapi_server.dcc.trapi_utils import build_results, build_results_creative14
+from openapi_server.dcc.trapi_utils import build_results, build_results_creative14, get_biolink_version, get_trapi_version
 from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger, build_pubmed_ids, get_normalize_curies
 from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
 import openapi_server.dcc.query_builder as qbuilder
+from openapi_server.dcc.verification_utils import is_query_acceptable_node_sets
 
 # get logger
 logger = get_logger(__name__)
@@ -306,29 +308,51 @@ def query(request_body):  # noqa: E501
     - the queries are run in sequence and the results appended to a list
     - the list is used to build the results in trapi result format
     '''
-    # verify all operations asked for are supported
-    if request_body.get("workflow") and len(request_body.get("workflow")) > 0:
-        logger.info("got workflow: {}".format(request_body.get("workflow")))
-        for item in request_body.get("workflow"):
-            workflow_item = item.get('id')
-            if workflow_item != 'lookup':
-                return ({"status": 400, "title": "Workflow {} not implemented".format(workflow_item), "detail": "Workflow {} not implemented".format(workflow_item), "type": "about:blank" }, 400)
-    else:
-        logger.info("no workflow specified")
+    # # verify all operations asked for are supported
+    # if request_body.get("workflow") and len(request_body.get("workflow")) > 0:
+    #     logger.info("got workflow: {}".format(request_body.get("workflow")))
+    #     for item in request_body.get("workflow"):
+    #         workflow_item = item.get('id')
+    #         if workflow_item != 'lookup':
+    #             return ({"status": 400, "title": "Workflow {} not implemented".format(workflow_item), "detail": "Workflow {} not implemented".format(workflow_item), "type": "about:blank" }, 400)
+    # else:
+    #     logger.info("no workflow specified")
 
     if connexion.request.is_json:
         # initialize
         query_response = {}
 
         # verify the json
-        body = connexion.request.get_json()
-        logger.info("got {}".format(body))
+        json_body = connexion.request.get_json()
+        logger.info("got {}".format(json_body))
+
+        # use TRAPI model classes
+        trapi_query = Query.from_dict(json_body)
+
+        # verify all workflow operations asked for are supported
+        if trapi_query.workflow and len(trapi_query.workflow) > 0:
+            logger.info("got workflow: {}".format(trapi_query.workflow))
+            for item in trapi_query.workflow:
+                workflow_item = item.get('id')
+                if workflow_item != 'lookup':
+                    return ({"status": 400, "title": "Workflow {} not implemented".format(workflow_item), "detail": "Workflow {} not implemented".format(workflow_item), "type": "about:blank" }, 400)
+        else:
+            logger.info("no workflow specified")
+
+        # verify the set interpretation of the edges
+        is_acceptable_set, log_message = is_query_acceptable_node_sets(query=trapi_query)
+        if not is_acceptable_set:
+            # return empty response
+            # add in empty results to message
+            trapi_query.message.results=[]
+            trapi_query.message.knowledge_graph = KnowledgeGraph(nodes={}, edges={})
+            return Response(message=trapi_query.message, logs=[log_message], workflow=trapi_query.workflow, biolink_version=get_biolink_version(), schema_version=get_trapi_version())
 
         # copy the original query to return in the result
-        query_graph = copy.deepcopy(body['message']['query_graph'])
+        query_graph = copy.deepcopy(json_body['message']['query_graph'])
 
         # check that not more than one hop query (edge list not more than one)
-        if len(body.get('message').get('query_graph').get('edges')) > 1:
+        if len(json_body.get('message').get('query_graph').get('edges')) > 1:
             logger.error("multi hop query requested, not supported")
             # switch to 400 error code for multi hop query
             # return ({"status": 501, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 501)
@@ -337,16 +361,16 @@ def query(request_body):  # noqa: E501
             logger.info("single hop query requested, supported")
 
         # NOTE - split here based on get creative query; need to do this before expanding IDs based on ontology
-        is_creative_query = is_query_creative(body)
+        is_creative_query = is_query_creative(json_body)
         if is_creative_query:
             logger.info("query is CREATIVE")
             # build the response
-            query_response = sub_query_creative(body, query_graph, request_body)
+            query_response = sub_query_creative(json_body, query_graph, request_body)
 
         else:
             logger.info("query is LOOKUP")
             # build the response
-            query_response = sub_query_lookup(body, query_graph, request_body)
+            query_response = sub_query_lookup(json_body, query_graph, request_body)
 
         # # build the response
         # query_response = sub_query_lookup(body, query_graph, request_body)

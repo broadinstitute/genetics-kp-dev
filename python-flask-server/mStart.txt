@@ -10,7 +10,8 @@ export DB_USER=root
 export DB_SCHEMA=tran_test_202303
 # export DB_SCHEMA=tran_to_cloud
 # export DB_CACHE_SCHEMA=translator_cache
-export DB_CACHE_SCHEMA=tran_to_cloud
+# export DB_CACHE_SCHEMA=tran_to_cloud
+export DB_CACHE_SCHEMA=tran_test_202303
 export DB_RESULTS_LIMIT=5500
 
 export TRAN_LOG_FILE=genepro.log
