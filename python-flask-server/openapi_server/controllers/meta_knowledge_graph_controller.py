@@ -40,12 +40,12 @@ def meta_knowledge_graph_get():  # noqa: E501
     # build the nodes
     map_node = get_node_map()
     for key in map_node.keys():
-        nodes[key] = MetaNode(map_node.get(key))
+        nodes[key] = MetaNode(map_node.get(key), attributes=[])
 
     # build the edges
     list_edge = create_predicate_triple_list()
     for item in list_edge:
-        edges.append(MetaEdge(subject=item[0], predicate=item[1], object=item[2]))
+        edges.append(MetaEdge(subject=item[0], predicate=item[1], object=item[2], knowledge_types=[], attributes=[], qualifiers=[]))
 
     # build the knoelwdge map and return
     return MetaKnowledgeGraph(nodes=nodes, edges=edges)
