@@ -62,7 +62,8 @@ PROVENANCE_AGGREGATOR_KP_GENETICS = Attribute(value = PROVENANCE_INFORES_KP_GENE
     value_type_id = 'biolink:InformationResource',
     value_url = 'https://translator.broadinstitute.org/genetics_provider/trapi/v1.3',
     description = 'The Genetics Data Provider KP from NCATS Translator',
-    attribute_source = PROVENANCE_INFORES_KP_GENETICS)
+    attribute_source = PROVENANCE_INFORES_KP_GENETICS,
+    attributes=[])
 
 # primary sources
 PROVENANCE_PRIMARY_KP_GENETICS = Attribute(value = PROVENANCE_INFORES_KP_GENETICS,
@@ -70,37 +71,43 @@ PROVENANCE_PRIMARY_KP_GENETICS = Attribute(value = PROVENANCE_INFORES_KP_GENETIC
     value_type_id = 'biolink:InformationResource',
     value_url = 'https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/magmaData.md',
     description = 'The Genetics Data Provider KP from NCATS Translator',
-    attribute_source = PROVENANCE_INFORES_KP_GENETICS)
+    attribute_source = PROVENANCE_INFORES_KP_GENETICS, 
+    attributes=[])
 PROVENANCE_PRIMARY_RICHARDS = Attribute(value = PROVENANCE_INFORES_RICHARDS,
     attribute_type_id = 'biolink:primary_knowledge_source',
     value_type_id = 'biolink:InformationResource',
     value_url = 'https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/richardsList.md',
     description = 'The Richards Algorith Effector Gene List',
-    attribute_source = PROVENANCE_INFORES_KP_GENETICS)
+    attribute_source = PROVENANCE_INFORES_KP_GENETICS,
+    attributes=[])
 PROVENANCE_PRIMARY_CLINVAR = Attribute(value = PROVENANCE_INFORES_CLINVAR,
     attribute_type_id = 'biolink:primary_knowledge_source',
     value_type_id = 'biolink:InformationResource',
     value_url = 'https://www.ncbi.nlm.nih.gov/clinvar/',
     description = 'ClinVar is a freely accessible, public archive of reports of the relationships among human variations and phenotypes',
-    attribute_source = PROVENANCE_INFORES_KP_GENETICS)
+    attribute_source = PROVENANCE_INFORES_KP_GENETICS,
+    attributes=[])
 PROVENANCE_PRIMARY_CLINGEN = Attribute(value = PROVENANCE_INFORES_CLINGEN,
     attribute_type_id = 'biolink:primary_knowledge_source',
     value_type_id = 'biolink:InformationResource',
     value_url = 'https://clinicalgenome.org/',
     description = 'ClinGen is a NIH-funded resource dedicated to building a central resource that defines the clinical relevance of genes and variants for use in precision medicine and research',
-    attribute_source = PROVENANCE_INFORES_KP_GENETICS)
+    attribute_source = PROVENANCE_INFORES_KP_GENETICS,
+    attributes=[])
 PROVENANCE_PRIMARY_GENCC = Attribute(value = PROVENANCE_INFORES_GENCC,
     attribute_type_id = 'biolink:primary_knowledge_source',
     value_type_id = 'biolink:InformationResource',
     value_url = 'https://thegencc.org/',
     description = 'The GenCC DB provides information pertaining to the validity of gene-disease relationships, with a current focus on Mendelian diseases',
-    attribute_source = PROVENANCE_INFORES_KP_GENETICS)
+    attribute_source = PROVENANCE_INFORES_KP_GENETICS,
+    attributes=[])
 PROVENANCE_PRIMARY_GENEBASS = Attribute(value = PROVENANCE_INFORES_GENEBASS,
     attribute_type_id = 'biolink:primary_knowledge_source',
     value_type_id = 'biolink:InformationResource',
     value_url = 'https://genebass.org/',
     description = 'Genebass is a resource of exome-based association statistics, made available to the public. The dataset encompasses 3,817 phenotypes with gene-based and single-variant testing across 281,852 individuals with exome sequence data from the UK Biobank.',
-    attribute_source = PROVENANCE_INFORES_KP_GENETICS)
+    attribute_source = PROVENANCE_INFORES_KP_GENETICS,
+    attributes=[])
 
 # new source structure
 SOURCE_AGGREGATOR_KP_GENETICS = RetrievalSource(
@@ -187,7 +194,7 @@ def build_results_creative(results_list, query_graph):
 
             # add in the pvalue/probability if applicable
             if edge_element.score:
-                list_attributes.append(Attribute(original_attribute_name='pvalue', value=edge_element.score, attribute_type_id='biolink:p_value'))
+                list_attributes.append(Attribute(original_attribute_name='pvalue', value=edge_element.score, attribute_type_id='biolink:p_value', attributes=[]))
 
             # build the edge
             edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, attributes=list_attributes, sources=list_sources)
@@ -218,7 +225,7 @@ def build_results_creative(results_list, query_graph):
             node_binding_map[edge_element.target.query_node_binding_key] = [target_binding]
 
         # add the analysis
-        analysis = Analysis(resource_id=PROVENANCE_INFORES_KP_GENETICS, edge_bindings=edge_binding_map)
+        analysis = Analysis(resource_id=PROVENANCE_INFORES_KP_GENETICS, edge_bindings=edge_binding_map, support_graphs=[], attributes=[])
 
         # add the bindings to the result
         results.append(Result(node_binding_map, analyses=[analysis]))
@@ -238,7 +245,7 @@ def create_list_attributes14(edge_element :CreativeEdge):
 
     # add in pvalue if applicable
     if edge_element.score:
-        list_attributes.append(Attribute(original_attribute_name='pvalue', value=edge_element.score, attribute_type_id='biolink:p_value'))
+        list_attributes.append(Attribute(original_attribute_name='pvalue', value=edge_element.score, attribute_type_id='biolink:p_value', attributes=[]))
 
     # return
     return list_attributes
@@ -324,7 +331,7 @@ def build_results_creative14(results_list, query_graph):
         auxiliary_graphs[graph_aux_id] = graph_aux
 
         # add in auxiliary_graphs entry above as biolink:support_graphs attribute to the creative edge
-        attribute_creative = Attribute(attribute_type_id="biolink:support_graphs", value=[graph_aux_id])
+        attribute_creative = Attribute(attribute_type_id="biolink:support_graphs", value=[graph_aux_id], attributes=[])
         edge_creative.attributes = [attribute_creative]
 
         # in analyses, only add creative edge in edge_bindings
@@ -347,7 +354,7 @@ def build_results_creative14(results_list, query_graph):
         # add the analysis
         # in analyses, add genetics_kp as resource_id with score of gene probability
         # analysis = Analysis(resource_id=PROVENANCE_INFORES_KP_GENETICS, edge_bindings=edge_binding_map, score=score_result)
-        analysis = Analysis(resource_id=PROVENANCE_INFORES_KP_GENETICS, edge_bindings=edge_binding_map, score=None)
+        analysis = Analysis(resource_id=PROVENANCE_INFORES_KP_GENETICS, edge_bindings=edge_binding_map, score=None, support_graphs=[], attributes=[])
 
         # add the bindings to the result
         results.append(Result(node_binding_map, analyses=[analysis]))
@@ -448,22 +455,22 @@ def build_results(results_list: list, query_graph) -> Response:
 
             # add p_value or classification if available
             if edge_element.score_type == 'biolink:classification':
-                list_attributes.append(Attribute(original_attribute_name='classification', value=edge_element.score, attribute_type_id=edge_element.score_type))
+                list_attributes.append(Attribute(original_attribute_name='classification', value=edge_element.score, attribute_type_id=edge_element.score_type, attributes=[]))
             elif edge_element.score_type == 'biolink:p_value':
-                list_attributes.append(Attribute(original_attribute_name='pValue', value=edge_element.score, attribute_type_id=edge_element.score_type))
+                list_attributes.append(Attribute(original_attribute_name='pValue', value=edge_element.score, attribute_type_id=edge_element.score_type, attributes=[]))
             # print("added attributes: {}".format(attributes))
 
         # 20230404 - NEW SCHEMA
         if edge_element.score_translator:
-            list_attributes.append(Attribute(original_attribute_name='score', value=edge_element.score_translator, attribute_type_id='biolink:score'))
+            list_attributes.append(Attribute(original_attribute_name='score', value=edge_element.score_translator, attribute_type_id='biolink:score', attributes=[]))
         if edge_element.beta:
-            list_attributes.append(Attribute(original_attribute_name='beta', value=edge_element.beta, attribute_type_id='biolink:beta'))
+            list_attributes.append(Attribute(original_attribute_name='beta', value=edge_element.beta, attribute_type_id='biolink:beta', attributes=[]))
         if edge_element.standard_error:
-            list_attributes.append(Attribute(original_attribute_name='standard_error', value=edge_element.standard_error, attribute_type_id='biolink:standard_error'))
+            list_attributes.append(Attribute(original_attribute_name='standard_error', value=edge_element.standard_error, attribute_type_id='biolink:standard_error', attribute_source=[]))
         # if edge_element.p_value:
         #     attributes.append(Attribute(original_attribute_name='p_value', value=edge_element.score_translator, attribute_type_id='biolink:p_value'))
         if edge_element.probability:
-            list_attributes.append(Attribute(original_attribute_name='probability', value=edge_element.probability, attribute_type_id='biolink:probability'))
+            list_attributes.append(Attribute(original_attribute_name='probability', value=edge_element.probability, attribute_type_id='biolink:probability', attributes=[]))
 
         # publications
         if edge_element.publication_ids:
@@ -473,7 +480,7 @@ def build_results(results_list: list, query_graph) -> Response:
                 if MAP_PROVENANCE.get(edge_element.study_type_id):
                     pub_source = MAP_PROVENANCE.get(edge_element.study_type_id).value
                 list_attributes.append(Attribute(original_attribute_name='publication', value=list_publication, 
-                    attribute_type_id='biolink:has_supporting_publications', value_type_id='biolink:Publication', attribute_source=pub_source))
+                    attribute_type_id='biolink:has_supporting_publications', value_type_id='biolink:Publication', attribute_source=pub_source, attributes=[]))
 
         # 20230213 - add qualifiers
         list_qualifiers = []
@@ -506,7 +513,7 @@ def build_results(results_list: list, query_graph) -> Response:
         # target_binding = NodeBinding(id=target.curie)
         target_binding = NodeBinding(id=target.curie, query_id=target.query_curie)
         edge_map = {edge_element.edge_key: [edge_binding]}
-        analysis = Analysis(resource_id=PROVENANCE_INFORES_KP_GENETICS, edge_bindings=edge_map, score=edge_element.score_translator)
+        analysis = Analysis(resource_id=PROVENANCE_INFORES_KP_GENETICS, edge_bindings=edge_map, score=edge_element.score_translator, support_graphs=[], attributes=[])
         nodes_map = {source.node_key: [source_binding], target.node_key: [target_binding]}
         results.append(Result(node_bindings=nodes_map,  analyses=[analysis]))
 
