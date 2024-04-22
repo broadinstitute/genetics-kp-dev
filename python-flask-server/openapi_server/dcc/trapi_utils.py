@@ -197,7 +197,8 @@ def build_results_creative(results_list, query_graph):
                 list_attributes.append(Attribute(original_attribute_name='pvalue', value=edge_element.score, attribute_type_id='biolink:p_value', attributes=[]))
 
             # build the edge
-            edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, attributes=list_attributes, sources=list_sources)
+            edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, 
+                        attributes=list_attributes, sources=list_sources, qualifiers=[])
             knowledge_graph.edges[edge_element.edge_id] = edge
             # edges[(source.node_key, target.node_key)] = edge
 
@@ -218,7 +219,7 @@ def build_results_creative(results_list, query_graph):
             # TODO - source_binding = NodeBinding(id=source.curie, query_id=source.query_curie)
             # TODO - target_binding = NodeBinding(id=target.curie, query_id=target.query_curie)
             source_binding = NodeBinding(id=edge_element.subject.id)
-            edge_binding = EdgeBinding(id=edge_element.edge_id)
+            edge_binding = EdgeBinding(id=edge_element.edge_id, attributes=[])
             target_binding = NodeBinding(id=edge_element.target.id)
             edge_binding_map[edge_element.query_edge_binding_key] = [edge_binding]
             node_binding_map[edge_element.subject.query_node_binding_key] = [source_binding]
@@ -296,26 +297,30 @@ def build_results_creative14(results_list, query_graph):
         edge_element :CreativeEdge
 
         # create the creative edge
-        edge_creative: Edge = Edge(predicate=creative_result.predicate, subject=creative_result.drug.id, object=creative_result.disease.id, sources=[SOURCE_PRIMARY_KP_GENETICS])
+        edge_creative: Edge = Edge(predicate=creative_result.predicate, subject=creative_result.drug.id, object=creative_result.disease.id, sources=[SOURCE_PRIMARY_KP_GENETICS],
+                                   attributes=[], qualifiers=[])
         edge_creative_id = "{}_creative".format(index)
         knowledge_graph.edges[edge_creative_id] = edge_creative
 
         # add in drug_gene edge
         edge_element = creative_result.drug_gene
-        edge_drug_gene: Edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, attributes=create_list_attributes14(edge_element), sources=[SOURCE_PRIMARY_KP_MOLEPRO, SOURCE_AGGREGATOR_KP_GENETICS])
+        edge_drug_gene: Edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, 
+                                    attributes=create_list_attributes14(edge_element), sources=[SOURCE_PRIMARY_KP_MOLEPRO, SOURCE_AGGREGATOR_KP_GENETICS], qualifiers=[])
         knowledge_graph.edges[edge_element.edge_id] = edge_drug_gene
         list_aux_graph_edges.append(edge_element.edge_id)
 
         # add in gene_disease edge
         edge_element = creative_result.gene_disease
-        edge_gene_disease: Edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, attributes=create_list_attributes14(edge_element), sources=[SOURCE_PRIMARY_KP_GENETICS])
+        edge_gene_disease: Edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, 
+                                       attributes=create_list_attributes14(edge_element), sources=[SOURCE_PRIMARY_KP_GENETICS], qualifiers=[])
         knowledge_graph.edges[edge_element.edge_id] = edge_gene_disease
         score_result = edge_element.probability
         list_aux_graph_edges.append(edge_element.edge_id)
 
         # add in gene_pathway edge
         edge_element = creative_result.pathway_gene
-        edge_gene_pathway: Edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, attributes=create_list_attributes14(edge_element), sources=[SOURCE_PRIMARY_KP_GENETICS])
+        edge_gene_pathway: Edge = Edge(predicate=edge_element.predicate, subject=edge_element.subject.id, object=edge_element.target.id, 
+                                       attributes=create_list_attributes14(edge_element), sources=[SOURCE_PRIMARY_KP_GENETICS], qualifiers=[])
         knowledge_graph.edges[edge_element.edge_id] = edge_gene_pathway
         list_aux_graph_edges.append(edge_element.edge_id)
 
@@ -326,7 +331,7 @@ def build_results_creative14(results_list, query_graph):
         list_aux_graph_edges.append(edge_element.edge_id)
 
         # create auxiliary_graphs map entry with all supporting edges
-        graph_aux = AuxiliaryGraph(edges=list_aux_graph_edges)
+        graph_aux = AuxiliaryGraph(edges=list_aux_graph_edges, attributes=[])
         graph_aux_id = "{}_graph_aux".format(index)
         auxiliary_graphs[graph_aux_id] = graph_aux
 
@@ -335,7 +340,7 @@ def build_results_creative14(results_list, query_graph):
         edge_creative.attributes = [attribute_creative]
 
         # in analyses, only add creative edge in edge_bindings
-        edge_binding = EdgeBinding(id=edge_creative_id)
+        edge_binding = EdgeBinding(id=edge_creative_id, attributes=[])
         edge_binding_map[creative_result.edge_key] = [edge_binding]
 
         # add all nodes to knowledge_graph/nodes map
@@ -508,7 +513,7 @@ def build_results(results_list: list, query_graph) -> Response:
         # trapi 1.3
         # source_binding = NodeBinding(id=source.curie)
         source_binding = NodeBinding(id=source.curie, query_id=source.query_curie)
-        edge_binding = EdgeBinding(id=edge_element.id)
+        edge_binding = EdgeBinding(id=edge_element.id, attributes=[])
         # trapi 1.3
         # target_binding = NodeBinding(id=target.curie)
         target_binding = NodeBinding(id=target.curie, query_id=target.query_curie)
