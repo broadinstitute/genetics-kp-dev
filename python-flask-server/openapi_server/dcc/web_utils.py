@@ -10,10 +10,8 @@ import time
 from openapi_server.models.message import Message
 from openapi_server.models.knowledge_graph import KnowledgeGraph
 from openapi_server.models.edge import Edge
-from openapi_server.models.node import Node
 from openapi_server.models.result import Result
 from openapi_server.models.edge_binding import EdgeBinding
-from openapi_server.models.node_binding import NodeBinding
 from openapi_server.models.response import Response
 from openapi_server.models.attribute import Attribute
 from openapi_server.models.query import Query
@@ -346,7 +344,8 @@ def query(request_body):  # noqa: E501
             # add in empty results to message
             trapi_query.message.results=[]
             trapi_query.message.knowledge_graph = KnowledgeGraph(nodes={}, edges={})
-            return Response(message=trapi_query.message, logs=[log_message], workflow=trapi_query.workflow, biolink_version=get_biolink_version(), schema_version=get_trapi_version())
+            return Response(message=trapi_query.message, logs=[log_message], workflow=trapi_query.workflow, 
+                            biolink_version=get_biolink_version(), schema_version=get_trapi_version())
 
         # copy the original query to return in the result
         query_graph = copy.deepcopy(json_body['message']['query_graph'])

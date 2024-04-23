@@ -40,7 +40,7 @@ def meta_knowledge_graph_get():  # noqa: E501
     # build the nodes
     map_node = get_node_map()
     for key in map_node.keys():
-        nodes[key] = MetaNode(map_node.get(key), attributes=[])
+        nodes[key] = MetaNode(id_prefixes=map_node.get(key), attributes=[])
 
     # build the edges
     list_edge = create_predicate_triple_list()

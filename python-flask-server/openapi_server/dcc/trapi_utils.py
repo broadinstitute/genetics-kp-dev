@@ -113,43 +113,53 @@ PROVENANCE_PRIMARY_GENEBASS = Attribute(value = PROVENANCE_INFORES_GENEBASS,
 SOURCE_AGGREGATOR_KP_GENETICS = RetrievalSource(
     resource_id=PROVENANCE_INFORES_KP_GENETICS,
     resource_role=ResourceRoleEnum.AGGREGATOR_KNOWLEDGE_SOURCE,
-    source_record_urls=['https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/geneticsKp.md'])
+    source_record_urls=['https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/geneticsKp.md'],
+    upstream_resource_ids=[])
 SOURCE_PRIMARY_KP_GENETICS = RetrievalSource(
     resource_id=PROVENANCE_INFORES_KP_GENETICS,
     resource_role=ResourceRoleEnum.PRIMARY_KNOWLEDGE_SOURCE,
-    source_record_urls=['https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/magmaData.md'])
+    source_record_urls=['https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/magmaData.md'],
+    upstream_resource_ids=[])
 SOURCE_PRIMARY_KP_MOLEPRO = RetrievalSource(
     resource_id=PROVENANCE_INFORES_KP_MOLEPRO,
     resource_role=ResourceRoleEnum.PRIMARY_KNOWLEDGE_SOURCE,
-    source_record_urls=['https://github.com/broadinstitute/molecular-data-provider'])
+    source_record_urls=['https://github.com/broadinstitute/molecular-data-provider'],
+    upstream_resource_ids=[])
 SOURCE_PRIMARY_RICHARDS = RetrievalSource(
     resource_id=PROVENANCE_INFORES_RICHARDS,
     resource_role=ResourceRoleEnum.PRIMARY_KNOWLEDGE_SOURCE,
-    source_record_urls=['https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/richardsList.md'])
+    source_record_urls=['https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/richardsList.md'],
+    upstream_resource_ids=[])
 SOURCE_PRIMARY_CLINVAR = RetrievalSource(
     resource_id=PROVENANCE_INFORES_CLINVAR,
     resource_role=ResourceRoleEnum.PRIMARY_KNOWLEDGE_SOURCE,
-    source_record_urls=['https://www.ncbi.nlm.nih.gov/clinvar/'])
+    source_record_urls=['https://www.ncbi.nlm.nih.gov/clinvar/'],
+    upstream_resource_ids=[])
 SOURCE_PRIMARY_CLINGEN = RetrievalSource(
     resource_id=PROVENANCE_INFORES_CLINGEN,
     resource_role=ResourceRoleEnum.PRIMARY_KNOWLEDGE_SOURCE,
-    source_record_urls=['https://clinicalgenome.org/'])
+    source_record_urls=['https://clinicalgenome.org/'],
+    upstream_resource_ids=[])
 SOURCE_PRIMARY_GENCC = RetrievalSource(
     resource_id=PROVENANCE_INFORES_GENCC,
     resource_role=ResourceRoleEnum.PRIMARY_KNOWLEDGE_SOURCE,
-    source_record_urls=['https://thegencc.org/'])
+    source_record_urls=['https://thegencc.org/'],
+    upstream_resource_ids=[])
 SOURCE_PRIMARY_GENCC = RetrievalSource(
     resource_id=PROVENANCE_INFORES_GENEBASS,
     resource_role=ResourceRoleEnum.PRIMARY_KNOWLEDGE_SOURCE,
-    source_record_urls=['https://genebass.org/'])
+    source_record_urls=['https://genebass.org/'],
+    upstream_resource_ids=[])
 SOURCE_PRIMARY_GENEBASS = RetrievalSource(
     resource_id=PROVENANCE_INFORES_GENEBASS,
     resource_role=ResourceRoleEnum.PRIMARY_KNOWLEDGE_SOURCE,
-    source_record_urls=['https://genebass.org/'])
+    source_record_urls=['https://genebass.org/'],
+    upstream_resource_ids=[])
 SOURCE_PRIMARY_600k = RetrievalSource(
     resource_id=PROVENANCE_INFORES_KP_GENETICS,
     resource_role=ResourceRoleEnum.PRIMARY_KNOWLEDGE_SOURCE,
-    source_record_urls=['https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/Ellinor600k.md'])
+    source_record_urls=['https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/Ellinor600k.md'],
+    upstream_resource_ids=[])
 
 
 # build map for study types
@@ -204,13 +214,13 @@ def build_results_creative(results_list, query_graph):
 
             # add the subject node
             if not nodes.get(edge_element.subject.id):
-                node = Node(name=edge_element.subject.name, categories=[edge_element.subject.category], attributes=None)
+                node = Node(name=edge_element.subject.name, categories=[edge_element.subject.category], attributes=[])
                 nodes[edge_element.subject.query_node_binding_key] = node           
                 knowledge_graph.nodes[edge_element.subject.id] = node
 
             # add the target node
             if not nodes.get(edge_element.target.id):
-                node = Node(name=edge_element.target.name, categories=[edge_element.target.category], attributes=None)
+                node = Node(name=edge_element.target.name, categories=[edge_element.target.category], attributes=[])
                 nodes[edge_element.target.query_node_binding_key] = node           
                 knowledge_graph.nodes[edge_element.target.id] = node
 
@@ -218,9 +228,9 @@ def build_results_creative(results_list, query_graph):
             # TODO - trapi 1.3
             # TODO - source_binding = NodeBinding(id=source.curie, query_id=source.query_curie)
             # TODO - target_binding = NodeBinding(id=target.curie, query_id=target.query_curie)
-            source_binding = NodeBinding(id=edge_element.subject.id)
+            source_binding = NodeBinding(id=edge_element.subject.id, attributes=[])
             edge_binding = EdgeBinding(id=edge_element.edge_id, attributes=[])
-            target_binding = NodeBinding(id=edge_element.target.id)
+            target_binding = NodeBinding(id=edge_element.target.id, attributes=[])
             edge_binding_map[edge_element.query_edge_binding_key] = [edge_binding]
             node_binding_map[edge_element.subject.query_node_binding_key] = [source_binding]
             node_binding_map[edge_element.target.query_node_binding_key] = [target_binding]
@@ -233,7 +243,7 @@ def build_results_creative(results_list, query_graph):
 
     # build out the message
     message = Message(results=results, query_graph=query_graph, knowledge_graph=knowledge_graph)
-    results_response = Response(message = message, schema_version=VERSION_TRAPI, biolink_version=VERSION_BIOLINK)
+    results_response = Response(message = message, schema_version=VERSION_TRAPI, biolink_version=VERSION_BIOLINK, logs=[])
 
     # return
     return results_response
@@ -345,14 +355,14 @@ def build_results_creative14(results_list, query_graph):
 
         # add all nodes to knowledge_graph/nodes map
         for edge_element in creative_result.list_edges:
-            node = Node(name=edge_element.subject.name, categories=[edge_element.subject.category], attributes=None)
+            node = Node(name=edge_element.subject.name, categories=[edge_element.subject.category], attributes=[])
             knowledge_graph.nodes[edge_element.subject.id] = node
-            node = Node(name=edge_element.target.name, categories=[edge_element.target.category], attributes=None)
+            node = Node(name=edge_element.target.name, categories=[edge_element.target.category], attributes=[])
             knowledge_graph.nodes[edge_element.target.id] = node
 
         # only add drug and disease nodes in node bindings
-        source_binding = NodeBinding(id=edge_element.subject.id)
-        target_binding = NodeBinding(id=edge_element.target.id)
+        source_binding = NodeBinding(id=edge_element.subject.id, attributes=[])
+        target_binding = NodeBinding(id=edge_element.target.id, attributes=[])
         node_binding_map[edge_element.subject.query_node_binding_key] = [source_binding]
         node_binding_map[edge_element.target.query_node_binding_key] = [target_binding]
 
@@ -366,7 +376,7 @@ def build_results_creative14(results_list, query_graph):
 
     # build out the message
     message = Message(results=results, query_graph=query_graph, knowledge_graph=knowledge_graph, auxiliary_graphs=auxiliary_graphs)
-    results_response = Response(message = message, schema_version=VERSION_TRAPI, biolink_version=VERSION_BIOLINK)
+    results_response = Response(message = message, schema_version=VERSION_TRAPI, biolink_version=VERSION_BIOLINK, logs=[])
 
 
 
@@ -500,23 +510,23 @@ def build_results(results_list: list, query_graph) -> Response:
         edges[(source.node_key, target.node_key)] = edge
 
         # add the subject node
-        node = Node(name=source.name, categories=[translate_type(source.category, False)], attributes=None)
+        node = Node(name=source.name, categories=[translate_type(source.category, False)], attributes=[])
         nodes[source.node_key] = node           
         knowledge_graph.nodes[source.curie] = node
 
         # add the target node
-        node = Node(name=target.name, categories=[translate_type(target.category, False)], attributes=None)
+        node = Node(name=target.name, categories=[translate_type(target.category, False)], attributes=[])
         nodes[target.node_key] = node           
         knowledge_graph.nodes[target.curie] = node
 
         # build the bindings
         # trapi 1.3
         # source_binding = NodeBinding(id=source.curie)
-        source_binding = NodeBinding(id=source.curie, query_id=source.query_curie)
+        source_binding = NodeBinding(id=source.curie, query_id=source.query_curie, attributes=[])
         edge_binding = EdgeBinding(id=edge_element.id, attributes=[])
         # trapi 1.3
         # target_binding = NodeBinding(id=target.curie)
-        target_binding = NodeBinding(id=target.curie, query_id=target.query_curie)
+        target_binding = NodeBinding(id=target.curie, query_id=target.query_curie, attributes=[])
         edge_map = {edge_element.edge_key: [edge_binding]}
         analysis = Analysis(resource_id=PROVENANCE_INFORES_KP_GENETICS, edge_bindings=edge_map, score=edge_element.score_translator, support_graphs=[], attributes=[])
         nodes_map = {source.node_key: [source_binding], target.node_key: [target_binding]}
@@ -524,7 +534,7 @@ def build_results(results_list: list, query_graph) -> Response:
 
     # build out the message
     message: Message = Message(results=results, query_graph=query_graph, knowledge_graph=knowledge_graph)
-    results_response: Response = Response(message = message, schema_version=VERSION_TRAPI, biolink_version=VERSION_BIOLINK)
+    results_response: Response = Response(message = message, schema_version=VERSION_TRAPI, biolink_version=VERSION_BIOLINK, logs=[])
 
     # return
     return results_response
