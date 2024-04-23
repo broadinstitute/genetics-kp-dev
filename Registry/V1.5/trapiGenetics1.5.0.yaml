@@ -4,7 +4,7 @@ info:
     email: mduby@broadinstitute.org
     name: Genetics Data Provider
     x-role: responsible developer
-  description: Genetics Data Provider for NCATS Biomedical Translator Reasoners
+  description: Genetics Provider for NCATS Biomedical Translator Reasoners
   license:
     name: MIT License
     url: https://github.com/broadinstitute/genetics-kp-dev/blob/master/LICENSE
