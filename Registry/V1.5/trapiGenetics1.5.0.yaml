@@ -14,7 +14,7 @@ info:
   x-translator:
     component: KP
     team:
-    - Genetics Data Provider
+    - Genetics Provider
     biolink-version: 4.1.6
     infores: infores:genetics-data-provider
     externalDocs:
