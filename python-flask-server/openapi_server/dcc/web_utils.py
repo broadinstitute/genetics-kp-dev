@@ -13,7 +13,6 @@ from openapi_server.models.edge import Edge
 from openapi_server.models.result import Result
 from openapi_server.models.edge_binding import EdgeBinding
 from openapi_server.models.response import Response
-from openapi_server.models.attribute import Attribute
 from openapi_server.models.query import Query
 
 from openapi_server import util
