@@ -14,6 +14,8 @@ export DB_SCHEMA=tran_test_202303
 export DB_CACHE_SCHEMA=tran_test_202303
 export DB_RESULTS_LIMIT=5500
 
+export IS_DEV=true
+
 export TRAN_LOG_FILE=genepro.log
 export TRAN_ACCESS_LOG_FILE=geneproAccess.log
 export TRAN_MAX_QUERY_SIZE=1000
