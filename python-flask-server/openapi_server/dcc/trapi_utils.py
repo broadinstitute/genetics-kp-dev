@@ -387,7 +387,7 @@ def build_results(results_list: list, query_graph) -> Response:
         # 20230404 - NEW SCHEMA
         if edge_element.score_translator:
             # list_attributes.append(Attribute(original_attribute_name='score', value=edge_element.score_translator, attribute_type_id='biolink:score', attributes=[]))
-            list_attributes.append(build_attribute(name_original='score', value=edge_element.score_translator, value_type=at_utils.BIOLINK_SCORE, id_source=edge_element.study_type_id))
+            list_attributes.append(build_attribute(name_original=at_utils.NAME_SCORE, value=edge_element.score_translator, value_type=at_utils.BIOLINK_SCORE, id_source=edge_element.study_type_id))
         if edge_element.beta:
             list_attributes.append(Attribute(original_attribute_name='beta', value=edge_element.beta, attribute_type_id='biolink:beta', attributes=[]))
         if edge_element.standard_error:
@@ -401,7 +401,7 @@ def build_results(results_list: list, query_graph) -> Response:
         if edge_element.publication_ids:
             list_publication = build_pubmed_ids(edge_element.publication_ids)
             if (list_publication):
-                pub_source = None
+                # pub_source = None
                 # using sources to get infores; gets rid of old provenance attributes
                 # if MAP_PROVENANCE.get(edge_element.study_type_id):
                 #     pub_source = MAP_PROVENANCE.get(edge_element.study_type_id).value
@@ -410,6 +410,10 @@ def build_results(results_list: list, query_graph) -> Response:
                 # list_attributes.append(Attribute(original_attribute_name='publication', value=list_publication, 
                 #     attribute_type_id='biolink:has_supporting_publications', value_type_id='biolink:publications', attribute_source=pub_source, attributes=[]))
                 list_attributes.append(build_attribute(name_original=at_utils.NAME_PUBLICATIONS, value=list_publication, value_type=at_utils.BIOLINK_PUBLICATION, id_source=edge_element.study_type_id))
+
+        # 20240423 - add in agent type and knowledge level
+        list_attributes.append(build_attribute(name_original=at_utils.NAME_AGENT_TYPE, value=at_utils.AGENT_PIPELINE, value_type=at_utils.BIOLINK_AGENT_TYPE, id_source=1))
+        list_attributes.append(build_attribute(name_original=at_utils.NAME_KNOWLEDGE_LEVEL, value=at_utils.KNOWLEDGE_STATS, value_type=at_utils.BIOLINK_KNOWLEDGE_LEVEL, id_source=1))
 
         # 20230213 - add qualifiers
         list_qualifiers = []

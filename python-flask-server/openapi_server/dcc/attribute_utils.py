@@ -36,6 +36,12 @@ INFORES_ROOT = "infores:cmap"
 NAME_KNOWLEDGE_LEVEL = 'knowledge level'
 NAME_AGENT_TYPE = 'agent type'
 NAME_PUBLICATIONS = 'publications'
+NAME_SCORE = 'score'
+NAME_BETA = 'beta'
+NAME_PVALUE = 'p-value'
+NAME_STANDARD_ERROR = 'standard error'
+NAME_PROBABILITY = 'probability'
+NAME_CLASSIFICATION = 'classification'
 
 # methods
 
