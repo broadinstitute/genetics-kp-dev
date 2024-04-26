@@ -382,7 +382,7 @@ def build_results(results_list: list, query_graph) -> Response:
                 # list_attributes.append(Attribute(original_attribute_name='classification', value=edge_element.score, attribute_type_id=edge_element.score_type, attributes=[]))
                 list_attributes.append(build_attribute(name_original=at_utils.NAME_CLASSIFICATION, value=edge_element.score, value_type=at_utils.BIOLINK_CLASSIFICATION, id_source=edge_element.study_type_id))
             elif edge_element.score_type == 'biolink:p_value':
-                list_attributes.append(Attribute(original_attribute_name='pValue', value=edge_element.score, attribute_type_id=edge_element.score_type, attributes=[]))
+                # list_attributes.append(Attribute(original_attribute_name='pValue', value=edge_element.score, attribute_type_id=edge_element.score_type, attributes=[]))
                 list_attributes.append(build_attribute(name_original=at_utils.NAME_PVALUE, value=edge_element.score, value_type=at_utils.BIOLINK_PVALUE, id_source=edge_element.study_type_id))
             # print("added attributes: {}".format(attributes))
 
