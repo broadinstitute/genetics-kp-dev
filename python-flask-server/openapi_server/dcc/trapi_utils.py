@@ -379,9 +379,11 @@ def build_results(results_list: list, query_graph) -> Response:
 
             # add p_value or classification if available
             if edge_element.score_type == 'biolink:classification':
-                list_attributes.append(Attribute(original_attribute_name='classification', value=edge_element.score, attribute_type_id=edge_element.score_type, attributes=[]))
+                # list_attributes.append(Attribute(original_attribute_name='classification', value=edge_element.score, attribute_type_id=edge_element.score_type, attributes=[]))
+                list_attributes.append(build_attribute(name_original=at_utils.NAME_CLASSIFICATION, value=edge_element.score, value_type=at_utils.BIOLINK_CLASSIFICATION, id_source=edge_element.study_type_id))
             elif edge_element.score_type == 'biolink:p_value':
                 list_attributes.append(Attribute(original_attribute_name='pValue', value=edge_element.score, attribute_type_id=edge_element.score_type, attributes=[]))
+                list_attributes.append(build_attribute(name_original=at_utils.NAME_PVALUE, value=edge_element.score, value_type=at_utils.BIOLINK_PVALUE, id_source=edge_element.study_type_id))
             # print("added attributes: {}".format(attributes))
 
         # 20230404 - NEW SCHEMA
@@ -389,13 +391,16 @@ def build_results(results_list: list, query_graph) -> Response:
             # list_attributes.append(Attribute(original_attribute_name='score', value=edge_element.score_translator, attribute_type_id='biolink:score', attributes=[]))
             list_attributes.append(build_attribute(name_original=at_utils.NAME_SCORE, value=edge_element.score_translator, value_type=at_utils.BIOLINK_SCORE, id_source=edge_element.study_type_id))
         if edge_element.beta:
-            list_attributes.append(Attribute(original_attribute_name='beta', value=edge_element.beta, attribute_type_id='biolink:beta', attributes=[]))
+            # list_attributes.append(Attribute(original_attribute_name='beta', value=edge_element.beta, attribute_type_id='biolink:beta', attributes=[]))
+            list_attributes.append(build_attribute(name_original=at_utils.NAME_BETA, value=edge_element.beta, value_type=at_utils.BIOLINK_BETA, id_source=edge_element.study_type_id))
         if edge_element.standard_error:
-            list_attributes.append(Attribute(original_attribute_name='standard_error', value=edge_element.standard_error, attribute_type_id='biolink:standard_error', attribute_source=[]))
+            # list_attributes.append(Attribute(original_attribute_name='standard_error', value=edge_element.standard_error, attribute_type_id='biolink:standard_error', attribute_source=[]))
+            list_attributes.append(build_attribute(name_original=at_utils.NAME_STANDARD_ERROR, value=edge_element.standard_error, value_type=at_utils.BIOLINK_STANDARD_ERROR, id_source=edge_element.study_type_id))
         # if edge_element.p_value:
         #     attributes.append(Attribute(original_attribute_name='p_value', value=edge_element.score_translator, attribute_type_id='biolink:p_value'))
         if edge_element.probability:
-            list_attributes.append(Attribute(original_attribute_name='probability', value=edge_element.probability, attribute_type_id='biolink:probability', attributes=[]))
+            # list_attributes.append(Attribute(original_attribute_name='probability', value=edge_element.probability, attribute_type_id='biolink:probability', attributes=[]))
+            list_attributes.append(build_attribute(name_original=at_utils.NAME_PROBABILITY, value=edge_element.probability, value_type=at_utils.BIOLINK_PROBABILITY, id_source=edge_element.study_type_id))
 
         # publications
         if edge_element.publication_ids:
