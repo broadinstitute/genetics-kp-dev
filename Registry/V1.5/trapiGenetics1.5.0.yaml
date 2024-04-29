@@ -39,6 +39,9 @@ servers:
 - description: TRAPI development service for the Translator Genetics Data Provider
   url: https://translator.broadinstitute.org/genetics_provider/trapi/v1.5
   x-maturity: development
+- description: TRAPI ITRB CI service for the Translator Genetics Data Provider
+  url: https://genetics-kp.ci.transltr.io/genetics_provider/trapi/v1.5
+  x-maturity: staging
 tags:
 - description: "Retrieve the meta knowledge graph representation of this TRAPI web\
     \ service. KPs MUST provide all subject category - predicate - object category\
