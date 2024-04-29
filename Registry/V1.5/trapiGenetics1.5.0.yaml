@@ -150,14 +150,14 @@ components:
               e00:
                 subject: n00
                 predicates:
-                - biolink:affects
+                - biolink:condition_associated_with_gene
                 object: n01
             nodes:
               n00:
                 ids:
-                - PUBCHEM.COMPOUND:2244
+                - MONDO:0011936
                 categories:
-                - biolink:SmallMolecule
+                - biolink:DiseaseOrPhenotypicFeature
               n01:
                 categories:
                 - biolink:Gene
