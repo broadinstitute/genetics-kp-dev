@@ -10,5 +10,15 @@ CREATE TABLE IF NOT EXISTS mcq_phenotype (
 );
 
 
+-- gene/phenotype data table
+drop table mcq_gene_phenotype;
+CREATE TABLE IF NOT EXISTS mcq_gene_phenotype (
+    id INTEGER PRIMARY KEY, 
+    phenotype TEXT,
+    gene TEXT,
+    probability REAL,
+    created_at DATE DEFAULT (DATE('now', 'localtime'))
+);
+
 
 
