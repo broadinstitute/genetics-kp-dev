@@ -22,7 +22,10 @@ from openapi_server.dcc.trapi_utils import build_results, build_results_creative
 from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger, build_pubmed_ids, get_normalize_curies
 from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
 import openapi_server.dcc.query_builder as qbuilder
-from openapi_server.dcc.verification_utils import is_query_acceptable_node_sets
+from openapi_server.dcc.verification_utils import is_query_acceptable_node_sets, is_query_creative, is_query_multi_curie
+from openapi_server.dcc.multi_curie_utils import query_multi_curie
+import openapi_server.dcc.trapi_constants
+
 
 # get logger
 logger = get_logger(__name__)
@@ -336,42 +339,48 @@ def query(request_body):  # noqa: E501
         else:
             logger.info("no workflow specified")
 
-        # verify the set interpretation of the edges
-        is_acceptable_set, log_message = is_query_acceptable_node_sets(query=trapi_query)
-        if not is_acceptable_set:
-            # return empty response
-            # add in empty results to message
-            trapi_query.message.results=[]
-            trapi_query.message.knowledge_graph = KnowledgeGraph(nodes={}, edges={})
-            return Response(message=trapi_query.message, logs=[log_message], workflow=trapi_query.workflow, 
-                            biolink_version=get_biolink_version(), schema_version=get_trapi_version())
-
-        # copy the original query to return in the result
-        query_graph = copy.deepcopy(json_body['message']['query_graph'])
-
-        # check that not more than one hop query (edge list not more than one)
-        if len(json_body.get('message').get('query_graph').get('edges')) > 1:
-            logger.error("multi hop query requested, not supported")
-            # switch to 400 error code for multi hop query
-            # return ({"status": 501, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 501)
-            return ({"status": 503, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 503)
-        else:
-            logger.info("single hop query requested, supported")
-
-        # NOTE - split here based on get creative query; need to do this before expanding IDs based on ontology
-        is_creative_query = is_query_creative(json_body)
-        if is_creative_query:
-            logger.info("query is CREATIVE")
-            # build the response
-            query_response = sub_query_creative(json_body, query_graph, request_body)
+        # use seperate processor for multi curies
+        if is_query_multi_curie(query=trapi_query):
+            query_response = query_multi_curie(query=trapi_query)
 
         else:
-            logger.info("query is LOOKUP")
-            # build the response
-            query_response = sub_query_lookup(json_body, query_graph, request_body)
 
-        # # build the response
-        # query_response = sub_query_lookup(body, query_graph, request_body)
+            # # verify the set interpretation of the edges
+            # is_acceptable_set, log_message = is_query_acceptable_node_sets(query=trapi_query)
+            # if not is_acceptable_set:
+            #     # return empty response
+            #     # add in empty results to message
+            #     trapi_query.message.results=[]
+            #     trapi_query.message.knowledge_graph = KnowledgeGraph(nodes={}, edges={})
+            #     return Response(message=trapi_query.message, logs=[log_message], workflow=trapi_query.workflow, 
+            #                     biolink_version=get_biolink_version(), schema_version=get_trapi_version())
+
+            # copy the original query to return in the result
+            query_graph = copy.deepcopy(json_body['message']['query_graph'])
+
+            # check that not more than one hop query (edge list not more than one)
+            if len(json_body.get('message').get('query_graph').get('edges')) > 1:
+                logger.error("multi hop query requested, not supported")
+                # switch to 400 error code for multi hop query
+                # return ({"status": 501, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 501)
+                return ({"status": 503, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 503)
+            else:
+                logger.info("single hop query requested, supported")
+
+            # NOTE - split here based on get creative query; need to do this before expanding IDs based on ontology
+            is_creative_query = is_query_creative(json_body)
+            if is_creative_query:
+                logger.info("query is CREATIVE")
+                # build the response
+                query_response = sub_query_creative(json_body, query_graph, request_body)
+
+            else:
+                logger.info("query is LOOKUP")
+                # build the response
+                query_response = sub_query_lookup(json_body, query_graph, request_body)
+
+            # # build the response
+            # query_response = sub_query_lookup(body, query_graph, request_body)
 
 
         # return
@@ -674,28 +683,4 @@ def sub_query_creative(body, query_graph, request_body, log=False):
     return query_response
 
 
-def is_query_creative(json_body, log=False):
-    '''
-    will determine if a query is creative based on the 'inferred' knowledge_type flag on the edge
-    '''
-    # initialize
-    is_inferred = False
-    str_inferred = 'inferred'
 
-    # look at the edge knowledge type
-    map_edges = json_body.get('message').get('query_graph').get('edges')
-    if map_edges:
-        for edge in map_edges.values():
-            knowledge_type = edge.get('knowledge_type')
-            if knowledge_type: 
-                if isinstance(knowledge_type, str):
-                    if knowledge_type == str_inferred:
-                        is_inferred = True
-                        break
-                elif isinstance(knowledge_type, list):
-                    if knowledge_type.contains(str_inferred):
-                        is_inferred = True
-                        break
-
-    # return
-    return is_inferred
