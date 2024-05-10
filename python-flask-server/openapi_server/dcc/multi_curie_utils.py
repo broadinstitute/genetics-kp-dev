@@ -19,9 +19,13 @@ def query_multi_curie(query: Query, log=False):
     '''
     # initialize
     logs = []
-    list_mcq_nodes = []
-    input_set_interpretation = None
+    list_subject_mcq_nodes = []
+    list_object_mcq_nodes = []
+    set_subject = None
+    set_object = None
 
+    # just do MANY set interpretation for now
+    
     # process
     # get the set interpretation and the nodes set
     if query:
