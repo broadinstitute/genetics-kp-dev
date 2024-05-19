@@ -46,6 +46,10 @@ with open("./openapi_server/openapi/openapi.yaml", "r") as stream:
         print(exc)
 log.info("Using biolink version: {} and trapi version: {}".format(VERSION_BIOLINK, VERSION_TRAPI))
 
+# query set interpretation
+SET_INTERPRETATION_BATCH = 'BATCH'
+SET_INTERPRETATION_ALL = 'ALL'
+SET_INTERPRETATION_MANY = 'MANY'
 
 # infores
 PROVENANCE_INFORES_KP_GENETICS='infores:genetics-data-provider'
@@ -396,8 +400,9 @@ def build_results(results_list: list, query_graph) -> Response:
         if edge_element.standard_error:
             # list_attributes.append(Attribute(original_attribute_name='standard_error', value=edge_element.standard_error, attribute_type_id='biolink:standard_error', attribute_source=[]))
             list_attributes.append(build_attribute(name_original=at_utils.NAME_STANDARD_ERROR, value=edge_element.standard_error, value_type=at_utils.BIOLINK_STANDARD_ERROR, id_source=edge_element.study_type_id))
-        # if edge_element.p_value:
-        #     attributes.append(Attribute(original_attribute_name='p_value', value=edge_element.score_translator, attribute_type_id='biolink:p_value'))
+        if edge_element.p_value:
+            # attributes.append(Attribute(original_attribute_name='p_value', value=edge_element.score_translator, attribute_type_id='biolink:p_value'))
+            list_attributes.append(build_attribute(name_original=at_utils.NAME_PVALUE, value=edge_element.p_value, value_type=at_utils.BIOLINK_PVALUE, id_source=edge_element.study_type_id))
         if edge_element.probability:
             # list_attributes.append(Attribute(original_attribute_name='probability', value=edge_element.probability, attribute_type_id='biolink:probability', attributes=[]))
             list_attributes.append(build_attribute(name_original=at_utils.NAME_PROBABILITY, value=edge_element.probability, value_type=at_utils.BIOLINK_PROBABILITY, id_source=edge_element.study_type_id))

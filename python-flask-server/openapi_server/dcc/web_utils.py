@@ -22,7 +22,9 @@ from openapi_server.dcc.trapi_utils import build_results, build_results_creative
 from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger, build_pubmed_ids, get_normalize_curies
 from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
 import openapi_server.dcc.query_builder as qbuilder
-from openapi_server.dcc.verification_utils import is_query_acceptable_node_sets
+from openapi_server.dcc.verification_utils import is_query_acceptable_node_sets, is_query_multi_curie
+
+from openapi_server.dcc.mcq_utils import sub_query_mcq
 
 # get logger
 logger = get_logger(__name__)
@@ -367,8 +369,14 @@ def query(request_body):  # noqa: E501
 
         else:
             logger.info("query is LOOKUP")
-            # build the response
-            query_response = sub_query_lookup(json_body, query_graph, request_body)
+            
+            # find out of query is MCQ
+            if is_query_multi_curie(query=trapi_query):
+                query_response = sub_query_mcq(trapi_query=trapi_query)
+
+            else:
+                # build the BATCH response
+                query_response = sub_query_lookup(json_body, query_graph, request_body)
 
         # # build the response
         # query_response = sub_query_lookup(body, query_graph, request_body)
