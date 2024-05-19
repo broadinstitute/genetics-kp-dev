@@ -69,5 +69,13 @@ limit 20;
 
 
 
+-- query by curie
+select gene_pheno.gene, pheno.name, pheno.query_ontology_id, gene_pheno.probability
+from mcq_phenotype pheno, mcq_gene_phenotype gene_pheno 
+where gene_pheno.phenotype = pheno.name 
+and pheno.query_ontology_id in ('HP:0000752', 'HP:0001250')
+order by gene_pheno.probability desc 
+limit 20;
+
 
 
