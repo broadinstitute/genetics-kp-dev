@@ -2,6 +2,7 @@
 # imports
 import sqlite3
 import math
+import json
 
 from openapi_server.models.message import Message
 from openapi_server.models.query import Query
@@ -27,7 +28,6 @@ from mcq_phenotype pheno, mcq_gene_phenotype gene_pheno
 where gene_pheno.phenotype = pheno.name 
 and pheno.query_ontology_id in ({})
 order by gene_pheno.probability desc 
-limit 20
 """
 
 
@@ -54,13 +54,14 @@ def db_query_phenotype(conn, list_phenotypes, log=False):
 
     # Fetch all matching rows
     rows = cursor.fetchall()
-    logger.info("got result tows of count: {}".format(len(rows)))
+    logger.info("got result rows of count: {}".format(len(rows)))
 
     # get the data
     # list_result = [dict(row) for row in rows]
     for row in rows:
         list_result.append({'gene_name': row[0], 'phenotype_name': row[1], 'phenotype_id': row[2], 'probability': row[3]})
-    logger.info("got DB results: {}".format(list_result))
+    if log: 
+        logger.info("got DB results: {}".format(list_result))
 
     # return
     return list_result
@@ -114,6 +115,7 @@ def sub_query_mcq(trapi_query: Query, log=False):
     # calculate the data
     # will get a gene -> score map
     list_result = calculate_from_results(list_genes=list_genes)
+    logger.info("got final sorted results: {}".format(json.dumps(list_result, indent=2)))
 
     # build the response
     # build object set node
@@ -161,12 +163,13 @@ def get_map_phenotype_prevalence(list_phenotypes, log=True):
     return map_prevalence
 
 
-def calculate_from_results(list_genes, log=True):
+def calculate_from_results(list_genes, num_results=10, log=False):
     '''
     will do the algorithmic calculation of the results 
     '''
     # initialize
     map_prevalence = {}
+    # test data
     list_result = [{'PPARG': 75}, {'SLC30A8': 90}, {'PCSK9': 58}]
     map_gene_results = {}
     
@@ -202,10 +205,11 @@ def calculate_from_results(list_genes, log=True):
 
     # sort list
     list_sorted_result = sorted(list_result, key=lambda item: list(item.values())[0], reverse=True)
-    logger.info("got sorted list: {}".format(list_sorted_result))
+    if log:
+        logger.info("got sorted list: {}".format(list_sorted_result))
 
     # return
-    return list_sorted_result
+    return list_sorted_result[:num_results]
 
 def query_multi_curie(query: Query, log=False):
     ''' 
