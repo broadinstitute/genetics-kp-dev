@@ -3,6 +3,7 @@
 import sqlite3
 import math
 import json
+import requests
 
 from openapi_server.models.message import Message
 from openapi_server.models.query import Query
@@ -30,8 +31,186 @@ and pheno.query_ontology_id in ({})
 order by gene_pheno.probability desc 
 """
 
+URL_CHOD = "https://cohd-api.transltr.io/api/{}"
+URI_TO_OMOP = "translator/biolink_to_omop"
+URI_PREVALENCE = "frequencies/singleConceptFreq?dataset_id=1&q={}"
+URI_PATIENT_COUNT = "metadata/patientCount?dataset_id=1"
+
 
 # methods
+def get_omop_for_list(list_curies, log=False):
+    '''
+    will query the cohd server for omop curies based on curies given
+    '''
+    # initialize
+    map_results = {}
+    url = URL_CHOD.format(URI_TO_OMOP)
+
+    # log
+    if log:
+        logger.info("calling OMOP for curies: {}".format(list_curies))
+
+    # call the service
+    response = requests.post(url, json={'curies': list_curies})
+    json_response = response.json()
+
+    if log:
+        logger.info("ompo response: \n{}".format(json.dumps(json_response, indent=2)))
+        # print("ompo response: {}".format(json_response))
+
+    # loop over results
+    for key, value in json_response.items():
+        if value:
+            map_results[key] = value.get('omop_concept_id')
+        # else:
+        #     map_results[key] = value
+
+    # log
+    if log:
+        logger.info("returning OMOP key map: {}".format(map_results))
+
+    # return
+    return map_results
+
+
+def get_patient_count(log=False):
+    '''
+    will query the cohd server for the patient count
+    '''
+    # initialize
+    result_count = 0
+    url = URL_CHOD.format(URI_PATIENT_COUNT)
+
+    # call the service
+    response = requests.get(url)
+    json_response = response.json()
+
+    if log:
+        print("count response: \n{}".format(json.dumps(json_response, indent=2)))
+        # print("ompo response: {}".format(json_response))
+
+    # loop over results
+    if json_response.get('results'):
+        if json_response.get('results').get('count'):
+            result_count = json_response.get('results').get('count')
+
+    # return
+    return int(result_count)
+
+
+def get_prevalence_for_list(list_curies, log=True):
+    '''
+    returns the prevalence for the given list of curies
+    '''
+    # initialize 
+    map_results = {}
+
+    # get omop curies
+    map_phenotypes = get_omop_for_list(list_curies=list_curies, log=log)
+    if log:
+        logger.info("got OMOP mapping: {} for input phenotypes: {}".format(json.dumps(map_phenotypes, indent=2), list_curies))
+
+    # flip the phenotype map
+    map_temp = {}
+    for key, value in map_phenotypes.items():
+        map_temp[value] = key
+
+    if log:
+        print("got temp map: \n{}".format(json.dumps(map_temp, indent=2)))
+
+    # call cohd service
+    str_input = ",".join(str(num) for num in map_temp.keys())
+    url = URL_CHOD.format(URI_PREVALENCE.format(str_input))
+    if log:
+        print("Using prevalence URL: {}".format(url))
+    response = requests.get(url)
+    json_response = response.json()
+
+    # loop
+    json_results = json_response.get('results')
+    for item in json_results:
+        omop_id = item.get('concept_id')
+        map_results[map_temp.get(omop_id)] = {'prevalence': item.get('concept_frequency'), 'omop_id': omop_id}
+
+    # return
+    return map_results
+
+def get_curie_name_map(list_curies, log=False):
+    '''
+    returns a map of key curies and values the name of the phenotype
+    '''
+    map_result = {}
+
+    # for each phenotype, get the name
+    for item in list_curies:
+        map_result[item] = get_rest_name_for_curie(curie=item, log=log)
+
+    # return
+    return map_result
+
+def get_rest_name_for_curie(curie, log=False):
+    '''
+    get the normalized name for the curie
+    '''
+    # initialize
+    result_name = None
+    URL = "https://nodenormalization-sri.renci.org/get_normalized_nodes?curie={}"
+
+    # request
+    url = URL.format(curie)
+
+    if log:
+        print("querying url: {}".format(url))
+
+    response = requests.get(url)
+    json_result = response.json()
+
+    # get the name
+    if json_result.get(curie):
+        if json_result.get(curie).get('id'):
+            if json_result.get(curie).get('id').get('label'):
+                result_name = json_result.get(curie).get('id').get('label')
+
+    # return
+    return result_name
+
+
+def get_rest_name_map_for_curie_list(list_curies, log=False):
+    '''
+    get the normalized name for the curie
+    '''
+    # initialize
+    map_name = {}
+    URL = "https://nodenormalization-sri.renci.org/get_normalized_nodes?{}"
+    str_curie = "{}curie={}"
+
+    # build the curie list
+    str_input = ""
+    for index, item in enumerate(list_curies):
+        if index == 0:
+            str_input = str_input + str_curie.format('', item)
+        else:
+            str_input = str_input + str_curie.format('&', item)
+
+    # request
+    url = URL.format(str_input)
+
+    if log:
+        print("querying url: {}".format(url))
+
+    response = requests.get(url)
+    json_result = response.json()
+
+    # get the name
+    for curie in list_curies:
+        if json_result.get(curie):
+            if json_result.get(curie).get('id'):
+                if json_result.get(curie).get('id').get('label'):
+                    map_name[curie] = json_result.get(curie).get('id').get('label')
+
+    # return
+    return map_name
+
 def db_query_phenotype(conn, list_phenotypes, log=False):
     '''
     will query the sqlite db and return the data associated with the phenotypes given
@@ -150,20 +329,26 @@ def get_map_phenotype_prevalence(list_phenotypes, log=True):
     '''
     # initialize
     map_prevalence = {}
+    map_result = {}
 
     # TODO - get the prevalence
-    for row in list_phenotypes:
-        map_prevalence[row] = 0.5
+    # for row in list_phenotypes:
+    #     map_prevalence[row] = 0.5
+    map_prevalence = get_prevalence_for_list(list_curies=list_phenotypes)
 
     # log
     if log:
-        logger.info("using prevalence map: {}".format(map_prevalence))
+        logger.info("from COHD got prevalence map: {}".format(json.dumps(map_prevalence, indent=2)))
+
+    # format into simple key/value map
+    for key, value in map_prevalence.items():
+        map_result[key] = value.get('prevalence')
 
     # return
-    return map_prevalence
+    return map_result
 
 
-def calculate_from_results(list_genes, num_results=10, log=False):
+def calculate_from_results(list_genes, num_results=10, log=True):
     '''
     will do the algorithmic calculation of the results 
     '''
@@ -182,6 +367,8 @@ def calculate_from_results(list_genes, num_results=10, log=False):
 
     # build the phenotype weight
     map_prevalence = get_map_phenotype_prevalence(list_phenotypes=list_phenotypes)
+    if log:
+        logger.info("got prevalence map: {}".format(json.dumps(map_prevalence, indent=2)))
 
     # for each result, build the gene probability
     for row in list_genes:
@@ -190,23 +377,24 @@ def calculate_from_results(list_genes, num_results=10, log=False):
         phenotype_id = row.get('phenotype_id')
         probability = row.get('probability')
 
-        # calulate the minus log of the prevalence times the probability
-        score = -1.0 * math.log(map_prevalence.get(phenotype_id)) * probability
+        if map_prevalence.get(phenotype_id):
+            # calulate the minus log of the prevalence times the probability
+            score = -1.0 * math.log(map_prevalence.get(phenotype_id)) * probability
 
-        if map_gene_results.get(gene):
-            map_gene_results[gene] = map_gene_results.get(gene) + score
-        else:
-            map_gene_results[gene] = score
+            if map_gene_results.get(gene):
+                map_gene_results[gene] = map_gene_results.get(gene) + score
+            else:
+                map_gene_results[gene] = score
 
     # create a list from the gene map
     list_result = [{key: value} for key, value in map_gene_results.items()]
-    if log:
-        logger.info("got final gene score list: {}".format(list_result))
+    # if log:
+    #     logger.info("got final gene score list: {}".format(list_result))
 
     # sort list
     list_sorted_result = sorted(list_result, key=lambda item: list(item.values())[0], reverse=True)
-    if log:
-        logger.info("got sorted list: {}".format(list_sorted_result))
+    # if log:
+    #     logger.info("got sorted list: {}".format(list_sorted_result))
 
     # return
     return list_sorted_result[:num_results]
@@ -257,4 +445,24 @@ def query_multi_curie(query: Query, log=False):
 
 
 # main
+if __name__ == "__main__":
+    # data
+    list_curies = [
+        "HP:0002907",
+        "HP:0012745",
+        # "HP:0005110", 
+        "HP:0000574",
+        "HP:0002870",
+        "HP:0034003"
+    ]
+    map_to_omop = {}
+
+    # test the omop call
+    map_to_omop = get_omop_for_list(list_curies=list_curies, log=False)
+    print("got omop response: \n{}".format(json.dumps(map_to_omop, indent=2)))
+
+    # test the prevalance call
+    print()
+    map_to_prevalence = get_prevalence_for_list(list_curies=list_curies, log=True)
+    print("got prevalence response: \n{}".format(json.dumps(map_to_prevalence, indent=2)))
 
