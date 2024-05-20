@@ -3,7 +3,7 @@
 import openapi_server.dcc.result_utils as rutils
 
 # constants
-url_trapi_service = "https://genetics-kp.test.transltr.io/genetics_provider/trapi/v1.4/{}"
+url_trapi_service = "https://genetics-kp.test.transltr.io/genetics_provider/trapi/v1.5/{}"
 
 # tests
 def test_query_api():
