@@ -79,3 +79,21 @@ limit 20;
 
 
 
+
+-- scratch
+-- update mcq_phenotype set query_ontology_id = 'HP:0001382' where name = 'joint_stiffness';
+-- update mcq_phenotype set query_ontology_id = 'HP:0100785' where name = 'insomnia';
+-- update mcq_phenotype set query_ontology_id = 'HP:5200207' where name = 'decreased_concetration';
+-- update mcq_phenotype set query_ontology_id = 'HP:5200207' where name = 'attention_function';
+-- update mcq_phenotype set query_ontology_id = 'HP:0001252' where name = 'thigh_muscle_fat_percentage';
+-- update mcq_phenotype set query_ontology_id = 'HP:0020221' where name = 'clonic_tonic';
+-- update mcq_phenotype set query_ontology_id = 'HP:0032792' where name = 'clonic_tonic';
+-- update mcq_phenotype set query_ontology_id = 'HP:0010862' where name = 'motor_delay';
+-- update mcq_phenotype set query_ontology_id = 'HP:0002317' where name = 'gait_disturbance';
+-- update mcq_phenotype set query_ontology_id = 'HP:0001250' where name = 'seizures';
+-- update mcq_phenotype set query_ontology_id = 'HP:0001251' where name = 'falling_risk';
+-- update mcq_phenotype set query_ontology_id = 'HP:0000752' where name = 'adhd';
+-- update mcq_phenotype set query_ontology_id = 'HP:0001250' where name = 'epilepsy';
+-- update mcq_phenotype set query_ontology_id = 'HP:0031491' where name = 'eeg';
+
+

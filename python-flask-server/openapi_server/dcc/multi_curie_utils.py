@@ -61,7 +61,7 @@ def get_omop_for_list(list_curies, log=False):
     # loop over results
     for key, value in json_response.items():
         if value:
-            map_results[key] = value.get('omop_concept_id')
+            map_results[key] = {'omop_id': value.get('omop_concept_id'), 'omop_name': value.get('omop_concept_name')}
         # else:
         #     map_results[key] = value
 
@@ -113,10 +113,10 @@ def get_prevalence_for_list(list_curies, log=True):
     # flip the phenotype map
     map_temp = {}
     for key, value in map_phenotypes.items():
-        map_temp[value] = key
+        map_temp[value.get('omop_id')] = key
 
     if log:
-        print("got temp map: \n{}".format(json.dumps(map_temp, indent=2)))
+        logger.info("got OMOP to curie_id temp map: \n{}".format(json.dumps(map_temp, indent=2)))
 
     # call cohd service
     str_input = ",".join(str(num) for num in map_temp.keys())
@@ -130,7 +130,8 @@ def get_prevalence_for_list(list_curies, log=True):
     json_results = json_response.get('results')
     for item in json_results:
         omop_id = item.get('concept_id')
-        map_results[map_temp.get(omop_id)] = {'prevalence': item.get('concept_frequency'), 'omop_id': omop_id}
+        # omop_name = 
+        map_results[map_temp.get(omop_id)] = {'prevalence': item.get('concept_frequency'), 'omop_id': omop_id, 'omop_name': map_phenotypes.get(map_temp.get(omop_id)).get('omop_name')}
 
     # return
     return map_results
@@ -331,7 +332,7 @@ def get_map_phenotype_prevalence(list_phenotypes, log=True):
     map_prevalence = {}
     map_result = {}
 
-    # TODO - get the prevalence
+    # get the prevalence
     # for row in list_phenotypes:
     #     map_prevalence[row] = 0.5
     map_prevalence = get_prevalence_for_list(list_curies=list_phenotypes)
@@ -348,7 +349,7 @@ def get_map_phenotype_prevalence(list_phenotypes, log=True):
     return map_result
 
 
-def calculate_from_results(list_genes, num_results=10, log=True):
+def calculate_from_results(list_genes, num_results=50, log=True):
     '''
     will do the algorithmic calculation of the results 
     '''
