@@ -510,7 +510,8 @@ def build_edge_knowledge_graph(predicate, key_subject: str, key_object: str, lis
     list_qualifiers = []
 
     # get the name
-    logger.info("got subject:{} and object: {}".format(key_subject, key_object))
+    if log:
+        logger.info("got subject:{} and object: {}".format(key_subject, key_object))
     key_edge = key_subject + '--' + key_object
 
     # build the edge object
