@@ -1,0 +1,276 @@
+{
+    "biolink_version": "4.1.6",
+    "logs": [
+        {
+            "code": "INFO",
+            "level": "INFO",
+            "message": "Got 2 nodes & 1 edges with 1 ids from None",
+            "timestamp": "2024-05-22T18:44:39.072656Z"
+        },
+        {
+            "code": "INFO",
+            "level": "INFO",
+            "message": "querying transformer 'MoleProDB node producer' at https://molepro.ci.transltr.io/molecular_data_provider/transform?cache=no",
+            "timestamp": "2024-05-22T18:44:39.073466Z"
+        },
+        {
+            "code": "INFO",
+            "level": "INFO",
+            "message": "querying transformer 'MoleProDB connections transformer' at https://molepro.ci.transltr.io/molecular_data_provider/transform?cache=no",
+            "timestamp": "2024-05-22T18:44:39.137450Z"
+        },
+        {
+            "code": "INFO",
+            "level": "INFO",
+            "message": "querying transformer 'HGNC gene-list producer' at https://molepro.ci.transltr.io/molecular_data_provider/transform?cache=no",
+            "timestamp": "2024-05-22T18:44:39.267771Z"
+        },
+        {
+            "code": "INFO",
+            "level": "INFO",
+            "message": "querying transformer 'STRING protein-protein interaction' at https://molepro.ci.transltr.io/molecular_data_provider/transform?cache=no",
+            "timestamp": "2024-05-22T18:44:39.325282Z"
+        },
+        {
+            "code": "404",
+            "level": "WARNING",
+            "message": "failed querying transformer STRING protein-protein interaction at https://molepro.ci.transltr.io/molecular_data_provider/transform?cache=no with 404",
+            "timestamp": "2024-05-22T18:44:39.360018Z"
+        },
+        {
+            "code": "INFO",
+            "level": "INFO",
+            "message": "Returning 1 edges to None in 0 s",
+            "timestamp": "2024-05-22T18:44:39.362076Z"
+        }
+    ],
+    "message": {
+        "knowledge_graph": {
+            "edges": {
+                "e0-ZCdoWbZVdn": {
+                    "attributes": [
+                        {
+                            "attribute_source": "infores:cmap",
+                            "attribute_type_id": "biolink:knowledge_level",
+                            "attributes": [],
+                            "original_attribute_name": "knowledge level",
+                            "value": "statistical_association",
+                            "value_type_id": "String"
+                        },
+                        {
+                            "attribute_source": "infores:cmap",
+                            "attribute_type_id": "biolink:agent_type",
+                            "attributes": [],
+                            "original_attribute_name": "agent type",
+                            "value": "data_analysis_pipeline",
+                            "value_type_id": "String"
+                        },
+                        {
+                            "attribute_source": "infores:cmap",
+                            "attribute_type_id": "CMAP:similarity_score",
+                            "attributes": [],
+                            "original_attribute_name": "CMAP similarity score",
+                            "value": "99.1",
+                            "value_type_id": "Double"
+                        },
+                        {
+                            "attribute_source": "infores:cmap",
+                            "attribute_type_id": "SIO:000811",
+                            "attributes": [],
+                            "original_attribute_name": "about CMAP",
+                            "value": "https://clue.io/cmap",
+                            "value_type_id": "Uri",
+                            "value_url": "https://clue.io/cmap"
+                        },
+                        {
+                            "attribute_source": "infores:cmap",
+                            "attribute_type_id": "SIO:000653",
+                            "attributes": [],
+                            "original_attribute_name": "CMAP touchstone data version",
+                            "value": "1.1.1.2",
+                            "value_type_id": "String",
+                            "value_url": "https://api.clue.io/api/touchstone-version"
+                        },
+                        {
+                            "attribute_type_id": "biolink:publications",
+                            "value": [
+                                "PMID:29195078"
+                            ],
+                            "value_type_id": "linkml:Uriorcurie"
+                        }
+                    ],
+                    "object": "NCBIGene:10166",
+                    "predicate": "biolink:correlated_with",
+                    "qualifiers": [
+                        {
+                            "qualifier_type_id": "biolink:subject_aspect_qualifier",
+                            "qualifier_value": "gene_knockdown"
+                        },
+                        {
+                            "qualifier_type_id": "biolink:object_aspect_qualifier",
+                            "qualifier_value": "gene_knockdown"
+                        }
+                    ],
+                    "sources": [
+                        {
+                            "resource_id": "infores:cmap",
+                            "resource_role": "primary_knowledge_source",
+                            "source_record_urls": [
+                                "https://clue.io/connection?url=macchiato.clue.io/builds/touchstone/v1.1/arfs/CGS001-819"
+                            ],
+                            "upstream_resource_ids": []
+                        },
+                        {
+                            "resource_id": "infores:molepro",
+                            "resource_role": "aggregator_knowledge_source",
+                            "source_record_urls": [],
+                            "upstream_resource_ids": [
+                                "infores:cmap"
+                            ]
+                        }
+                    ],
+                    "subject": "NCBIGene:819"
+                }
+            },
+            "nodes": {
+                "NCBIGene:10166": {
+                    "attributes": [
+                        {
+                            "attribute_source": "infores:hgnc",
+                            "attribute_type_id": "biolink:symbol",
+                            "attributes": [],
+                            "original_attribute_name": "symbol",
+                            "value": "SLC25A15"
+                        },
+                        {
+                            "attribute_source": "infores:cmap",
+                            "attribute_type_id": "biolink:symbol",
+                            "attributes": [],
+                            "original_attribute_name": "gene_symbol",
+                            "value": "SLC25A15",
+                            "value_type_id": "String"
+                        },
+                        {
+                            "attribute_source": "infores:hmdb",
+                            "attribute_type_id": "biolink:symbol",
+                            "attributes": [],
+                            "original_attribute_name": "gene_name",
+                            "value": "SLC25A15"
+                        },
+                        {
+                            "attribute_source": "infores:string",
+                            "attribute_type_id": "biolink:symbol",
+                            "attributes": [],
+                            "original_attribute_name": "Ensembl_HGNC_symbol",
+                            "value": "SLC25A15",
+                            "value_type_id": "String"
+                        },
+                        {
+                            "attribute_source": "infores:string",
+                            "attribute_type_id": "biolink:symbol",
+                            "attributes": [],
+                            "original_attribute_name": "Ensembl_HGNC_symbol",
+                            "value": "SLC25A15",
+                            "value_type_id": "String"
+                        },
+                        {
+                            "attribute_type_id": "biolink:xref",
+                            "original_attribute_name": "identifiers",
+                            "value": [
+                                "BIGG.GENE:10166",
+                                "CCDS:CCDS9373.1",
+                                "ENSEMBL:ENSG00000102743",
+                                "NCBIGene:10166",
+                                "HGNC:10985",
+                                "OMIM:603861",
+                                "OMIM:603861",
+                                "UMLS:C1420156"
+                            ],
+                            "value_type_id": "linkml:Curie"
+                        }
+                    ],
+                    "categories": [
+                        "biolink:Gene"
+                    ],
+                    "name": "SLC25A15"
+                },
+                "NCBIGene:819": {
+                    "attributes": [],
+                    "categories": [
+                        "biolink:Gene"
+                    ]
+                }
+            }
+        },
+        "query_graph": {
+            "edges": {
+                "e03": {
+                    "attribute_constraints": [],
+                    "object": "obj",
+                    "predicates": [
+                        "biolink:related_to"
+                    ],
+                    "qualifier_constraints": [],
+                    "subject": "subj"
+                }
+            },
+            "nodes": {
+                "obj": {
+                    "categories": [
+                        "biolink:Gene"
+                    ],
+                    "constraints": [],
+                    "ids": [
+                        "NCBIGene:10166"
+                    ]
+                },
+                "subj": {
+                    "categories": [
+                        "biolink:Gene"
+                    ],
+                    "constraints": [],
+                    "ids": [
+                        "NCBIGene:819"
+                    ],
+                    "set_interpretation": "BATCH"
+                }
+            }
+        },
+        "results": [
+            {
+                "analyses": [
+                    {
+                        "attributes": [],
+                        "edge_bindings": {
+                            "e03": [
+                                {
+                                    "attributes": [],
+                                    "id": "e0-ZCdoWbZVdn"
+                                }
+                            ]
+                        },
+                        "resource_id": "infores:molepro",
+                        "support_graphs": []
+                    }
+                ],
+                "node_bindings": {
+                    "obj": [
+                        {
+                            "attributes": [],
+                            "id": "NCBIGene:10166",
+                            "query_id": "NCBIGene:10166"
+                        }
+                    ],
+                    "subj": [
+                        {
+                            "attributes": [],
+                            "id": "NCBIGene:819",
+                            "query_id": "NCBIGene:819"
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "schema_version": "1.5.0"
+}
