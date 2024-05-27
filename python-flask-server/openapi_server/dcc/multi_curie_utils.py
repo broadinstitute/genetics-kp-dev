@@ -11,6 +11,7 @@ from openapi_server.models.query_graph import QueryGraph
 from openapi_server.models.response import Response
 from openapi_server.models.edge import Edge
 from openapi_server.models.node import Node
+from openapi_server.models.response_message import ResponseMessage
 
 import openapi_server.dcc.trapi_utils as tutils
 import openapi_server.dcc.trapi_constants as trapi_constants
@@ -258,11 +259,14 @@ def sub_query_mcq(trapi_query: Query, log=False):
     '''
     # initialize 
     list_logs = ["query is lookup", "query is MANY muti curie"]
-    trapi_respponse = Response(message=trapi_query.message, logs=list_logs, workflow=trapi_query.workflow, 
+    trapi_response_message: ResponseMessage = tutils.build_response_message(query_graph=trapi_query.message.query_graph)
+    trapi_response = Response(message=trapi_response_message, logs=list_logs, workflow=trapi_query.workflow, 
                             biolink_version=tutils.get_biolink_version(), schema_version=tutils.get_trapi_version())
     list_mcq_nodes = []
     map_nodes = {}
     map_edges = {}
+    list_response_results = []
+    set_name = 'trapi:set01'
 
     # get the inputs
     if trapi_query:
@@ -304,7 +308,7 @@ def sub_query_mcq(trapi_query: Query, log=False):
 
     # build the response
     # build object set node
-    node_object : Node = tutils.build_node_knowledge_graph(ontology_id='trapi:set01', name='trapi:set01', list_categories=[trapi_constants.BIOLINK_ENTITY_PHENOTYPE])
+    node_object : Node = tutils.build_node_knowledge_graph(ontology_id=set_name, name=set_name, list_categories=[trapi_constants.BIOLINK_ENTITY_PHENOTYPE])
     map_nodes[node_object.name] = node_object
     for row in list_result:
         # build the score attribute
@@ -312,6 +316,7 @@ def sub_query_mcq(trapi_query: Query, log=False):
 
         # build subject gene node
         name_gene = list(row.values())[0].get('gene_name')
+        score = list(row.values())[0].get('score')
         id_gene = list(row.keys())[0]
         node_subject: Node = tutils.build_node_knowledge_graph(ontology_id=id_gene, name=name_gene, list_categories=[trapi_constants.BIOLINK_ENTITY_GENE])
 
@@ -319,15 +324,21 @@ def sub_query_mcq(trapi_query: Query, log=False):
         key_edge, edge = tutils.build_edge_knowledge_graph(predicate=trapi_constants.BIOLINK_PREDICATE_GENETIC_ASSOCIATION, key_subject=node_subject.name, key_object=node_object.name, list_attributes=list_attributes)
 
         # add the nodes, edge to the map
-        map_nodes[name_gene] = node_subject
+        map_nodes[id_gene] = node_subject
         map_edges[key_edge] = edge
+
+        # add the result
+        list_response_results.append(tutils.build_response_result(query=trapi_query, edge_key=key_edge, subject_id=set_name, object_id=id_gene, score=score, scoring_method='probability'))
         
     # build the KG and add to response
-    trapi_query.message.knowledge_graph = tutils.build_knowledge_graph(map_edges=map_edges, map_nodes=map_nodes, log=False)
+    trapi_response_message.knowledge_graph = tutils.build_knowledge_graph(map_edges=map_edges, map_nodes=map_nodes, log=False)
 
+    # build the results
+    trapi_response_message.results = list_response_results
+    
     # return
-    trapi_respponse.logs = list_logs
-    return trapi_respponse
+    trapi_response.logs = list_logs
+    return trapi_response
 
 
 def get_map_phenotype_prevalence(list_phenotypes, log=True):
@@ -416,49 +427,49 @@ def calculate_from_results(list_genes, num_results=50, log=True):
     # return
     return list_sorted_result[:num_results]
 
-def query_multi_curie(query: Query, log=False):
-    ''' 
-    will process a multi curie query 
-    '''
-    # initialize
-    logs = []
-    list_subject_mcq_nodes = []
-    list_object_mcq_nodes = []
-    set_subject = None
-    set_object = None
+# def query_multi_curie(query: Query, log=False):
+#     ''' 
+#     will process a multi curie query 
+#     '''
+#     # initialize
+#     logs = []
+#     list_subject_mcq_nodes = []
+#     list_object_mcq_nodes = []
+#     set_subject = None
+#     set_object = None
 
-    # just do MANY set interpretation for now
+#     # just do MANY set interpretation for now
     
-    # process
-    # get the set interpretation and the nodes set
-    if query:
-        message: Message = query.message
-        Message.results = []
-        if message.query_graph:
-            query_graph: QueryGraph = message.query_graph
-            if query_graph.nodes and len(query_graph.nodes) > 0:
-                for node in query_graph.nodes.values():
-                    set_interpretation = node.set_interpretation
-                    if set_interpretation in [trapi_constants.SET_INTERPRETATION_ALL, trapi_constants.SET_INTERPRETATION_MANY]:
-                        input_set_interpretation = set_interpretation
-                        if node.ids:
-                            # make sure at least 1 element
-                            list_mcq_nodes = node.ids
-                            if len(list_mcq_nodes) < 1:
-                                logs.append("Error: no curies provided for set interpretation: {}".format(input_set_interpretation))
-                            else:
-                                # add acceptance log message
-                                logs.append("processing mcq query with set interpretation {} for nodes: {}".format(input_set_interpretation, list_mcq_nodes))
+#     # process
+#     # get the set interpretation and the nodes set
+#     if query:
+#         message: Message = query.message
+#         Message.results = []
+#         if message.query_graph:
+#             query_graph: QueryGraph = message.query_graph
+#             if query_graph.nodes and len(query_graph.nodes) > 0:
+#                 for node in query_graph.nodes.values():
+#                     set_interpretation = node.set_interpretation
+#                     if set_interpretation in [trapi_constants.SET_INTERPRETATION_ALL, trapi_constants.SET_INTERPRETATION_MANY]:
+#                         input_set_interpretation = set_interpretation
+#                         if node.ids:
+#                             # make sure at least 1 element
+#                             list_mcq_nodes = node.ids
+#                             if len(list_mcq_nodes) < 1:
+#                                 logs.append("Error: no curies provided for set interpretation: {}".format(input_set_interpretation))
+#                             else:
+#                                 # add acceptance log message
+#                                 logs.append("processing mcq query with set interpretation {} for nodes: {}".format(input_set_interpretation, list_mcq_nodes))
                                 
-                                # process MCQ
+#                                 # process MCQ
 
-                        else:
-                            logs.append("Error: no curies provided for set interpretation: {}".format(input_set_interpretation))
+#                         else:
+#                             logs.append("Error: no curies provided for set interpretation: {}".format(input_set_interpretation))
 
 
-    # return
-    return Response(message=query.message, logs=logs, workflow=query.workflow, 
-                biolink_version=tutils.get_biolink_version(), schema_version=tuple.get_trapi_version())
+#     # return
+#     return Response(message=query.message, logs=logs, workflow=query.workflow, 
+#                 biolink_version=tutils.get_biolink_version(), schema_version=tuple.get_trapi_version())
 
 
 # main

@@ -25,6 +25,13 @@ from openapi_server.models.analysis import Analysis
 from openapi_server.models.retrieval_source import RetrievalSource
 from openapi_server.models.resource_role_enum import ResourceRoleEnum
 from openapi_server.models.auxiliary_graph import AuxiliaryGraph
+from openapi_server.models.response import Response
+from openapi_server.models.response_workflow import ResponseWorkflow
+from openapi_server.models.response_message import ResponseMessage
+
+from openapi_server.models.message_query_graph import MessageQueryGraph
+from openapi_server.models.message_knowledge_graph import MessageKnowledgeGraph
+
 
 from openapi_server import util
 from openapi_server.dcc.creative_model import CreativeResult, CreativeEdge, CreativeNode
@@ -33,6 +40,7 @@ import openapi_server.dcc.trapi_constants as trapi_constants
 from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger, build_pubmed_ids, get_normalize_curies
 from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
 import openapi_server.dcc.query_builder as qbuilder
+import openapi_server.dcc.trapi_extract as textract
 
 # set up the logger
 logger = get_logger("trapi_utils")
@@ -534,9 +542,10 @@ def build_node_knowledge_graph(ontology_id, name, list_categories, list_attribut
     # return the node
     return node
 
+
 def build_knowledge_graph(map_edges, map_nodes, log=False):
     '''
-    build a result knoeledge graph 
+    build a result knowledge graph 
     '''
     # log
     if log:
@@ -551,5 +560,49 @@ def build_knowledge_graph(map_edges, map_nodes, log=False):
     return knowledge_graph
 
 
+def build_response_workflow(log=False):
+    '''
+    builds the response workflow
+    '''
+    return ResponseWorkflow()
+
+
+def build_response_message(query_graph: MessageQueryGraph, knowledge_graph: MessageKnowledgeGraph = None, results: list = [], log=False):
+    '''
+    builds a response message
+    '''
+    return ResponseMessage(results=results, query_graph=query_graph, knowledge_graph=knowledge_graph)
+
+
+def build_response_result(query: Query, edge_key, subject_id, object_id, scoring_method=None,
+                 score=None, edge_resource=trapi_constants.PROVENANCE_INFORES_KP_GENETICS, log=False):
+    ''' 
+    builds a result for the query response
+    '''
+    # initialize
+    map_edges = {}
+    map_nodes = {}
+
+    # build the edge binding
+    edge_binding: EdgeBinding = EdgeBinding(id=edge_key, attributes=[])
+    key_temp, _ = textract.get_queryedge_key_edge(trapi_query=query)
+    map_edges[key_temp] = edge_binding
+
+    # build the node bindings
+    subject_binding: NodeBinding = NodeBinding(id=subject_id, attributes=[]) 
+    key_temp, _ = textract.get_querygraph_key_node(trapi_query=query, is_subject=True)
+    map_nodes[key_temp] = subject_binding
+    object_binding: NodeBinding = NodeBinding(id=object_id, attributes=[]) 
+    key_temp, _ = textract.get_querygraph_key_node(trapi_query=query, is_subject=False)
+    map_nodes[key_temp] = object_binding
+
+    # build the analysis
+    analysis: Analysis = Analysis(resource_id=edge_resource, score=score, support_graphs=[], attributes=[], scoring_method=scoring_method, edge_bindings=map_edges)
+
+    # build the result
+    result: Result = Result(analyses=analysis, node_bindings=map_nodes)
+
+    # return
+    return result
 
 

@@ -25,7 +25,7 @@ import openapi_server.dcc.query_builder as qbuilder
 
 # from openapi_server.dcc.mcq_utils import sub_query_mcq
 from openapi_server.dcc.verification_utils import is_query_acceptable_node_sets, is_query_creative, is_query_multi_curie
-from openapi_server.dcc.multi_curie_utils import query_multi_curie, sub_query_mcq
+from openapi_server.dcc.multi_curie_utils import sub_query_mcq
 # import openapi_server.dcc.trapi_constants
 
 # get logger
