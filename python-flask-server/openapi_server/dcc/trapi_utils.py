@@ -439,8 +439,8 @@ def build_results(results_list: list, query_graph) -> Response:
                 list_attributes.append(build_attribute(name_original=trapi_constants.NAME_PUBLICATIONS, value=list_publication, value_type=trapi_constants.BIOLINK_PUBLICATION, id_source=edge_element.study_type_id))
 
         # 20240423 - add in agent type and knowledge level
-        list_attributes.append(build_attribute(name_original=trapi_constants.NAME_AGENT_TYPE, value=at_utils.AGENT_PIPELINE, value_type=trapi_constants.BIOLINK_AGENT_TYPE, id_source=1))
-        list_attributes.append(build_attribute(name_original=trapi_constants.NAME_KNOWLEDGE_LEVEL, value=at_utils.KNOWLEDGE_STATS, value_type=trapi_constants.BIOLINK_KNOWLEDGE_LEVEL, id_source=1))
+        list_attributes.append(build_attribute(name_original=trapi_constants.NAME_AGENT_TYPE, value=trapi_constants.AGENT_PIPELINE, value_type=trapi_constants.BIOLINK_AGENT_TYPE, id_source=1))
+        list_attributes.append(build_attribute(name_original=trapi_constants.NAME_KNOWLEDGE_LEVEL, value=trapi_constants.KNOWLEDGE_STATS, value_type=trapi_constants.BIOLINK_KNOWLEDGE_LEVEL, id_source=1))
 
         # 20230213 - add qualifiers
         list_qualifiers = []
