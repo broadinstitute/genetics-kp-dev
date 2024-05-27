@@ -22,6 +22,8 @@ logger = get_logger('multi_curie_utils.py')
 
 # constants
 FILE_DB = "conf/mcq.db"
+# TODO - get this dynamically
+CHOD_PATIENT_COUNT = 1790431
 
 DB_QUERY_GENE_PHENOTYPE = """
 select gene.ontology_id, gene_pheno.gene, pheno.name, pheno.query_ontology_id, gene_pheno.probability
@@ -120,19 +122,21 @@ def get_prevalence_for_list(list_curies, log=True):
         logger.info("got OMOP to curie_id temp map: \n{}".format(json.dumps(map_temp, indent=2)))
 
     # call cohd service
-    str_input = ",".join(str(num) for num in map_temp.keys())
-    url = URL_CHOD.format(URI_PREVALENCE.format(str_input))
-    if log:
-        print("Using prevalence URL: {}".format(url))
-    response = requests.get(url)
-    json_response = response.json()
+    # make sure at least one phenotype has an OMOP result match
+    if len(map_temp) > 0:
+        str_input = ",".join(str(num) for num in map_temp.keys())
+        url = URL_CHOD.format(URI_PREVALENCE.format(str_input))
+        if log:
+            print("Using prevalence URL: {}".format(url))
+        response = requests.get(url)
+        json_response = response.json()
 
-    # loop
-    json_results = json_response.get('results')
-    for item in json_results:
-        omop_id = item.get('concept_id')
-        # omop_name = 
-        map_results[map_temp.get(omop_id)] = {'prevalence': item.get('concept_frequency'), 'omop_id': omop_id, 'omop_name': map_phenotypes.get(map_temp.get(omop_id)).get('omop_name')}
+        # loop
+        json_results = json_response.get('results')
+        for item in json_results:
+            omop_id = item.get('concept_id')
+            # omop_name = 
+            map_results[map_temp.get(omop_id)] = {'prevalence': item.get('concept_frequency'), 'omop_id': omop_id, 'omop_name': map_phenotypes.get(map_temp.get(omop_id)).get('omop_name')}
 
     # return
     return map_results
@@ -358,7 +362,7 @@ def calculate_from_results(list_genes, num_results=50, log=True):
     # initialize
     map_prevalence = {}
     # test data
-    list_result = [{'PPARG': 75}, {'SLC30A8': 90}, {'PCSK9': 58}]
+    list_result = [{'NCBIGene:99008': {'gene_name': 'PPARG', 'score':75}}, {'NCBIGene:23008': {'gene_name': 'SLC30A8', 'score':68}}, {'NCBIGene:56006': {'gene_name': 'PCSK9', 'score':50}}]
     map_gene_results = {}
     
     # get only the unique phenotypes
@@ -366,10 +370,17 @@ def calculate_from_results(list_genes, num_results=50, log=True):
         map_prevalence[row.get('phenotype_id')] = 0
     list_phenotypes = list(map_prevalence.keys())
     if log:
-        logger.info("got list pf phenotypes for prevalence: {}".format(list_phenotypes))
+        logger.info("got list of phenotypes for prevalence: {}".format(list_phenotypes))
 
     # build the phenotype weight
     map_prevalence = get_map_phenotype_prevalence(list_phenotypes=list_phenotypes)
+
+    # for any phenotype that doesn't have a prevalence, set to n/n+1
+    for phenotype in list_phenotypes:
+        if not map_prevalence.get(phenotype):
+            map_prevalence[phenotype] = CHOD_PATIENT_COUNT / (CHOD_PATIENT_COUNT + 1)
+
+    # log prevalence map
     if log:
         logger.info("got prevalence map: {}".format(json.dumps(map_prevalence, indent=2)))
 
