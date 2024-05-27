@@ -160,7 +160,7 @@ class Query(Model):
     def bypass_cache(self):
         """Gets the bypass_cache of this Query.
 
-        Set to true in order to request that the agent obtain fresh information from its sources in all cases where it has a viable choice between requesting fresh information in real time and using cached information. The agent receiving this flag MUST also include it in TRAPI sent to downstream sources (e.g., ARS -> ARAs -> KPs -> NodeNorm).  # noqa: E501
+        Set to true in order to request that the agent obtain fresh information from its sources in all cases where it has a viable choice between requesting fresh information in real time and using cached information. The agent receiving this flag MUST also include it in TRAPI sent to downstream sources (e.g., ARS -> ARAs -> KPs).  # noqa: E501
 
         :return: The bypass_cache of this Query.
         :rtype: bool
@@ -171,7 +171,7 @@ class Query(Model):
     def bypass_cache(self, bypass_cache):
         """Sets the bypass_cache of this Query.
 
-        Set to true in order to request that the agent obtain fresh information from its sources in all cases where it has a viable choice between requesting fresh information in real time and using cached information. The agent receiving this flag MUST also include it in TRAPI sent to downstream sources (e.g., ARS -> ARAs -> KPs -> NodeNorm).  # noqa: E501
+        Set to true in order to request that the agent obtain fresh information from its sources in all cases where it has a viable choice between requesting fresh information in real time and using cached information. The agent receiving this flag MUST also include it in TRAPI sent to downstream sources (e.g., ARS -> ARAs -> KPs).  # noqa: E501
 
         :param bypass_cache: The bypass_cache of this Query.
         :type bypass_cache: bool

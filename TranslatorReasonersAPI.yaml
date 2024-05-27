@@ -1,22 +1,20 @@
 openapi: 3.0.1
 info:
-  description: Genetics Data Provider for NCATS Biomedical Translator Reasoners
-  version: 1.5.0.0
-  title: Genetics Data Provider for NCATS Biomedical Translator Reasoners
+  description: INSERT-DESCRIPTION-OF-YOUR-SERVICE-HERE
+  version: INSERT-VERSION-OF-YOUR-SERVICE-HERE
+  title: INSERT-TITLE-OF-YOUR-SERVICE-HERE
   contact:
-    email: mduby@broadinstitute.org
-    name: Genetics Data Provider
-    x-role: responsible developer
+    email: INSERT@EMAIL-ADDRESS-OF-IMPLEMENTER-HERE.ORG
   license:
-    name: MIT License
-    url: https://github.com/broadinstitute/genetics-kp-dev/blob/master/LICENSE
-  termsOfService: https://github.com/broadinstitute/genetics-kp-dev/blob/master/terms_of_service.md
+    name: Apache 2.0
+    url: http://www.apache.org/licenses/LICENSE-2.0.html
+  termsOfService: INSERT-URL-HERE
   x-translator:
-    component: KP
+    component: INSERT-EITHER-ARA-OR-KP-OR-ARS-OR-Utility-HERE
     team:
-      - Genetics Data Provider
-    biolink-version: 4.1.6
-    infores: "infores:genetics-data-provider"
+      - INSERT-ONE-TRANSLATOR-TEAM-NAME-PER-ELEMENT-HERE
+    biolink-version: INSERT-BIOLINK-MODEL-VERSION-HERE
+    infores: INSERT-INFORES-CURIE-OF-THIS-RESOURCE-HERE
     externalDocs:
       description: >-
         The values for component and team are restricted according to this
@@ -25,11 +23,14 @@ info:
         production/x-translator/
   x-trapi:
     version: 1.5.0
-    asyncquery: false
+    multicuriequery: REPLACE-WITH-true-IF-multicurie-queries-ARE-IMPLEMENTED-ELSE-false
+    asyncquery: REPLACE-WITH-true-IF-/asyncquery-IS-IMPLEMENTED-ELSE-false
+    pathfinderquery: REPLACE-WITH-true-IF-pathfinder-queries-ARE-IMPLEMENTED-ELSE-false
     operations:
-      - lookup
-    batch_size_limit: 100000
-    test_data_location: https://github.com/broadinstitute/genetics-kp-dev/blob/master/TestData
+      - LIST-ALL-SUPPORTED-OPERATION-IDS-HERE-OR-REMOVE-THIS-SECTION
+    batch_size_limit: ADD-BATCH-SIZE-LIMIT-OR-REMOVE-IF-NO-LIMIT
+    rate_limit: ADD-REQUEST-RATE-LIMIT-OR-REMOVE-IF-NO-LIMIT
+    test_data_location: ADD-URL-THAT-RESOLVES-TO-SRI-TESTING-HARNESS-DATA
     externalDocs:
       description: >-
         The values for version are restricted according to the regex in
@@ -37,9 +38,8 @@ info:
       url: https://github.com/NCATSTranslator/translator_extensions/blob/\
         production/x-trapi/
 servers:
-  - url: https://translator.broadinstitute.org/genetics_provider/trapi/v1.5
-    description: TRAPI development service for the Translator Genetics Data Provider
-    x-maturity: development
+  - url: INSERT-URL-HERE
+    description: INSERT-SERVER-DESCRIPTION-HERE
 externalDocs:
   description: >-
     Documentation for the NCATS Biomedical Translator Reasoners web services
@@ -53,10 +53,20 @@ tags:
       NOT including all implied ancestor relationships. ARAs SHOULD provide
       the union of all meta knowledge graphs of all the KPs that they can
       consult.
+    externalDocs:
+      description: >-
+        Documentation for the reasoner meta_knowledge_graph function
+      url: INSERT-URL-HERE-OR-REMOVE-EXTERNALDOCS-IF-NA
   - name: query
     description: Initiate a query and wait to receive the response
+    externalDocs:
+      description: Documentation for the reasoner query function
+      url: INSERT-URL-HERE-OR-REMOVE-EXTERNALDOCS-IF-NA
   - name: asyncquery
     description: Initiate a query with a callback to receive the response
+    externalDocs:
+      description: Documentation for the reasoner asynchquery function
+      url: INSERT-URL-HERE-OR-REMOVE-EXTERNALDOCS-IF-NA
   - name: asyncquery_status
     description: >-
       Retrieve the current status of a previously submitted
@@ -290,22 +300,8 @@ components:
             it has a viable choice between requesting fresh information
             in real time and using cached information. The agent
             receiving this flag MUST also include it in TRAPI sent to
-            downstream sources (e.g., ARS -> ARAs -> KPs -> NodeNorm).
+            downstream sources (e.g., ARS -> ARAs -> KPs).
       additionalProperties: true
-      example:
-        message:
-          query_graph:
-            edges:
-              e00:
-                subject: n00
-                predicates: ['biolink:affects']
-                object: n01
-            nodes:
-              n00:
-                ids: ['PUBCHEM.COMPOUND:2244']
-                categories: ['biolink:SmallMolecule']
-              n01:
-                categories: ['biolink:Gene']
       required:
         - message
     AsyncQuery:
@@ -365,7 +361,7 @@ components:
             it has a viable choice between requesting fresh information
             in real time and using cached information. The agent
             receiving this flag MUST also include it in TRAPI sent to
-            downstream sources (e.g., ARS -> ARAs -> KPs -> NodeNorm).
+            downstream sources (e.g., ARS -> ARAs -> KPs).
       additionalProperties: true
       required:
         - callback
@@ -875,8 +871,20 @@ components:
           items:
             $ref: '#/components/schemas/CURIE'
           minItems: 1
-          example: [OMIM:603903]
-          description: CURIE identifier for this node
+          example: ["OMIM:603903"]
+          description: >-
+            A CURIE identifier (or list of identifiers) for this node. 
+            The 'ids' field will hold a list of CURIEs only in the case of a
+            BATCH set_interpretation, where each CURIE is queried 
+            separately. If a list of queried CURIEs is to be considered as a  
+            set (as under a MANY or ALL set_interpretation), the 'ids' field 
+            will hold a single id representing this set, and the individual members 
+            of this set will be captured in a separate 'member_ids' field. 
+            Note that the set id MUST be created as a UUID by the system that 
+            defines the queried set, using a centralized nodenorm service. 
+            Note also that downstream systems MUST re-use the original set UUID 
+            in the messages they create/send, which will facilitate merging or 
+            caching operations.
           nullable: true
         categories:
           type: array
@@ -904,6 +912,17 @@ components:
             - ALL
             - MANY
           nullable: true
+        member_ids:
+          type: array
+          description: >-
+            A list of CURIE identifiers for members of a queried set. This 
+            field MUST be populated under a set_interpretation of MANY
+            or ALL, when the 'ids' field holds a UUID representing the set 
+            itself. This field MUST NOT be used under a set_interpretation 
+            of BATCH.
+          nullable: true
+          items:
+            $ref: '#/components/schemas/CURIE'
         constraints:
           type: array
           description: >-
@@ -1571,7 +1590,7 @@ components:
             an Edge provided by the ARAGORN ARA can expressing knowledge it
             retrieved from both the automat-mychem-info and molepro KPs,
             which both provided it with records of this single fact.
-          example: [infores:automat-mychem-info, infores:molepro]
+          example: ["infores:automat-mychem-info", "infores:molepro"]
         source_record_urls:
           type: array
           nullable: true
