@@ -24,9 +24,10 @@ logger = get_logger('multi_curie_utils.py')
 FILE_DB = "conf/mcq.db"
 
 DB_QUERY_GENE_PHENOTYPE = """
-select gene_pheno.gene, pheno.name as phenotype, pheno.query_ontology_id as ontology_id, gene_pheno.probability
-from mcq_phenotype pheno, mcq_gene_phenotype gene_pheno 
+select gene.ontology_id, gene_pheno.gene, pheno.name, pheno.query_ontology_id, gene_pheno.probability
+from mcq_phenotype pheno, mcq_gene_phenotype gene_pheno, comb_node_ontology gene
 where gene_pheno.phenotype = pheno.name 
+and gene.node_code = gene_pheno.gene
 and pheno.query_ontology_id in ({})
 order by gene_pheno.probability desc 
 """
@@ -48,7 +49,7 @@ def get_omop_for_list(list_curies, log=False):
 
     # log
     if log:
-        logger.info("calling OMOP for curies: {}".format(list_curies))
+        logger.info("calling OMOP url: {} for curies: {}".format(url, list_curies))
 
     # call the service
     response = requests.post(url, json={'curies': list_curies})
@@ -239,7 +240,7 @@ def db_query_phenotype(conn, list_phenotypes, log=False):
     # get the data
     # list_result = [dict(row) for row in rows]
     for row in rows:
-        list_result.append({'gene_name': row[0], 'phenotype_name': row[1], 'phenotype_id': row[2], 'probability': row[3]})
+        list_result.append({'gene_id': row[0], 'gene_name': row[1], 'phenotype_name': row[2], 'phenotype_id': row[3], 'probability': row[4]})
     if log: 
         logger.info("got DB results: {}".format(list_result))
 
@@ -306,8 +307,9 @@ def sub_query_mcq(trapi_query: Query, log=False):
         list_attributes = [tutils.build_attribute(list(row.values())[0], trapi_constants.BIOLINK_SCORE, id_source=trapi_constants.PROVENANCE_INFORES_KP_GENETICS)]
 
         # build subject gene node
-        name_gene = list(row.keys())[0]
-        node_subject: Node = tutils.build_node_knowledge_graph(ontology_id=name_gene, name=name_gene, list_categories=[trapi_constants.BIOLINK_ENTITY_GENE])
+        name_gene = list(row.values())[0].get('gene_name')
+        id_gene = list(row.keys())[0]
+        node_subject: Node = tutils.build_node_knowledge_graph(ontology_id=id_gene, name=name_gene, list_categories=[trapi_constants.BIOLINK_ENTITY_GENE])
 
         # buid the edge
         key_edge, edge = tutils.build_edge_knowledge_graph(predicate=trapi_constants.BIOLINK_PREDICATE_GENETIC_ASSOCIATION, key_subject=node_subject.name, key_object=node_object.name, list_attributes=list_attributes)
@@ -374,7 +376,8 @@ def calculate_from_results(list_genes, num_results=50, log=True):
     # for each result, build the gene probability
     for row in list_genes:
         # get data
-        gene = row.get('gene_name')
+        gene_id = row.get('gene_id')
+        gene_name = row.get('gene_name')
         phenotype_id = row.get('phenotype_id')
         probability = row.get('probability')
 
@@ -382,10 +385,12 @@ def calculate_from_results(list_genes, num_results=50, log=True):
             # calulate the minus log of the prevalence times the probability
             score = -1.0 * math.log(map_prevalence.get(phenotype_id)) * probability
 
-            if map_gene_results.get(gene):
-                map_gene_results[gene] = map_gene_results.get(gene) + score
+            if map_gene_results.get(gene_id):
+                map_gene_results[gene_id]['score'] = map_gene_results.get(gene_id).get('score') + score
             else:
-                map_gene_results[gene] = score
+                map_gene_results[gene_id] = {}
+                map_gene_results[gene_id]['score'] = score
+                map_gene_results[gene_id]['gene_name'] = gene_name
 
     # create a list from the gene map
     list_result = [{key: value} for key, value in map_gene_results.items()]
@@ -393,7 +398,7 @@ def calculate_from_results(list_genes, num_results=50, log=True):
     #     logger.info("got final gene score list: {}".format(list_result))
 
     # sort list
-    list_sorted_result = sorted(list_result, key=lambda item: list(item.values())[0], reverse=True)
+    list_sorted_result = sorted(list_result, key=lambda item: list(item.values())[0].get('score'), reverse=True)
     # if log:
     #     logger.info("got sorted list: {}".format(list_sorted_result))
 

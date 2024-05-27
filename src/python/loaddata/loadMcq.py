@@ -13,6 +13,9 @@ FILE_DB = "{}/MultiCurie/Sqlite/mcq.db".format(DIR_HOME)
 SQL_INSERT_PHENOTYPE = "insert into mcq_phenotype (name) values(:phenotype)"
 SQL_DELETE_PHENOTYPE = "delete from mcq_phenotype where name = :phenotype"
 
+SQL_INSERT_GENE = "insert into mcq_gene (name, ontology_id) values(:phenotype, :ontology_id)"
+SQL_DELETE_GENE = "delete from mcq_gene where name = :gene"
+
 SQL_INSERT_GENE_PHENOTYPE_DATA = "insert into mcq_gene_phenotype (gene, phenotype, probability) values(:gene, :phenotype, :probability)"
 SQL_DELETE_GENE_PHENOTYPE_DATA = "delete from mcq_gene_phenotype where phenotype = :phenotype"
 
@@ -61,6 +64,23 @@ def db_insert_gene_phenotype_data(conn, phenotype, reader_data, do_delete=False,
     print("inserted {} rows for phenotype: {}".format(count, phenotype))
 
 
+def db_insert_gene(conn, gene, gene_ontology_id, do_delete=False, log=False):
+    ''' 
+    inserts a gene into the table
+    '''
+    cursor = conn.cursor()
+
+    # delete of necessary
+    if do_delete:
+        cursor.execute(SQL_DELETE_PHENOTYPE, {"phenotype": phenotype})
+
+
+    # insert the row
+    cursor.execute(SQL_INSERT_PHENOTYPE, {"phenotype": phenotype})
+    conn.commit()
+
+    # log
+    print("inserted phenotype: {}".format(phenotype))
 
 
 # main

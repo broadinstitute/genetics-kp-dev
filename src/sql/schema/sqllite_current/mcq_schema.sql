@@ -25,6 +25,17 @@ CREATE TABLE IF NOT EXISTS mcq_gene_phenotype (
 
 
 
+drop table mcq_gene;
+CREATE TABLE IF NOT EXISTS mcq_gene (
+    id INTEGER PRIMARY KEY, 
+    ontology_id TEXT, 
+    query_ontology_id TEXT, 
+    name TEXT,
+    namer_translator TEXT,
+    created_at DATE DEFAULT (DATE('now', 'localtime'))
+);
+
+
 -- updates
 update mcq_phenotype set query_ontology_id = 'HP:0001382' where name = 'joint_stiffness';
 update mcq_phenotype set query_ontology_id = 'HP:0100785' where name = 'insomnia';
@@ -77,6 +88,14 @@ and pheno.query_ontology_id in ('HP:0000752', 'HP:0001250')
 order by gene_pheno.probability desc 
 limit 20;
 
+-- query by disease curie with join to node table
+select gene.ontology_id, gene_pheno.gene, pheno.name, pheno.query_ontology_id, gene_pheno.probability
+from mcq_phenotype pheno, mcq_gene_phenotype gene_pheno, comb_node_ontology gene
+where gene_pheno.phenotype = pheno.name 
+and gene.node_code = gene_pheno.gene
+and pheno.query_ontology_id in ('HP:0000752', 'HP:0001250')
+order by gene_pheno.probability desc 
+limit 20;
 
 
 
@@ -96,4 +115,11 @@ limit 20;
 -- update mcq_phenotype set query_ontology_id = 'HP:0001250' where name = 'epilepsy';
 -- update mcq_phenotype set query_ontology_id = 'HP:0031491' where name = 'eeg';
 
+
+
+-- mysql port
+select node_code, ontology_id
+from comb_node_ontology 
+where ontology_type_id = 1
+order by node_code;
 

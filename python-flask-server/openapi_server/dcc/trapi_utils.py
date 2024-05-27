@@ -529,7 +529,7 @@ def build_node_knowledge_graph(ontology_id, name, list_categories, list_attribut
     wild buid a KG graph node  
     '''
     # initialize
-    node = Node(name=name, categories=list_categories, attributes=list_attributes)
+    node = Node(name=ontology_id, categories=list_categories, attributes=list_attributes)
 
     # return the node
     return node
