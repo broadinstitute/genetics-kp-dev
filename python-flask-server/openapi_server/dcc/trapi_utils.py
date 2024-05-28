@@ -511,14 +511,13 @@ def get_retrieval_source_list(list_study_id=None, log=False):
     return list_sources
 
 
-def build_edge_knowledge_graph(predicate, key_subject: str, key_object: str, list_attributes=[], log=False):
+def build_edge_knowledge_graph(predicate, key_subject: str, key_object: str, list_attributes=[], list_sources=[], log=False):
     '''
     will build a KG graph edge from the given nodes
     '''
     # initialize
     map_edge = {}
     edge = None
-    list_sources = []
     list_qualifiers = []
 
     # get the name
