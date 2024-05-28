@@ -1,0 +1,310 @@
+{
+    "biolink_version": "3.2.0",
+    "message": {
+        "knowledge_graph": {
+            "edges": {
+                "Clinvar_76138MONDO:0011936NCBIGene:652": {
+                    "attributes": [
+                        {
+                            "attribute_type_id": "biolink:score",
+                            "original_attribute_name": "score",
+                            "value": 0.05
+                        }
+                    ],
+                    "object": "NCBIGene:652",
+                    "predicate": "biolink:condition_associated_with_gene",
+                    "qualifiers": [],
+                    "sources": [
+                        {
+                            "resource_id": "infores:genetics-data-provider",
+                            "resource_role": "aggregator_knowledge_source",
+                            "source_record_urls": [
+                                "https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/geneticsKp.md"
+                            ],
+                            "upstream_resource_ids": [
+                                "infores:clinvar"
+                            ]
+                        },
+                        {
+                            "resource_id": "infores:clinvar",
+                            "resource_role": "primary_knowledge_source",
+                            "source_record_urls": [
+                                "https://www.ncbi.nlm.nih.gov/clinvar/"
+                            ]
+                        }
+                    ],
+                    "subject": "MONDO:0011936"
+                },
+                "gencc_di_ge_GENCC_000101-HGNC_1071-OMIM_607932-HP_0000006-GENCC_100003MONDO:0011936NCBIGene:652": {
+                    "attributes": [
+                        {
+                            "attribute_type_id": "biolink:score",
+                            "original_attribute_name": "score",
+                            "value": 0.5
+                        }
+                    ],
+                    "object": "NCBIGene:652",
+                    "predicate": "biolink:condition_associated_with_gene",
+                    "qualifiers": [],
+                    "sources": [
+                        {
+                            "resource_id": "infores:genetics-data-provider",
+                            "resource_role": "aggregator_knowledge_source",
+                            "source_record_urls": [
+                                "https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/geneticsKp.md"
+                            ],
+                            "upstream_resource_ids": [
+                                "infores:genebass"
+                            ]
+                        },
+                        {
+                            "resource_id": "infores:genebass",
+                            "resource_role": "primary_knowledge_source",
+                            "source_record_urls": [
+                                "https://genebass.org/"
+                            ]
+                        }
+                    ],
+                    "subject": "MONDO:0011936"
+                },
+                "gencc_di_ge_GENCC_000111-HGNC_1071-OMIM_607932-HP_0000006-GENCC_100002MONDO:0011936NCBIGene:652": {
+                    "attributes": [
+                        {
+                            "attribute_type_id": "biolink:score",
+                            "original_attribute_name": "score",
+                            "value": 0.8
+                        },
+                        {
+                            "attribute_source": "infores:gencc",
+                            "attribute_type_id": "biolink:has_supporting_publications",
+                            "original_attribute_name": "publication",
+                            "value": [
+                                "PMID:21340693",
+                                "PMID:31053785"
+                            ],
+                            "value_type_id": "biolink:Publication"
+                        }
+                    ],
+                    "object": "NCBIGene:652",
+                    "predicate": "biolink:condition_associated_with_gene",
+                    "qualifiers": [],
+                    "sources": [
+                        {
+                            "resource_id": "infores:genetics-data-provider",
+                            "resource_role": "aggregator_knowledge_source",
+                            "source_record_urls": [
+                                "https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/geneticsKp.md"
+                            ],
+                            "upstream_resource_ids": [
+                                "infores:genebass"
+                            ]
+                        },
+                        {
+                            "resource_id": "infores:genebass",
+                            "resource_role": "primary_knowledge_source",
+                            "source_record_urls": [
+                                "https://genebass.org/"
+                            ]
+                        }
+                    ],
+                    "subject": "MONDO:0011936"
+                },
+                "gencc_di_ge_GENCC_000112-HGNC_1071-OMIM_607932-HP_0000006-GENCC_100001MONDO:0011936NCBIGene:652": {
+                    "attributes": [
+                        {
+                            "attribute_type_id": "biolink:score",
+                            "original_attribute_name": "score",
+                            "value": 0.99
+                        },
+                        {
+                            "attribute_source": "infores:gencc",
+                            "attribute_type_id": "biolink:has_supporting_publications",
+                            "original_attribute_name": "publication",
+                            "value": [
+                                "PMID:18252212",
+                                "PMID:19249007",
+                                "PMID:21340693"
+                            ],
+                            "value_type_id": "biolink:Publication"
+                        }
+                    ],
+                    "object": "NCBIGene:652",
+                    "predicate": "biolink:condition_associated_with_gene",
+                    "qualifiers": [],
+                    "sources": [
+                        {
+                            "resource_id": "infores:genetics-data-provider",
+                            "resource_role": "aggregator_knowledge_source",
+                            "source_record_urls": [
+                                "https://github.com/broadinstitute/genetics-kp-dev/blob/master/DATA/Details/geneticsKp.md"
+                            ],
+                            "upstream_resource_ids": [
+                                "infores:genebass"
+                            ]
+                        },
+                        {
+                            "resource_id": "infores:genebass",
+                            "resource_role": "primary_knowledge_source",
+                            "source_record_urls": [
+                                "https://genebass.org/"
+                            ]
+                        }
+                    ],
+                    "subject": "MONDO:0011936"
+                }
+            },
+            "nodes": {
+                "MONDO:0011936": {
+                    "categories": [
+                        "biolink:Disease"
+                    ],
+                    "name": "Microphthalmia with brain and digit anomalies"
+                },
+                "NCBIGene:652": {
+                    "categories": [
+                        "biolink:Gene"
+                    ],
+                    "name": "BMP4"
+                }
+            }
+        },
+        "query_graph": {
+            "edges": {
+                "e00": {
+                    "object": "obj",
+                    "subject": "subj"
+                }
+            },
+            "nodes": {
+                "obj": {
+                    "categories": [
+                        "biolink:Gene"
+                    ]
+                },
+                "subj": {
+                    "categories": [
+                        "biolink:DiseaseOrPhenotypicFeature"
+                    ],
+                    "ids": [
+                        "MONDO:0011936"
+                    ]
+                }
+            }
+        },
+        "results": [
+            {
+                "analyses": [
+                    {
+                        "edge_bindings": {
+                            "e00": [
+                                {
+                                    "id": "gencc_di_ge_GENCC_000112-HGNC_1071-OMIM_607932-HP_0000006-GENCC_100001MONDO:0011936NCBIGene:652"
+                                }
+                            ]
+                        },
+                        "resource_id": "infores:genetics-data-provider",
+                        "score": 0.99
+                    }
+                ],
+                "node_bindings": {
+                    "obj": [
+                        {
+                            "id": "NCBIGene:652"
+                        }
+                    ],
+                    "subj": [
+                        {
+                            "id": "MONDO:0011936",
+                            "query_id": "MONDO:0011936"
+                        }
+                    ]
+                }
+            },
+            {
+                "analyses": [
+                    {
+                        "edge_bindings": {
+                            "e00": [
+                                {
+                                    "id": "gencc_di_ge_GENCC_000111-HGNC_1071-OMIM_607932-HP_0000006-GENCC_100002MONDO:0011936NCBIGene:652"
+                                }
+                            ]
+                        },
+                        "resource_id": "infores:genetics-data-provider",
+                        "score": 0.8
+                    }
+                ],
+                "node_bindings": {
+                    "obj": [
+                        {
+                            "id": "NCBIGene:652"
+                        }
+                    ],
+                    "subj": [
+                        {
+                            "id": "MONDO:0011936",
+                            "query_id": "MONDO:0011936"
+                        }
+                    ]
+                }
+            },
+            {
+                "analyses": [
+                    {
+                        "edge_bindings": {
+                            "e00": [
+                                {
+                                    "id": "gencc_di_ge_GENCC_000101-HGNC_1071-OMIM_607932-HP_0000006-GENCC_100003MONDO:0011936NCBIGene:652"
+                                }
+                            ]
+                        },
+                        "resource_id": "infores:genetics-data-provider",
+                        "score": 0.5
+                    }
+                ],
+                "node_bindings": {
+                    "obj": [
+                        {
+                            "id": "NCBIGene:652"
+                        }
+                    ],
+                    "subj": [
+                        {
+                            "id": "MONDO:0011936",
+                            "query_id": "MONDO:0011936"
+                        }
+                    ]
+                }
+            },
+            {
+                "analyses": [
+                    {
+                        "edge_bindings": {
+                            "e00": [
+                                {
+                                    "id": "Clinvar_76138MONDO:0011936NCBIGene:652"
+                                }
+                            ]
+                        },
+                        "resource_id": "infores:genetics-data-provider",
+                        "score": 0.05
+                    }
+                ],
+                "node_bindings": {
+                    "obj": [
+                        {
+                            "id": "NCBIGene:652"
+                        }
+                    ],
+                    "subj": [
+                        {
+                            "id": "MONDO:0011936",
+                            "query_id": "MONDO:0011936"
+                        }
+                    ]
+                }
+            }
+        ]
+    },
+    "schema_version": "1.4.0"
+}
