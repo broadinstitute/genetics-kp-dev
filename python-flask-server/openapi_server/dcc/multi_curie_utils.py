@@ -268,13 +268,10 @@ def sub_query_mcq(trapi_query: Query, log=False):
     map_edges = {}
     list_response_results = []
     set_name = 'trapi:set01'
-
-    # TODO - only respond to PhenotypicFeature to Gene
-
+    
     # get the inputs
     _, subject_node = textract.get_querygraph_key_node(trapi_query=trapi_query, is_subject=True)
     _, object_node = textract.get_querygraph_key_node(trapi_query=trapi_query, is_subject=False)
-
 
     # TODO - only respond to PhenotypicFeature to Gene
     if not subject_node.categories or (subject_node.categories and trapi_constants.BIOLINK_ENTITY_PHENOTYPE in subject_node.categories):
@@ -333,55 +330,57 @@ def sub_query_mcq(trapi_query: Query, log=False):
     #                         log_msg = "Error: no curies provided for set interpretation: {}".format(input_set_interpretation)
     #                         list_logs.append(log_msg)
 
-    
-    # get the db connection
-    conn = sqlite3.connect(FILE_DB)
 
-    # get the data
-    list_genes = db_query_phenotype(conn=conn, list_phenotypes=list_mcq_nodes)
+    # only process if inputs
+    if list_mcq_nodes and len(list_mcq_nodes) > 0:
+        # get the db connection
+        conn = sqlite3.connect(FILE_DB)
 
-    # calculate the data
-    # will get a gene -> score map
-    list_result = calculate_from_results(list_genes=list_genes)
-    logger.info("got final sorted results: {}".format(json.dumps(list_result, indent=2)))
+        # get the data
+        list_genes = db_query_phenotype(conn=conn, list_phenotypes=list_mcq_nodes)
 
-    # build the response
-    # build object set node
-    node_subject : Node = tutils.build_node_knowledge_graph(ontology_id=set_name, name=set_name, list_categories=[trapi_constants.BIOLINK_ENTITY_PHENOTYPE])
-    map_nodes[node_subject.name] = node_subject
-    for row in list_result:
-        # get the row data
-        name_gene = list(row.values())[0].get('gene_name')
-        score = list(row.values())[0].get('score')
-        id_gene = list(row.keys())[0]
+        # calculate the data
+        # will get a gene -> score map
+        list_result = calculate_from_results(list_genes=list_genes)
+        logger.info("got final sorted results: {}".format(json.dumps(list_result, indent=2)))
 
-        # build the score attribute and attributes list
-        list_attributes = [tutils.build_attribute(score, trapi_constants.BIOLINK_SCORE, id_source=trapi_constants.PROVENANCE_INFORES_KP_GENETICS)]
-        list_attributes.append(tutils.build_attribute(name_original=trapi_constants.NAME_AGENT_TYPE, value=trapi_constants.AGENT_PIPELINE, value_type=trapi_constants.BIOLINK_AGENT_TYPE, id_source=1))
-        list_attributes.append(tutils.build_attribute(name_original=trapi_constants.NAME_KNOWLEDGE_LEVEL, value=trapi_constants.KNOWLEDGE_STATS, value_type=trapi_constants.BIOLINK_KNOWLEDGE_LEVEL, id_source=1))
+        # build the response
+        # build object set node
+        node_subject : Node = tutils.build_node_knowledge_graph(ontology_id=set_name, name=set_name, list_categories=[trapi_constants.BIOLINK_ENTITY_PHENOTYPE])
+        map_nodes[node_subject.name] = node_subject
+        for row in list_result:
+            # get the row data
+            name_gene = list(row.values())[0].get('gene_name')
+            score = list(row.values())[0].get('score')
+            id_gene = list(row.keys())[0]
 
-        # build the source list
-        list_sources = [tutils.SOURCE_PRIMARY_KP_GENETICS]
+            # build the score attribute and attributes list
+            list_attributes = [tutils.build_attribute(score, trapi_constants.BIOLINK_SCORE, id_source=trapi_constants.PROVENANCE_INFORES_KP_GENETICS)]
+            list_attributes.append(tutils.build_attribute(name_original=trapi_constants.NAME_AGENT_TYPE, value=trapi_constants.AGENT_PIPELINE, value_type=trapi_constants.BIOLINK_AGENT_TYPE, id_source=1))
+            list_attributes.append(tutils.build_attribute(name_original=trapi_constants.NAME_KNOWLEDGE_LEVEL, value=trapi_constants.KNOWLEDGE_STATS, value_type=trapi_constants.BIOLINK_KNOWLEDGE_LEVEL, id_source=1))
 
-        # build subject gene node
-        node_object: Node = tutils.build_node_knowledge_graph(ontology_id=id_gene, name=name_gene, list_categories=[trapi_constants.BIOLINK_ENTITY_GENE])
+            # build the source list
+            list_sources = [tutils.SOURCE_PRIMARY_KP_GENETICS]
 
-        # buid the edge
-        key_edge, edge = tutils.build_edge_knowledge_graph(predicate=trapi_constants.BIOLINK_PREDICATE_GENETIC_ASSOCIATION, key_subject=node_subject.name, key_object=node_object.name, 
-                                                           list_attributes=list_attributes, list_sources=list_sources)
+            # build subject gene node
+            node_object: Node = tutils.build_node_knowledge_graph(ontology_id=id_gene, name=name_gene, list_categories=[trapi_constants.BIOLINK_ENTITY_GENE])
 
-        # add the nodes, edge to the map
-        map_nodes[id_gene] = node_object
-        map_edges[key_edge] = edge
+            # buid the edge
+            key_edge, edge = tutils.build_edge_knowledge_graph(predicate=trapi_constants.BIOLINK_PREDICATE_GENETIC_ASSOCIATION, key_subject=node_subject.name, key_object=node_object.name, 
+                                                            list_attributes=list_attributes, list_sources=list_sources)
 
-        # add the result
-        list_response_results.append(tutils.build_response_result(query=trapi_query, edge_key=key_edge, subject_id=set_name, object_id=id_gene, score=score, scoring_method='probability'))
-        
-    # build the KG and add to response
-    trapi_response_message.knowledge_graph = tutils.build_knowledge_graph(map_edges=map_edges, map_nodes=map_nodes, log=False)
+            # add the nodes, edge to the map
+            map_nodes[id_gene] = node_object
+            map_edges[key_edge] = edge
 
-    # build the results
-    trapi_response_message.results = list_response_results
+            # add the result
+            list_response_results.append(tutils.build_response_result(query=trapi_query, edge_key=key_edge, subject_id=set_name, object_id=id_gene, score=score, scoring_method='probability'))
+            
+        # build the KG and add to response
+        trapi_response_message.knowledge_graph = tutils.build_knowledge_graph(map_edges=map_edges, map_nodes=map_nodes, log=False)
+
+        # build the results
+        trapi_response_message.results = list_response_results
 
     # return
     trapi_response.logs = list_logs
