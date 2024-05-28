@@ -14,6 +14,7 @@ from openapi_server.models.node import Node
 from openapi_server.models.response_message import ResponseMessage
 
 import openapi_server.dcc.trapi_utils as tutils
+import openapi_server.dcc.trapi_extract as textract
 import openapi_server.dcc.trapi_constants as trapi_constants
 
 from openapi_server.dcc.utils import get_logger
@@ -268,31 +269,69 @@ def sub_query_mcq(trapi_query: Query, log=False):
     list_response_results = []
     set_name = 'trapi:set01'
 
+    # TODO - only respond to PhenotypicFeature to Gene
+
     # get the inputs
-    if trapi_query:
-        message: Message = trapi_query.message
-        Message.results = []
-        if message.query_graph:
-            query_graph: QueryGraph = message.query_graph
-            if query_graph.nodes and len(query_graph.nodes) > 0:
-                for node in query_graph.nodes.values():
-                    set_interpretation = node.set_interpretation
-                    if set_interpretation in [trapi_constants.SET_INTERPRETATION_ALL, trapi_constants.SET_INTERPRETATION_MANY]:
-                        input_set_interpretation = set_interpretation
-                        if node.ids:
-                            # make sure at least 1 element
-                            list_mcq_nodes = node.ids
-                            if len(list_mcq_nodes) < 1:
-                                log_msg = "Error: no curies provided for set interpretation: {}".format(input_set_interpretation)
-                                list_logs.append(log_msg)
-                            else:
-                                # add acceptance log message
-                                log_msg = "processing mcq query with set interpretation {} for nodes: {}".format(input_set_interpretation, list_mcq_nodes)
-                                list_logs.append(log_msg)
-                                
-                        else:
-                            log_msg = "Error: no curies provided for set interpretation: {}".format(input_set_interpretation)
+    _, subject_node = textract.get_querygraph_key_node(trapi_query=trapi_query, is_subject=True)
+    _, object_node = textract.get_querygraph_key_node(trapi_query=trapi_query, is_subject=False)
+
+
+    # TODO - only respond to PhenotypicFeature to Gene
+    if not subject_node.categories or (subject_node.categories and trapi_constants.BIOLINK_ENTITY_PHENOTYPE in subject_node.categories):
+        if not object_node.categories or (object_node.categories and trapi_constants.BIOLINK_ENTITY_GENE in object_node.categories):
+            if subject_node.set_interpretation in [trapi_constants.SET_INTERPRETATION_MANY]:
+                # ids are now the set name
+                if subject_node.ids and len(subject_node.ids) > 0:
+                    set_name = subject_node.ids[0]
+
+                    # inputs are now in the member_ids field
+                    # make sure at least 1 element
+                    if subject_node.member_ids:
+                        list_mcq_nodes = subject_node.member_ids
+                        if len(list_mcq_nodes) < 1:
+                            log_msg = "Error: no curies provided for set interpretation: {}".format(subject_node.set_interpretation)
                             list_logs.append(log_msg)
+                        else:
+                            # add acceptance log message
+                            log_msg = "processing mcq query with set interpretation {} for nodes: {}".format(subject_node.set_interpretation, list_mcq_nodes)
+                            list_logs.append(log_msg)
+                        
+                else:
+                    log_msg = "Error: no curies provided for set interpretation: {}".format(subject_node.set_interpretation)
+                    list_logs.append(log_msg)
+
+
+    # get the inputs
+    # if trapi_query:
+    #     message: Message = trapi_query.message
+    #     Message.results = []
+    #     if message.query_graph:
+    #         query_graph: QueryGraph = message.query_graph
+    #         if query_graph.nodes and len(query_graph.nodes) > 0:
+    #             for node in query_graph.nodes.values():
+    #                 set_interpretation = node.set_interpretation
+    #                 # if set_interpretation in [trapi_constants.SET_INTERPRETATION_ALL, trapi_constants.SET_INTERPRETATION_MANY]:
+    #                 if set_interpretation in [trapi_constants.SET_INTERPRETATION_MANY]:
+    #                     input_set_interpretation = set_interpretation
+
+    #                     # ids are now the set name
+    #                     if node.ids and len(node.ids) > 0:
+    #                         set_name = node.ids[0]
+
+    #                         # inputs are now in the member_ids field
+    #                         # make sure at least 1 element
+    #                         list_mcq_nodes = node.ids
+    #                         if len(list_mcq_nodes) < 1:
+    #                             log_msg = "Error: no curies provided for set interpretation: {}".format(input_set_interpretation)
+    #                             list_logs.append(log_msg)
+    #                         else:
+    #                             # add acceptance log message
+    #                             log_msg = "processing mcq query with set interpretation {} for nodes: {}".format(input_set_interpretation, list_mcq_nodes)
+    #                             list_logs.append(log_msg)
+                                
+    #                     else:
+    #                         log_msg = "Error: no curies provided for set interpretation: {}".format(input_set_interpretation)
+    #                         list_logs.append(log_msg)
 
     
     # get the db connection
@@ -308,8 +347,8 @@ def sub_query_mcq(trapi_query: Query, log=False):
 
     # build the response
     # build object set node
-    node_object : Node = tutils.build_node_knowledge_graph(ontology_id=set_name, name=set_name, list_categories=[trapi_constants.BIOLINK_ENTITY_PHENOTYPE])
-    map_nodes[node_object.name] = node_object
+    node_subject : Node = tutils.build_node_knowledge_graph(ontology_id=set_name, name=set_name, list_categories=[trapi_constants.BIOLINK_ENTITY_PHENOTYPE])
+    map_nodes[node_subject.name] = node_subject
     for row in list_result:
         # build the score attribute
         list_attributes = [tutils.build_attribute(list(row.values())[0], trapi_constants.BIOLINK_SCORE, id_source=trapi_constants.PROVENANCE_INFORES_KP_GENETICS)]
@@ -318,13 +357,13 @@ def sub_query_mcq(trapi_query: Query, log=False):
         name_gene = list(row.values())[0].get('gene_name')
         score = list(row.values())[0].get('score')
         id_gene = list(row.keys())[0]
-        node_subject: Node = tutils.build_node_knowledge_graph(ontology_id=id_gene, name=name_gene, list_categories=[trapi_constants.BIOLINK_ENTITY_GENE])
+        node_object: Node = tutils.build_node_knowledge_graph(ontology_id=id_gene, name=name_gene, list_categories=[trapi_constants.BIOLINK_ENTITY_GENE])
 
         # buid the edge
         key_edge, edge = tutils.build_edge_knowledge_graph(predicate=trapi_constants.BIOLINK_PREDICATE_GENETIC_ASSOCIATION, key_subject=node_subject.name, key_object=node_object.name, list_attributes=list_attributes)
 
         # add the nodes, edge to the map
-        map_nodes[id_gene] = node_subject
+        map_nodes[id_gene] = node_object
         map_edges[key_edge] = edge
 
         # add the result
@@ -335,7 +374,7 @@ def sub_query_mcq(trapi_query: Query, log=False):
 
     # build the results
     trapi_response_message.results = list_response_results
-    
+
     # return
     trapi_response.logs = list_logs
     return trapi_response

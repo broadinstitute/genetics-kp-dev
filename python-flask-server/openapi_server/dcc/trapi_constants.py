@@ -13,7 +13,7 @@ KNOWLEDGE_TYPE_INFERRED = "inferred"
 BIOLINK_ENTITY_GENE = 'biolink:Gene'
 BIOLINK_ENTITY_SET = 'biolink:Set'
 BIOLINK_ENTITY_DISEASE = 'biolink:Disease'
-BIOLINK_ENTITY_PHENOTYPE = 'biolink:Phenotype'
+BIOLINK_ENTITY_PHENOTYPE = 'biolink:PhenotypicFeature'
 
 BIOLINK_PREDICATE_GENETIC_ASSOCIATION = 'biolink:genetic_association'
 
