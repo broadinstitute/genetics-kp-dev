@@ -72,15 +72,17 @@ def db_insert_gene(conn, gene, gene_ontology_id, do_delete=False, log=False):
 
     # delete of necessary
     if do_delete:
-        cursor.execute(SQL_DELETE_PHENOTYPE, {"phenotype": phenotype})
+        cursor.execute(SQL_DELETE_GENE, {"gene": gene})
 
 
     # insert the row
-    cursor.execute(SQL_INSERT_PHENOTYPE, {"phenotype": phenotype})
+    cursor.execute(SQL_INSERT_GENE, {"gene": gene, "ontology_id": gene_ontology_id})
     conn.commit()
 
     # log
-    print("inserted phenotype: {}".format(phenotype))
+    print("inserted gene: {} with curie: {}".format(phenotype, gene_ontology_id))
+
+
 
 
 # main

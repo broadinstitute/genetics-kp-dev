@@ -465,25 +465,31 @@ def build_results(results_list: list, query_graph) -> Response:
         knowledge_graph.nodes[target.curie] = node
 
         # build the bindings
-        # trapi 1.3
-        # source_binding = NodeBinding(id=source.curie)
         source_binding = NodeBinding(id=source.curie, query_id=source.query_curie, attributes=[])
         edge_binding = EdgeBinding(id=edge_element.id, attributes=[])
-        # trapi 1.3
-        # target_binding = NodeBinding(id=target.curie)
         target_binding = NodeBinding(id=target.curie, query_id=target.query_curie, attributes=[])
+
+        # add to the maps
         edge_map = {edge_element.edge_key: [edge_binding]}
         analysis = Analysis(resource_id=PROVENANCE_INFORES_KP_GENETICS, edge_bindings=edge_map, score=edge_element.score_translator, support_graphs=[], attributes=[])
         nodes_map = {source.node_key: [source_binding], target.node_key: [target_binding]}
         results.append(Result(node_bindings=nodes_map,  analyses=[analysis]))
 
     # build out the message
-    message: Message = Message(results=results, query_graph=query_graph, knowledge_graph=knowledge_graph)
-    results_response: Response = Response(message = message, schema_version=VERSION_TRAPI, biolink_version=VERSION_BIOLINK, logs=[])
+    # BUG line below if use wrong message type
+    # response_message: Message = Message(results=results, query_graph=query_graph, knowledge_graph=knowledge_graph)
+    response_message: ResponseMessage = build_response_message(query_graph=query_graph, knowledge_graph=knowledge_graph, results=results)
+    results_response: Response = Response(message = response_message, schema_version=VERSION_TRAPI, biolink_version=VERSION_BIOLINK, logs=[])
 
     # return
     return results_response
 
+
+
+
+
+
+##################################################################
 # TODO - write unit test
 def get_retrieval_source_list(list_study_id=None, log=False):
     '''
