@@ -7,7 +7,7 @@ create table comb_node_ontology (
   node_code                 TEXT not null,
   node_type_id              INTEGER not null,
   ontology_id               TEXT not null,
-  ontology_type_id          INTEGER not null,
+  ontology_type_id          INTEGER,
   node_name                 TEXT,
   added_by_study_id         INTEGER,
   created_at                DATE DEFAULT (DATE('now', 'localtime'))
@@ -21,25 +21,72 @@ CREATE INDEX node_ont_ont_idx ON comb_node_ontology (ontology_id);
 -- alter table comb_node_ontology add index node_ont_node_typ_idx (node_type_id);
 -- alter table comb_node_ontology add index node_ont_ont_idx (ontology_id);
 
--- add node/edge type lookup tables
-drop table if exists comb_lookup_type;
-create table comb_lookup_type (
-  type_id                   INTEGER PRIMARY KEY,
-  type_name                 TEXT not null,
-  type_family               TEXT CHECK(type_family IN ('node', 'edge', 'attribute')),
+
+-- add a combined node-0edge-node tables
+drop table if exists comb_edge_node;
+create table comb_edge_node (
+  id                        INTEGER PRIMARY KEY,
+  edge_id                   TEXT not null,
+  source_node_id            INTEGER not null,
+  target_node_id            INTEGER not null,
+  edge_type_id              INTEGER not null,
+  score                     REAL,
+  score_text                TEXT,
+  score_type_id             INTEGER not null,
+  study_id                  INTEGER not null,
+  study_secondary_id        INTEGER not null,
+  publication_ids           TEXT,
+
+  score_translator              REAL,
+  p_value                       REAL,
+  beta                          REAL,
+  standard_error                REAL,
+  probability                   REAL,
+  probability_app_bayes_factor               REAL,
+
   created_at                DATE DEFAULT (DATE('now', 'localtime'))
 );
 
-insert into comb_lookup_type (type_id, type_name, type_family) values(1, 'biolink:Disease', 'node');
-insert into comb_lookup_type (type_id, type_name, type_family) values(2, 'biolink:Gene', 'node');
-insert into comb_lookup_type (type_id, type_name, type_family) values(3, 'biolink:PhenotypicFeature', 'node');
-insert into comb_lookup_type (type_id, type_name, type_family) values(4, 'biolink:Pathway', 'node');
-insert into comb_lookup_type (type_id, type_name, type_family) values(5, 'biolink:gene_associated_with_condition', 'edge');
-insert into comb_lookup_type (type_id, type_name, type_family) values(6, 'biolink:genetic_association', 'edge');
-insert into comb_lookup_type (type_id, type_name, type_family) values(7, 'biolink:symbol', 'attribute');
-insert into comb_lookup_type (type_id, type_name, type_family) values(8, 'biolink:p_value', 'attribute');
-insert into comb_lookup_type (type_id, type_name, type_family) values(9, 'biolink:probability', 'attribute');
-insert into comb_lookup_type (type_id, type_name, type_family) values(10, 'biolink:condition_associated_with_gene', 'edge');
+-- indices
+CREATE INDEX comb_edg_nod_src_idx ON comb_edge_node (source_node_id);
+CREATE INDEX comb_edg_nod_tgt_idx ON comb_edge_node (target_node_id);
+-- CREATE INDEX comb_edg_nod_sco_idx ON comb_edge_node (edge_type_id);
+-- CREATE INDEX comb_edg_nod_sco_typ_idx ON comb_edge_node (source_type_id);
+CREATE INDEX comb_edg_nod_stu_idx ON comb_edge_node (study_id);
+
+
+-- alter table comb_edge_node add index comb_edg_nod_src_idx (source_node_id);
+-- alter table comb_edge_node add index comb_edg_nod_tgt_idx (target_node_id);
+-- alter table comb_edge_node add index comb_edg_nod_sco_idx (score);
+-- alter table comb_edge_node add index comb_edg_nod_sco_typ_idx (score_type_id);
+-- -- 20220829 - added to help with creative query
+-- alter table comb_edge_node add index comb_edg_nod_stu_idx (study_id);
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 -- scratch
@@ -56,4 +103,9 @@ CREATE TABLE IF NOT EXISTS mcq_gene (
 
 
 -- queries
+select node.node_code, curie.type_name 
+from comb_lookup_type curie, comb_node_ontology node 
+where node.node_type_id = curie.type_id 
+and curie.type_id = 1
+order by node.node_code;
 
