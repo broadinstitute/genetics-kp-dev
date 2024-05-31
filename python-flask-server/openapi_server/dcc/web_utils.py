@@ -24,65 +24,17 @@ from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOupu
 import openapi_server.dcc.query_builder as qbuilder
 
 # from openapi_server.dcc.mcq_utils import sub_query_mcq
-from openapi_server.dcc.verification_utils import is_query_acceptable_node_sets, is_query_creative, is_query_multi_curie
+from openapi_server.dcc.verification_utils import is_query_acceptable_node_sets, is_query_creative, is_query_multi_curie, is_query_tissue_related
 from openapi_server.dcc.multi_curie_utils import sub_query_mcq
-# import openapi_server.dcc.trapi_constants
+import openapi_server.dcc.trapi_constants as tconstants
+import openapi_server.dcc.sqlite_utils as sqlite_utils
 
 # get logger
 logger = get_logger(__name__)
 
 # constants
-list_ontology_prefix = ['UMLS', 'NCIT', 'MONDO', 'EFO', 'NCBIGene', 'GO', 'HP', 'MESH']
+list_ontology_prefix = tconstants.LIST_ACCEPTED_ONTOLOGIES
 list_ontology_prefix_avoid = ['FMA', 'CHEMBL.TARGET', 'CHEMBL.COMPOUND', 'PUBCHEM.COMPOUND', 'UNII', 'CHEBI', 'DRUGBANK', 'CAS', 'DrugCentral', 'KEGG.COMPOUND', 'INCHIKEY', 'GTOPDB']
-
-# # infores
-# PROVENANCE_INFORES_KP_GENETICS='infores:genetics-data-provider'
-# PROVENANCE_INFORES_CLINVAR='infores:clinvar'
-# PROVENANCE_INFORES_CLINGEN='infores:clingen'
-# PROVENANCE_INFORES_GENCC='infores:gencc'
-# PROVENANCE_INFORES_GENEBASS='infores:genebass'
-
-# provenance attributes
-# PROVENANCE_AGGREGATOR_KP_GENETICS = Attribute(value = PROVENANCE_INFORES_KP_GENETICS,
-#     attribute_type_id = 'biolink:aggregator_knowledge_source',
-#     value_type_id = 'biolink:InformationResource',
-#     value_url = 'https://translator.broadinstitute.org/genetics_provider/trapi/v1.2',
-#     description = 'The Genetics Data Provider KP from NCATS Translator',
-#     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
-# PROVENANCE_AGGREGATOR_CLINVAR = Attribute(value = PROVENANCE_INFORES_CLINVAR,
-#     attribute_type_id = 'biolink:aggregator_knowledge_source',
-#     value_type_id = 'biolink:InformationResource',
-#     value_url = 'https://www.ncbi.nlm.nih.gov/clinvar/',
-#     description = 'ClinVar is a freely accessible, public archive of reports of the relationships among human variations and phenotypes',
-#     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
-# PROVENANCE_AGGREGATOR_CLINGEN = Attribute(value = PROVENANCE_INFORES_CLINGEN,
-#     attribute_type_id = 'biolink:aggregator_knowledge_source',
-#     value_type_id = 'biolink:InformationResource',
-#     value_url = 'https://clinicalgenome.org/',
-#     description = 'ClinGen is a NIH-funded resource dedicated to building a central resource that defines the clinical relevance of genes and variants for use in precision medicine and research',
-#     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
-# PROVENANCE_AGGREGATOR_GENCC = Attribute(value = PROVENANCE_INFORES_GENCC,
-#     attribute_type_id = 'biolink:aggregator_knowledge_source',
-#     value_type_id = 'biolink:InformationResource',
-#     value_url = 'https://thegencc.org/',
-#     description = 'The GenCC DB provides information pertaining to the validity of gene-disease relationships, with a current focus on Mendelian diseases',
-#     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
-# PROVENANCE_AGGREGATOR_GENEBASS = Attribute(value = PROVENANCE_INFORES_GENEBASS,
-#     attribute_type_id = 'biolink:aggregator_knowledge_source',
-#     value_type_id = 'biolink:InformationResource',
-#     value_url = 'https://genebass.org/',
-#     description = 'Genebass is a resource of exome-based association statistics, made available to the public. The dataset encompasses 3,817 phenotypes with gene-based and single-variant testing across 281,852 individuals with exome sequence data from the UK Biobank.',
-#     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
-
-# # build map for study types
-# MAP_PROVENANCE = {5: PROVENANCE_AGGREGATOR_CLINGEN, 6: PROVENANCE_AGGREGATOR_CLINVAR, 7: PROVENANCE_AGGREGATOR_GENCC, 17: PROVENANCE_AGGREGATOR_GENEBASS}
-
-# PROVENANCE_AGGREGATOR_RICHARDS = Attribute(value = PROVENANCE_INFORES_CLINGEN,
-#     attribute_type_id = 'biolink:aggregator_knowledge_source',
-#     value_type_id = 'biolink:InformationResource',
-#     value_url = 'https://clinicalgenome.org/',
-#     description = 'ClinGen is a NIH-funded resource dedicated to building a central resource that defines the clinical relevance of genes and variants for use in precision medicine and research',
-#     attribute_source = PROVENANCE_INFORES_KP_GENETICS)
 
 # DB CONSTANTS
 # TODO - when figure out how to get app_context working, get values from there
@@ -157,31 +109,6 @@ def trim_disease_list_tuple_to_what_is_in_the_db(list_input, set_cache, debug=Tr
 
     # return
     return list_result
-
-def query_post(request_body):  # noqa: E501
-    """Query reasoner via one of several inputs
-
-     # noqa: E501
-
-    :param request_body: Query information to be submitted
-    :type request_body: Dict[str, ]
-
-    :rtype: Response
-    """
-    return 'do some magic!'
-
-
-def queryGenerated(request_body):  # noqa: E501
-    """Query reasoner via one of several inputs
-
-     # noqa: E501
-
-    :param request_body: Query information to be submitted
-    :type request_body: dict | bytes
-
-    :rtype: Message
-    """
-    return 'do some magic!'
 
 def get_request_elements(body, is_creative=False):
     """ 
@@ -310,77 +237,77 @@ def query(request_body):  # noqa: E501
     - the queries are run in sequence and the results appended to a list
     - the list is used to build the results in trapi result format
     '''
-    # # verify all operations asked for are supported
-    # if request_body.get("workflow") and len(request_body.get("workflow")) > 0:
-    #     logger.info("got workflow: {}".format(request_body.get("workflow")))
-    #     for item in request_body.get("workflow"):
-    #         workflow_item = item.get('id')
-    #         if workflow_item != 'lookup':
-    #             return ({"status": 400, "title": "Workflow {} not implemented".format(workflow_item), "detail": "Workflow {} not implemented".format(workflow_item), "type": "about:blank" }, 400)
-    # else:
-    #     logger.info("no workflow specified")
-
     if connexion.request.is_json:
         # initialize
         query_response = {}
+        list_trapi_logs = []
 
         # verify the json
         json_body = connexion.request.get_json()
         logger.info("got {}".format(json_body))
 
         # use TRAPI model classes
-        trapi_query = Query.from_dict(json_body)
+        trapi_query: Query = Query.from_dict(json_body)
 
         # verify all workflow operations asked for are supported
         if trapi_query.workflow and len(trapi_query.workflow) > 0:
-            logger.info("got workflow: {}".format(trapi_query.workflow))
+            str_log = "got workflow: {}".format(trapi_query.workflow)
+            logger.info(str_log)
+            list_trapi_logs.append(str_log)
             for item in trapi_query.workflow:
                 workflow_item = item.get('id')
                 if workflow_item != 'lookup':
                     return ({"status": 400, "title": "Workflow {} not implemented".format(workflow_item), "detail": "Workflow {} not implemented".format(workflow_item), "type": "about:blank" }, 400)
         else:
-            logger.info("no workflow specified")
+            str_log = "no workflow specified"
+            logger.info(str_log)
+            list_trapi_logs.append(str_log)
 
-
-        # # verify the set interpretation of the edges
-        # is_acceptable_set, log_message = is_query_acceptable_node_sets(query=trapi_query)
-        # if not is_acceptable_set:
-        #     # return empty response
-        #     # add in empty results to message
-        #     trapi_query.message.results=[]
-        #     trapi_query.message.knowledge_graph = KnowledgeGraph(nodes={}, edges={})
-        #     return Response(message=trapi_query.message, logs=[log_message], workflow=trapi_query.workflow, 
-        #                     biolink_version=get_biolink_version(), schema_version=get_trapi_version())
 
         # copy the original query to return in the result
         query_graph = copy.deepcopy(json_body['message']['query_graph'])
 
         # check that not more than one hop query (edge list not more than one)
         if len(json_body.get('message').get('query_graph').get('edges')) > 1:
-            logger.error("multi hop query requested, not supported")
+            str_log = "multi hop query requested, not supported"
+            logger.error(str_log)
+            list_trapi_logs.append(str_log)
             # switch to 400 error code for multi hop query
             # return ({"status": 501, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 501)
             return ({"status": 503, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 503)
         else:
-            logger.info("single hop query requested, supported")
+            str_log = "single hop query requested, supported"
+            list_trapi_logs.append(str_log)
+            logger.info(str_log)
 
         # NOTE - split here based on get creative query; need to do this before expanding IDs based on ontology
         is_creative_query = is_query_creative(json_body)
         if is_creative_query:
-            logger.info("query is CREATIVE")
+            str_log = "query is CREATIVE"
+            list_trapi_logs.append(str_log)
+            logger.info(str_log)
             # build the response
             query_response = sub_query_creative(json_body, query_graph, request_body)
 
         else:
-            logger.info("query is LOOKUP")
+            str_log = "query is LOOKUP"
+            list_trapi_logs.append(str_log)
+            logger.info(str_log)
             
             # find out of query is MCQ
             if is_query_multi_curie(query=trapi_query):
                 query_response = sub_query_mcq(trapi_query=trapi_query)
 
             else:
-                # build the BATCH response
-                query_response = sub_query_lookup(json_body, query_graph, request_body)
+                # check to see if the query should go to sqlite (tissue related for now)
+                is_tissue = is_query_tissue_related(query=trapi_query)
+
+                if is_tissue:
+                    query_response: Response = sqlite_utils.query("", trapi_query=trapi_query, list_trapi_logs=list_trapi_logs, log=True)
+
+                else:
+                    # build the BATCH response
+                    query_response = sub_query_lookup(json_body, query_graph, request_body, list_trapi_logs=list_trapi_logs)
 
 
         # return
@@ -391,7 +318,7 @@ def query(request_body):  # noqa: E501
         return({"status": 400, "title": "body content not JSON", "detail": "Required body content is not JSON", "type": "about:blank"}, 400)
 
 
-def sub_query_lookup(body, query_graph, request_body, log=False):
+def sub_query_lookup(body, query_graph, request_body, list_trapi_logs=[], log=False):
     '''
     deal with a lookup query
     '''
@@ -533,7 +460,10 @@ def sub_query_lookup(body, query_graph, request_body, log=False):
 
 
     # build the response
-    query_response = build_results(results_list=genetics_results, query_graph=query_graph)
+    query_response: Response = build_results(results_list=genetics_results, query_graph=query_graph)
+
+    # add in the logs
+    query_response.logs = list_trapi_logs
 
     # tag and print the time elapsed
     end = time.time()

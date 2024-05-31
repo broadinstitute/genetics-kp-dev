@@ -53,7 +53,7 @@ def build_trapi_response(list_result, trapi_query: Query, log=False):
     builds the trapi response from the given data list
     '''
 
-def trapi_response(sql_query, trapi_query: Query, list_trapi_logs=[], log=False):
+def query(sql_query, trapi_query: Query, list_trapi_logs=[], log=False):
     '''
     builds the trapi response based on the sql query given
     '''
