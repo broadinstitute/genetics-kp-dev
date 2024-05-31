@@ -37,7 +37,7 @@ def get_connection(log=False):
     return conn
 
 
-def db_query_sqlite(sql_query, trapi_query: Query, log=False):
+def db_query_sqlite(sql_query, trapi_query: Query, log=True):
     '''
     will query the database for the data
     '''
@@ -45,14 +45,37 @@ def db_query_sqlite(sql_query, trapi_query: Query, log=False):
     list_result = []
     conn = get_connection()
     cursor = conn.cursor()
+    sql_logs = []
 
-    # get the data
+    # execute the query
     logger.info("running sql query: \n{}".format(sql_query))
     db_results = cursor.execute(sql_query, ())
 
-    # return
-    return list_result
+    # get the data
+    rows = cursor.fetchall()
+    str_message = "got DB result rows of count: {}".format(len(rows))
+    logger.info(str_message)
+    sql_logs.append(str_message)
 
+    # get the data
+    # list_result = [dict(row) for row in rows]
+    for row in rows:
+        list_result.append({'edge_id': row[0], 'subject_id': row[1], 'object_id': row[2], 'score': row[3], 
+                            'subject_name': row[4], 'target_name': row[5], 'edge_type': row[6], 'subject_type': row[7], 'target_type': row[8],
+                              'study_id': row[9], 'publications': row[10], 'score_ranslator': row[11], 'db_row_id': row[12]})
+
+    # log
+    if log:
+        logger.info("got results: \n{}".format(json.dumps(list_result, indent=2)))
+
+    # return
+    return list_result, sql_logs
+
+    # sql_string = "select ed.edge_id || so.ontology_id || ta.ontology_id, so.ontology_id, ta.ontology_id, ed.score, \
+    #         so.node_name, ta.node_name, ted.type_name, tso.type_name, tta.type_name, ed.study_id, ed.publication_ids, ed.score_translator, ed.id \
+    #     from comb_edge_node ed, comb_node_ontology so, comb_node_ontology ta, comb_lookup_type ted, comb_lookup_type tso, comb_lookup_type tta \
+    #     where ed.edge_type_id = ted.type_id and so.node_type_id = tso.type_id and ta.node_type_id = tta.type_id \
+    #     and ed.source_node_id = so.id and ed.target_node_id = ta.id "
 
 
 def sub_query_sqlite(sql_query, trapi_query: Query, list_trapi_logs=[], log=False):
@@ -67,16 +90,17 @@ def sub_query_sqlite(sql_query, trapi_query: Query, list_trapi_logs=[], log=Fals
                             biolink_version=tutils.get_biolink_version(), schema_version=tutils.get_trapi_version())
 
     # get the data
-    list_result = db_query_sqlite(sql_query=sql_query, trapi_query=trapi_query, log=log)
+    list_result, list_sql_logs = db_query_sqlite(sql_query=sql_query, trapi_query=trapi_query, log=log)
 
     # build the response
     list_trapi_logs.append("responding to tissue/gene query")
+    list_trapi_logs.extend(list_sql_logs)
 
     # add performance metrics
     end = time.time()
     time_elapsed = end - start
     # str_message = "LOOKUP web query with source: {} and target: {} return total edge: {} in time: {}s".format(num_source, num_target, len(genetics_results), time_elapsed)
-    str_message = "NEW LOOKUP web query with source: {} and target: {} return total edge: {} in time: {}s".format(0, 0, len([]), time_elapsed)
+    str_message = "NEW LOOKUP web query with source: {} and target: {} return total edge: {} in time: {}s".format(0, 0, len(list_result), time_elapsed)
     logger.info(str_message)
     list_trapi_logs.append(str_message)
 
