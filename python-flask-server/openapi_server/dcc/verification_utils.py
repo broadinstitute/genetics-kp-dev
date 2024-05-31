@@ -2,9 +2,11 @@
 # imports
 from openapi_server.models.message import Message
 from openapi_server.models.query import Query
+from openapi_server.models.q_node import QNode
 from openapi_server.models.query_graph import QueryGraph
 
 import openapi_server.dcc.trapi_constants as trapi_constants
+import openapi_server.dcc.trapi_extract as textract
 
 
 # methods
@@ -103,5 +105,33 @@ def is_query_multi_curie(query: Query, log=False):
 
     # return
     return is_mcq
+
+
+
+def is_query_tissue_related(query: Query, log=False):
+    ''' 
+    will determine if the query is a tissue related query
+    '''
+    is_tissue = False
+    node: QNode = None
+
+    # test for tissue type or UBERON curie
+    if query:
+        for is_subject in [True, False]:
+            _, node = textract.get_querygraph_key_node(trapi_query=query, is_subject=is_subject)
+
+            if node:
+                if (node.categories and trapi_constants.BIOLINK_ENTITY_CELL in node.categories):
+                    is_tissue = True
+                if not is_tissue and node.ids:
+                    for item in node.ids:
+                        if trapi_constants.ONTOLOGY_PREFIX_UBERON in item:
+                            is_tissue = True
+                            break
+
+    # return
+    return is_tissue
+
+
 
 
