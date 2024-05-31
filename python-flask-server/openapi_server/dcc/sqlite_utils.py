@@ -17,7 +17,7 @@ from openapi_server.models.response_message import ResponseMessage
 
 import openapi_server.dcc.trapi_utils as tutils
 import openapi_server.dcc.trapi_extract as textract
-import openapi_server.dcc.trapi_constants as trapi_constants
+import openapi_server.dcc.trapi_constants as tconstants
 import openapi_server.dcc.web_utils as wutils
 
 from openapi_server.dcc.utils import get_logger
@@ -60,9 +60,12 @@ def db_query_sqlite(sql_query, trapi_query: Query, log=True):
     # get the data
     # list_result = [dict(row) for row in rows]
     for row in rows:
-        list_result.append({'edge_id': row[0], 'subject_id': row[1], 'object_id': row[2], 'score': row[3], 
-                            'subject_name': row[4], 'target_name': row[5], 'edge_type': row[6], 'subject_type': row[7], 'target_type': row[8],
-                              'study_id': row[9], 'publications': row[10], 'score_ranslator': row[11], 'db_row_id': row[12]})
+        list_result.append({tconstants.KEY_EDGE_ID: row[0], tconstants.KEY_SUBJECT_ID: row[1], tconstants.KEY_OBJECT_ID: row[2], tconstants.KEY_SCORE: row[3], 
+                            tconstants.KEY_SUBJECT_NAME: row[4], tconstants.KEY_OBJECT_NAME: row[5], 
+                            tconstants.KEY_EDGE_TYPE: row[6], tconstants.KEY_SUBJECT_TYPE: row[7], tconstants.KEY_OBJECT_TYPE: row[8],
+                            tconstants.KEY_STUDY_ID: row[9], tconstants.KEY_PUBLICATIONS: row[10], tconstants.KEY_SCORE_TRANSLATOR: row[11], tconstants.KEY_ROW_ID: row[12],
+                            tconstants.KEY_PVALUE: row[13], tconstants.KEY_BETA: row[14], tconstants.KEY_STD_ERROR: row[15], tconstants.KEY_PROB: row[16],
+                            tconstants.KEY_PROB_BAYES: row[17], tconstants.KEY_ENRICHMENT: row[18]})
 
     # log
     if log:
@@ -70,12 +73,6 @@ def db_query_sqlite(sql_query, trapi_query: Query, log=True):
 
     # return
     return list_result, sql_logs
-
-    # sql_string = "select ed.edge_id || so.ontology_id || ta.ontology_id, so.ontology_id, ta.ontology_id, ed.score, \
-    #         so.node_name, ta.node_name, ted.type_name, tso.type_name, tta.type_name, ed.study_id, ed.publication_ids, ed.score_translator, ed.id \
-    #     from comb_edge_node ed, comb_node_ontology so, comb_node_ontology ta, comb_lookup_type ted, comb_lookup_type tso, comb_lookup_type tta \
-    #     where ed.edge_type_id = ted.type_id and so.node_type_id = tso.type_id and ta.node_type_id = tta.type_id \
-    #     and ed.source_node_id = so.id and ed.target_node_id = ta.id "
 
 
 def sub_query_sqlite(sql_query, trapi_query: Query, list_trapi_logs=[], log=False):
@@ -88,9 +85,57 @@ def sub_query_sqlite(sql_query, trapi_query: Query, list_trapi_logs=[], log=Fals
     trapi_response_message: ResponseMessage = tutils.build_response_message(query_graph=trapi_query.message.query_graph)
     trapi_response: Response = Response(message=trapi_response_message, logs=list_trapi_logs, workflow=trapi_query.workflow, 
                             biolink_version=tutils.get_biolink_version(), schema_version=tutils.get_trapi_version())
+    map_nodes = {}
+    map_edges = {}
+    list_response_results = []
 
     # get the data
     list_result, list_sql_logs = db_query_sqlite(sql_query=sql_query, trapi_query=trapi_query, log=log)
+
+    # build the response
+    # build object set node
+    for item in list_result:
+        # initialize
+        list_attributes = []
+        # create the edge nodes
+        node_subject : Node = tutils.build_node_knowledge_graph(ontology_id=item.get(tconstants.KEY_SUBJECT_ID), name=item.get(tconstants.KEY_SUBJECT_NAME), list_categories=[item.get(tconstants.KEY_SUBJECT_TYPE)])
+        node_object : Node = tutils.build_node_knowledge_graph(ontology_id=item.get(tconstants.KEY_OBJECT_ID), name=item.get(tconstants.KEY_OBJECT_NAME), list_categories=[item.get(tconstants.KEY_OBJECT_TYPE)])
+        map_nodes[item.get(tconstants.KEY_SUBJECT_ID)] = node_subject
+        map_nodes[item.get(tconstants.KEY_OBJECT_ID)] = node_object
+        # # get the row data
+        # name_gene = list(row.values())[0].get('gene_name')
+        # score = list(row.values())[0].get('score')
+        # id_gene = list(row.keys())[0]
+
+        # build the score attribute and attributes list
+        list_attributes.append(tutils.build_attribute(name_original=tconstants.NAME_AGENT_TYPE, value=tconstants.AGENT_PIPELINE, value_type=tconstants.BIOLINK_AGENT_TYPE, id_source=tconstants.DB_STUDY_ID_GENETICS))
+        list_attributes.append(tutils.build_attribute(name_original=tconstants.NAME_KNOWLEDGE_LEVEL, value=tconstants.KNOWLEDGE_STATS, value_type=tconstants.BIOLINK_KNOWLEDGE_LEVEL, id_source=tconstants.DB_STUDY_ID_GENETICS))
+        if item.get(tconstants.KEY_SCORE_TRANSLATOR):
+            list_attributes.append(tutils.build_attribute(item.get(tconstants.KEY_SCORE_TRANSLATOR), tconstants.BIOLINK_SCORE, id_source=tconstants.DB_STUDY_ID_GENETICS))
+        if item.get(tconstants.KEY_PVALUE):
+            list_attributes.append(tutils.build_attribute(item.get(tconstants.KEY_PVALUE), tconstants.BIOLINK_PVALUE, id_source=tconstants.DB_STUDY_ID_GENETICS))
+        if item.get(tconstants.KEY_ENRICHMENT):
+            list_attributes.append(tutils.build_attribute(item.get(tconstants.KEY_ENRICHMENT), tconstants.BIOLINK_ENRICHMENT, id_source=tconstants.DB_STUDY_ID_GENETICS))
+
+        # build the source list
+        list_sources = [tutils.SOURCE_PRIMARY_KP_GENETICS]
+
+        # buid the edge
+        key_edge, edge = tutils.build_edge_knowledge_graph(key_edge=item.get(tconstants.KEY_EDGE_ID), predicate=tconstants.BIOLINK_PREDICATE_GENETIC_ASSOCIATION, key_subject=item.get(tconstants.KEY_SUBJECT_ID), 
+                                                           key_object=item.get(tconstants.KEY_OBJECT_ID), list_attributes=list_attributes, list_sources=list_sources)
+
+        # add the nodes, edge to the map
+        map_edges[key_edge] = edge
+
+        # add the result
+        list_response_results.append(tutils.build_response_result(query=trapi_query, edge_key=key_edge, subject_id=item.get(tconstants.KEY_SUBJECT_ID), object_id=item.get(tconstants.KEY_OBJECT_ID), 
+                                                                  score=item.get(tconstants.KEY_SCORE_TRANSLATOR), scoring_method='probability'))
+        
+    # build the KG and add to response
+    trapi_response_message.knowledge_graph = tutils.build_knowledge_graph(map_edges=map_edges, map_nodes=map_nodes, log=False)
+
+    # build the results
+    trapi_response_message.results = list_response_results
 
     # build the response
     list_trapi_logs.append("responding to tissue/gene query")

@@ -30,6 +30,7 @@ BIOLINK_PUBLICATION = 'biolink:publications'
 BIOLINK_SUPPORT_GRAPH = 'biolink:support_graphs'
 BIOLINK_KNOWLEDGE_LEVEL = 'biolink:knowledge_level'
 BIOLINK_AGENT_TYPE = 'biolink:agent_type'
+BIOLINK_ENRICHMENT = 'biolink:enrichment'
 
 TYPE_VALUE_STRING = 'String'
 TYPE_VALUE_DOUBLE = 'Double'
@@ -53,6 +54,7 @@ NAME_PVALUE = 'p-value'
 NAME_STANDARD_ERROR = 'standard error'
 NAME_PROBABILITY = 'probability'
 NAME_CLASSIFICATION = 'classification'
+NAME_ENRICHMENT = 'enrichment'
 
 
 MAP_NAME_ATTRIBUTE = {
@@ -62,7 +64,8 @@ MAP_NAME_ATTRIBUTE = {
     BIOLINK_STANDARD_ERROR: NAME_STANDARD_ERROR, 
     BIOLINK_PROBABILITY: NAME_PROBABILITY,
     BIOLINK_CLASSIFICATION: NAME_CLASSIFICATION,
-    BIOLINK_PUBLICATION: NAME_PUBLICATIONS
+    BIOLINK_PUBLICATION: NAME_PUBLICATIONS,
+    BIOLINK_ENRICHMENT: NAME_ENRICHMENT
 }
 
 # provenance
@@ -87,4 +90,33 @@ ONTOLOGY_PREFIX_UMLS = "UMLS"
 
 LIST_ACCEPTED_ONTOLOGIES = [ONTOLOGY_PREFIX_EFO, ONTOLOGY_PREFIX_GO, ONTOLOGY_PREFIX_HP, ONTOLOGY_PREFIX_MESH, ONTOLOGY_PREFIX_MONDO, ONTOLOGY_PREFIX_NCBIGENE, ONTOLOGY_PREFIX_NCIT,
                             ONTOLOGY_PREFIX_UBERON, ONTOLOGY_PREFIX_UMLS]
+
+
+
+# map keys for results
+KEY_EDGE_ID = 'edge_id'
+KEY_ROW_ID = 'db_row_id'
+KEY_SUBJECT_ID = 'subject_id'
+KEY_OBJECT_ID = 'object_id'
+KEY_SUBJECT_TYPE = 'subject_type'
+KEY_OBJECT_TYPE = 'object_type'
+KEY_EDGE_TYPE = 'edge_type'
+KEY_SUBJECT_NAME = 'subject_name'
+KEY_OBJECT_NAME = 'object_name'
+KEY_SCORE = 'score'
+KEY_SCORE_TRANSLATOR = 'score_translator'
+KEY_PVALUE = 'p_value'
+KEY_BETA = 'beta'
+KEY_STD_ERROR = 'std_error'
+KEY_PROB = 'probability'
+KEY_PROB_BAYES = 'probability_bayes'
+KEY_ENRICHMENT = 'enrichment'
+KEY_STUDY_ID = 'study_id'
+KEY_PUBLICATIONS = 'publications'
+
+
+
+# DB lookup values
+DB_STUDY_ID_GENETICS = 1
+
 

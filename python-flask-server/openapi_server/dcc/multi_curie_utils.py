@@ -355,9 +355,9 @@ def sub_query_mcq(trapi_query: Query, log=False):
             id_gene = list(row.keys())[0]
 
             # build the score attribute and attributes list
-            list_attributes = [tutils.build_attribute(score, trapi_constants.BIOLINK_SCORE, id_source=trapi_constants.PROVENANCE_INFORES_KP_GENETICS)]
-            list_attributes.append(tutils.build_attribute(name_original=trapi_constants.NAME_AGENT_TYPE, value=trapi_constants.AGENT_PIPELINE, value_type=trapi_constants.BIOLINK_AGENT_TYPE, id_source=1))
-            list_attributes.append(tutils.build_attribute(name_original=trapi_constants.NAME_KNOWLEDGE_LEVEL, value=trapi_constants.KNOWLEDGE_STATS, value_type=trapi_constants.BIOLINK_KNOWLEDGE_LEVEL, id_source=1))
+            list_attributes = [tutils.build_attribute(value=score, value_type=trapi_constants.BIOLINK_SCORE, id_source=trapi_constants.DB_STUDY_ID_GENETICS)]
+            list_attributes.append(tutils.build_attribute(name_original=trapi_constants.NAME_AGENT_TYPE, value=trapi_constants.AGENT_PIPELINE, value_type=trapi_constants.BIOLINK_AGENT_TYPE, id_source=trapi_constants.DB_STUDY_ID_GENETICS))
+            list_attributes.append(tutils.build_attribute(name_original=trapi_constants.NAME_KNOWLEDGE_LEVEL, value=trapi_constants.KNOWLEDGE_STATS, value_type=trapi_constants.BIOLINK_KNOWLEDGE_LEVEL, id_source=trapi_constants.DB_STUDY_ID_GENETICS))
 
             # build the source list
             list_sources = [tutils.SOURCE_PRIMARY_KP_GENETICS]
@@ -366,7 +366,7 @@ def sub_query_mcq(trapi_query: Query, log=False):
             node_object: Node = tutils.build_node_knowledge_graph(ontology_id=id_gene, name=name_gene, list_categories=[trapi_constants.BIOLINK_ENTITY_GENE])
 
             # buid the edge
-            key_edge, edge = tutils.build_edge_knowledge_graph(predicate=trapi_constants.BIOLINK_PREDICATE_GENETIC_ASSOCIATION, key_subject=node_subject.name, key_object=node_object.name, 
+            key_edge, edge = tutils.build_edge_knowledge_graph(predicate=trapi_constants.BIOLINK_PREDICATE_GENETIC_ASSOCIATION, key_subject=set_name, key_object=id_gene, 
                                                             list_attributes=list_attributes, list_sources=list_sources)
 
             # add the nodes, edge to the map

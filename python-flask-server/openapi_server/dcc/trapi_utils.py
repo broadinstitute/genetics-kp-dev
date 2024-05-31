@@ -158,7 +158,7 @@ def build_attribute(value, value_type, name_original=None, id_source=None, log=F
 
     # set the type
     if value_type in [trapi_constants.BIOLINK_BETA, trapi_constants.BIOLINK_PROBABILITY, trapi_constants.BIOLINK_PVALUE, trapi_constants.BIOLINK_STANDARD_ERROR, 
-                        trapi_constants.BIOLINK_SCORE]:
+                        trapi_constants.BIOLINK_SCORE, trapi_constants.BIOLINK_ENRICHMENT]:
         type_value = trapi_constants.TYPE_VALUE_DOUBLE
     elif value_type in [trapi_constants.BIOLINK_CLASSIFICATION, trapi_constants.BIOLINK_AGENT_TYPE, trapi_constants.BIOLINK_KNOWLEDGE_LEVEL]:
         type_value = trapi_constants.TYPE_VALUE_STRING
@@ -517,7 +517,7 @@ def get_retrieval_source_list(list_study_id=None, log=False):
     return list_sources
 
 
-def build_edge_knowledge_graph(predicate, key_subject: str, key_object: str, list_attributes=[], list_sources=[], log=False):
+def build_edge_knowledge_graph(predicate, key_subject: str, key_object: str, key_edge=None, list_attributes=[], list_sources=[], log=False):
     '''
     will build a KG graph edge from the given nodes
     '''
@@ -529,7 +529,8 @@ def build_edge_knowledge_graph(predicate, key_subject: str, key_object: str, lis
     # get the name
     if log:
         logger.info("got subject:{} and object: {}".format(key_subject, key_object))
-    key_edge = key_subject + '--' + key_object
+    if not key_edge:
+        key_edge = key_subject + '--' + predicate + '--' + key_object
 
     # build the edge object
     edge = Edge(predicate=predicate, subject=key_subject, object=key_object, attributes=list_attributes, qualifiers=list_qualifiers, sources=list_sources)
@@ -542,7 +543,7 @@ def build_node_knowledge_graph(ontology_id, name, list_categories, list_attribut
     wild buid a KG graph node  
     '''
     # initialize
-    node = Node(name=ontology_id, categories=list_categories, attributes=list_attributes)
+    node = Node(name=name, categories=list_categories, attributes=list_attributes)
 
     # return the node
     return node
