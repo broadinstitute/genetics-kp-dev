@@ -28,6 +28,7 @@ from openapi_server.dcc.verification_utils import is_query_acceptable_node_sets,
 from openapi_server.dcc.multi_curie_utils import sub_query_mcq
 import openapi_server.dcc.trapi_constants as tconstants
 import openapi_server.dcc.sqlite_utils as sqlite_utils
+import openapi_server.dcc.query_builder_sqlite as query_builder_sqlite
 
 # get logger
 logger = get_logger(__name__)
@@ -303,7 +304,9 @@ def query(request_body):  # noqa: E501
                 is_tissue = is_query_tissue_related(query=trapi_query)
 
                 if is_tissue:
-                    query_response: Response = sqlite_utils.query("", trapi_query=trapi_query, list_trapi_logs=list_trapi_logs, log=True)
+                    # get the db query
+                    sql_query = query_builder_sqlite.get_basic_sqlite_query()
+                    query_response: Response = sqlite_utils.sub_query_sqlite(sql_query=sql_query, trapi_query=trapi_query, list_trapi_logs=list_trapi_logs, log=True)
 
                 else:
                     # build the BATCH response
@@ -462,13 +465,15 @@ def sub_query_lookup(body, query_graph, request_body, list_trapi_logs=[], log=Fa
     # build the response
     query_response: Response = build_results(results_list=genetics_results, query_graph=query_graph)
 
-    # add in the logs
-    query_response.logs = list_trapi_logs
-
     # tag and print the time elapsed
     end = time.time()
     time_elapsed = end - start
-    logger.info("LOOKUP web query with source: {} and target: {} return total edge: {} in time: {}s".format(num_source, num_target, len(genetics_results), time_elapsed))
+    str_message = "LOOKUP web query with source: {} and target: {} return total edge: {} in time: {}s".format(num_source, num_target, len(genetics_results), time_elapsed)
+    logger.info(str_message)
+    list_trapi_logs.append(str_message)
+
+    # add in the logs
+    query_response.logs = list_trapi_logs
 
     # return
     return query_response

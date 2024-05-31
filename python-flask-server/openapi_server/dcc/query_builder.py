@@ -82,7 +82,9 @@ def expand_queries(web_query_object, debug=False):
     return object_list
 
 def get_queries(web_query_object):
-    ''' will return query/parameter objects based on the query provided '''
+    ''' 
+    will return query/parameter objects based on the query provided 
+    '''
     # initialize
     sql_list = []
     sql_object = None
