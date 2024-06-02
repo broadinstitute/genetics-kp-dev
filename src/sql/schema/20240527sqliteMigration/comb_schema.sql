@@ -21,7 +21,6 @@ CREATE INDEX node_ont_ont_idx ON comb_node_ontology (ontology_id);
 -- alter table comb_node_ontology add index node_ont_node_typ_idx (node_type_id);
 -- alter table comb_node_ontology add index node_ont_ont_idx (ontology_id);
 
-
 -- add a combined node-0edge-node tables
 drop table if exists comb_edge_node;
 create table comb_edge_node (
@@ -32,18 +31,17 @@ create table comb_edge_node (
   edge_type_id              INTEGER not null,
   score                     REAL,
   score_text                TEXT,
-  score_type_id             INTEGER not null,
+  score_type_id             INTEGER,
   study_id                  INTEGER not null,
-  study_secondary_id        INTEGER not null,
+  study_secondary_id        INTEGER,
   publication_ids           TEXT,
-
   score_translator              REAL,
   p_value                       REAL,
   beta                          REAL,
   standard_error                REAL,
   probability                   REAL,
-  probability_app_bayes_factor               REAL,
-
+  probability_app_bayes_factor  REAL,
+  enrichment                    REAL,
   created_at                DATE DEFAULT (DATE('now', 'localtime'))
 );
 
@@ -65,7 +63,15 @@ CREATE INDEX comb_edg_nod_stu_idx ON comb_edge_node (study_id);
 
 
 
-
+-- add in sample data
+-- id 39821
+insert into comb_node_ontology (node_code, node_type_id, ontology_id, ontology_type_id, node_name, added_by_study_id)
+values('pancreas', 11, 'UBERON:0001264', 9, 'pancreas', 1);
+-- link to t2d, id 5980
+insert into comb_edge_node 
+(edge_id, source_node_id, target_node_id, edge_type_id, study_id,
+  score, score_translator, p_value, beta, probability, probability_app_bayes_factor, publication_ids, enrichment)
+values('test-edge', 39821, 5980, 6, 1, 0.75, 0.75, 0.0000000053, .125, .69, .98, "12123, 121334", 78);
 
 
 
