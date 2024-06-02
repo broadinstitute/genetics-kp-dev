@@ -84,14 +84,4 @@ insert into comb_ontology_type (ontology_id, ontology_name, prefix) values(9, 'U
 
 
 
-update comb_ontology_type set prefix='NCBIGene' where ontology_id = 1;
-update comb_ontology_type set prefix='MONDO' where ontology_id = 2;
-update comb_ontology_type set prefix='EFO' where ontology_id = 3;
-update comb_ontology_type set prefix='GO' where ontology_id = 4;
-update comb_ontology_type set prefix='UMLS' where ontology_id = 5;
-update comb_ontology_type set prefix='HP' where ontology_id = 6;
-update comb_ontology_type set prefix='NCIT' where ontology_id = 7;
-update comb_ontology_type set prefix='MESH' where ontology_id = 8;
-
-
 
