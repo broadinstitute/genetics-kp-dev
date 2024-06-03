@@ -23,7 +23,9 @@ info:
       url: https://github.com/NCATSTranslator/translator_extensions/blob/\ production/x-translator/
   x-trapi:
     version: 1.5.0
+    multicuriequery: true
     asyncquery: false
+    pathfinderquery: false
     operations:
     - lookup
     batch_size_limit: 100000
