@@ -4,6 +4,7 @@ import sqlite3
 import math
 import json
 import requests
+import time
 
 from openapi_server.models.message import Message
 from openapi_server.models.query import Query
@@ -259,6 +260,7 @@ def sub_query_mcq(trapi_query: Query, log=False):
     respond to a trapi query
     '''
     # initialize 
+    start = time.time()
     list_logs = ["query is lookup", "query is MANY muti curie"]
     trapi_response_message: ResponseMessage = tutils.build_response_message(query_graph=trapi_query.message.query_graph)
     trapi_response = Response(message=trapi_response_message, logs=list_logs, workflow=trapi_query.workflow, 
@@ -381,6 +383,13 @@ def sub_query_mcq(trapi_query: Query, log=False):
 
         # build the results
         trapi_response_message.results = list_response_results
+
+    # add performance metrics
+    end = time.time()
+    time_elapsed = end - start
+    str_message = "NEW LOOKUP MCQ web query with source: {} and target: {} return total edge: {} in time: {}s".format(1, 0, len(list_response_results), time_elapsed)
+    logger.info(str_message)
+    list_logs.append(str_message)
 
     # return
     trapi_response.logs = list_logs

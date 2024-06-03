@@ -88,6 +88,8 @@ def sub_query_sqlite(sql_query, trapi_query: Query, list_params=[], list_trapi_l
     map_nodes = {}
     map_edges = {}
     list_response_results = []
+    num_subject = 0
+    num_object = 0
 
     # get the data
     list_result, list_sql_logs = db_query_sqlite(sql_query=sql_query, trapi_query=trapi_query, list_params=list_params, log=log)
@@ -142,10 +144,17 @@ def sub_query_sqlite(sql_query, trapi_query: Query, list_params=[], list_trapi_l
     list_trapi_logs.extend(list_sql_logs)
 
     # add performance metrics
+    _, node = textract.get_querygraph_key_node(trapi_query=trapi_query, is_subject=True)
+    if node.ids:
+        num_subject = len(node.ids)
+    _, node = textract.get_querygraph_key_node(trapi_query=trapi_query, is_subject=False)
+    if node.ids:
+        num_object = len(node.ids)
+
     end = time.time()
     time_elapsed = end - start
     # str_message = "LOOKUP web query with source: {} and target: {} return total edge: {} in time: {}s".format(num_source, num_target, len(genetics_results), time_elapsed)
-    str_message = "NEW LOOKUP web query with source: {} and target: {} return total edge: {} in time: {}s".format(0, 0, len(list_result), time_elapsed)
+    str_message = "NEW LOOKUP web query with source: {} and target: {} return total edge: {} in time: {}s".format(num_subject, num_object, len(list_result), time_elapsed)
     logger.info(str_message)
     list_trapi_logs.append(str_message)
 
