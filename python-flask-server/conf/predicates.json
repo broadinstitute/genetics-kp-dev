@@ -15,6 +15,14 @@
             "biolink:gene_associated_with_condition"
         ]
     },
+    "biolink:Cell": {
+        "biolink:Disease": [
+            "biolink:genetic_association"
+        ],
+        "biolink:PhenotypicFeature": [
+            "biolink:genetic_association"
+        ]
+    },
     "biolink:Pathway": {
         "biolink:Disease": [
             "biolink:genetic_association"

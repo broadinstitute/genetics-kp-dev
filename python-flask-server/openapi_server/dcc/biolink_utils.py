@@ -147,6 +147,7 @@ def get_node_map():
     map_node["biolink:Pathway"] = ["GO", "REACT", "BIOCARTA", "KEGG", "WP"]
     map_node["biolink:Disease"] = ["MONDO", "EFO", "UMLS", "HP", "NCIT", "MESH", "SNOMEDCT", "DOID"]
     map_node["biolink:PhenotypicFeature"] = ["MONDO", "EFO", "UMLS", "HP", "NCIT", "MESH", "SNOMEDCT", "DOID"]
+    map_node["biolink:Cell"] = ["UBERON"]
 
     # return
     return map_node
