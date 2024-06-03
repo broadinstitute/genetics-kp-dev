@@ -31,6 +31,7 @@ BIOLINK_SUPPORT_GRAPH = 'biolink:support_graphs'
 BIOLINK_KNOWLEDGE_LEVEL = 'biolink:knowledge_level'
 BIOLINK_AGENT_TYPE = 'biolink:agent_type'
 BIOLINK_ENRICHMENT = 'biolink:enrichment'
+BIOLINK_ANNOTATION = 'biolink:annotation'
 
 TYPE_VALUE_STRING = 'String'
 TYPE_VALUE_DOUBLE = 'Double'
@@ -55,6 +56,7 @@ NAME_STANDARD_ERROR = 'standard error'
 NAME_PROBABILITY = 'probability'
 NAME_CLASSIFICATION = 'classification'
 NAME_ENRICHMENT = 'enrichment'
+NAME_ANNOTATION = 'annotation'
 
 
 MAP_NAME_ATTRIBUTE = {
@@ -65,7 +67,8 @@ MAP_NAME_ATTRIBUTE = {
     BIOLINK_PROBABILITY: NAME_PROBABILITY,
     BIOLINK_CLASSIFICATION: NAME_CLASSIFICATION,
     BIOLINK_PUBLICATION: NAME_PUBLICATIONS,
-    BIOLINK_ENRICHMENT: NAME_ENRICHMENT
+    BIOLINK_ENRICHMENT: NAME_ENRICHMENT,
+    BIOLINK_ANNOTATION: NAME_ANNOTATION
 }
 
 # provenance
@@ -111,6 +114,7 @@ KEY_STD_ERROR = 'std_error'
 KEY_PROB = 'probability'
 KEY_PROB_BAYES = 'probability_bayes'
 KEY_ENRICHMENT = 'enrichment'
+KEY_ANNOTATION = 'annotation'
 KEY_STUDY_ID = 'study_id'
 KEY_PUBLICATIONS = 'publications'
 

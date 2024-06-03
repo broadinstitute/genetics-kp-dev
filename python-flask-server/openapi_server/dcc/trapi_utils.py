@@ -160,7 +160,7 @@ def build_attribute(value, value_type, name_original=None, id_source=None, log=F
     if value_type in [trapi_constants.BIOLINK_BETA, trapi_constants.BIOLINK_PROBABILITY, trapi_constants.BIOLINK_PVALUE, trapi_constants.BIOLINK_STANDARD_ERROR, 
                         trapi_constants.BIOLINK_SCORE, trapi_constants.BIOLINK_ENRICHMENT]:
         type_value = trapi_constants.TYPE_VALUE_DOUBLE
-    elif value_type in [trapi_constants.BIOLINK_CLASSIFICATION, trapi_constants.BIOLINK_AGENT_TYPE, trapi_constants.BIOLINK_KNOWLEDGE_LEVEL]:
+    elif value_type in [trapi_constants.BIOLINK_CLASSIFICATION, trapi_constants.BIOLINK_AGENT_TYPE, trapi_constants.BIOLINK_KNOWLEDGE_LEVEL, trapi_constants.BIOLINK_ANNOTATION]:
         type_value = trapi_constants.TYPE_VALUE_STRING
     elif value_type in [trapi_constants.BIOLINK_PUBLICATION]:
         type_value = trapi_constants.TYPE_VALUE_PUBLICATIONS

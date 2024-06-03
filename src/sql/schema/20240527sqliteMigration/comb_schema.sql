@@ -35,6 +35,7 @@ create table comb_edge_node (
   study_id                  INTEGER not null,
   study_secondary_id        INTEGER,
   publication_ids           TEXT,
+  annotation                TEXT,
   score_translator              REAL,
   p_value                       REAL,
   beta                          REAL,

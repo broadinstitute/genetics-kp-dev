@@ -65,7 +65,7 @@ def db_query_sqlite(sql_query, trapi_query: Query, list_params=[], log=False):
                             tconstants.KEY_EDGE_TYPE: row[6], tconstants.KEY_SUBJECT_TYPE: row[7], tconstants.KEY_OBJECT_TYPE: row[8],
                             tconstants.KEY_STUDY_ID: row[9], tconstants.KEY_PUBLICATIONS: row[10], tconstants.KEY_SCORE_TRANSLATOR: row[11], tconstants.KEY_ROW_ID: row[12],
                             tconstants.KEY_PVALUE: row[13], tconstants.KEY_BETA: row[14], tconstants.KEY_STD_ERROR: row[15], tconstants.KEY_PROB: row[16],
-                            tconstants.KEY_PROB_BAYES: row[17], tconstants.KEY_ENRICHMENT: row[18]})
+                            tconstants.KEY_PROB_BAYES: row[17], tconstants.KEY_ENRICHMENT: row[18], tconstants.KEY_ANNOTATION: row[19]})
 
     # log
     if log:
@@ -118,6 +118,8 @@ def sub_query_sqlite(sql_query, trapi_query: Query, list_params=[], list_trapi_l
             list_attributes.append(tutils.build_attribute(item.get(tconstants.KEY_PVALUE), tconstants.BIOLINK_PVALUE, id_source=tconstants.DB_STUDY_ID_GENETICS))
         if item.get(tconstants.KEY_ENRICHMENT):
             list_attributes.append(tutils.build_attribute(item.get(tconstants.KEY_ENRICHMENT), tconstants.BIOLINK_ENRICHMENT, id_source=tconstants.DB_STUDY_ID_GENETICS))
+        if item.get(tconstants.KEY_ANNOTATION):
+            list_attributes.append(tutils.build_attribute(value=item.get(tconstants.KEY_ANNOTATION), value_type=tconstants.BIOLINK_ANNOTATION, id_source=tconstants.DB_STUDY_ID_GENETICS))
 
         # build the source list
         list_sources = [tutils.SOURCE_PRIMARY_KP_GENETICS]
