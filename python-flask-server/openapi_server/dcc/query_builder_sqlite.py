@@ -42,11 +42,23 @@ def get_sqlite_query(trapi_query: Query, log=True):
         sql_string = add_in(sql=sql_string, term="so.ontology_id", list_input=node_subject.ids, is_first=False)
         list_params.extend(node_subject.ids)
 
+    # if there are subject category ids
+    if node_subject and node_subject.categories and len(node_subject.categories) > 0:
+        sql_string = add_in(sql=sql_string, term="tso.type_name", list_input=node_subject.categories, is_first=False)
+        list_params.extend(node_subject.categories)
+
     # if there are object ids
     _, node_object = textract.get_querygraph_key_node(trapi_query=trapi_query, is_subject=False)
     if node_object and node_object.ids and len(node_object.ids) > 0:
         sql_string = add_in(sql=sql_string, term="ta.ontology_id", list_input=node_object.ids, is_first=False)
         list_params.extend(node_object.ids)
+
+    # if there are object category ids
+    if node_object and node_object.categories and len(node_object.categories) > 0:
+        sql_string = add_in(sql=sql_string, term="tta.type_name", list_input=node_object.categories, is_first=False)
+        list_params.extend(node_object.categories)
+
+
 
 
     # add in the limit
