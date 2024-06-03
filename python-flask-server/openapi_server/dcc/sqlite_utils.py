@@ -37,7 +37,7 @@ def get_connection(log=False):
     return conn
 
 
-def db_query_sqlite(sql_query, trapi_query: Query, log=True):
+def db_query_sqlite(sql_query, trapi_query: Query, list_params=[], log=False):
     '''
     will query the database for the data
     '''
@@ -48,8 +48,8 @@ def db_query_sqlite(sql_query, trapi_query: Query, log=True):
     sql_logs = []
 
     # execute the query
-    logger.info("running sql query: \n{}".format(sql_query))
-    db_results = cursor.execute(sql_query, ())
+    logger.info("running sql query: \n{}\n with params: \n{}".format(sql_query, list_params))
+    cursor.execute(sql_query, list_params)
 
     # get the data
     rows = cursor.fetchall()
@@ -75,7 +75,7 @@ def db_query_sqlite(sql_query, trapi_query: Query, log=True):
     return list_result, sql_logs
 
 
-def sub_query_sqlite(sql_query, trapi_query: Query, list_trapi_logs=[], log=False):
+def sub_query_sqlite(sql_query, trapi_query: Query, list_params=[], list_trapi_logs=[], log=False):
     '''
     builds the trapi response based on the results of the sql query given
     '''
@@ -90,7 +90,7 @@ def sub_query_sqlite(sql_query, trapi_query: Query, list_trapi_logs=[], log=Fals
     list_response_results = []
 
     # get the data
-    list_result, list_sql_logs = db_query_sqlite(sql_query=sql_query, trapi_query=trapi_query, log=log)
+    list_result, list_sql_logs = db_query_sqlite(sql_query=sql_query, trapi_query=trapi_query, list_params=list_params, log=log)
 
     # build the response
     # build object set node

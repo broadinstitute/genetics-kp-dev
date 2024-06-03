@@ -305,8 +305,9 @@ def query(request_body):  # noqa: E501
 
                 if is_tissue:
                     # get the db query
-                    sql_query = query_builder_sqlite.get_basic_sqlite_query()
-                    query_response: Response = sqlite_utils.sub_query_sqlite(sql_query=sql_query, trapi_query=trapi_query, list_trapi_logs=list_trapi_logs, log=True)
+                    # sql_query = query_builder_sqlite.get_basic_sqlite_query()
+                    sql_query, list_params = query_builder_sqlite.get_sqlite_query(trapi_query=trapi_query)
+                    query_response: Response = sqlite_utils.sub_query_sqlite(sql_query=sql_query, trapi_query=trapi_query, list_params=list_params, list_trapi_logs=list_trapi_logs, log=False)
 
                 else:
                     # build the BATCH response
