@@ -384,6 +384,12 @@ def sub_query_mcq(trapi_query: Query, log=False):
         # build the results
         trapi_response_message.results = list_response_results
 
+
+    # add data version to logs
+    str_message = "Database version: {}".format(tutils.get_database_version())
+    logger.info(str_message)
+    list_logs.append(str_message)
+
     # add performance metrics
     end = time.time()
     time_elapsed = end - start
