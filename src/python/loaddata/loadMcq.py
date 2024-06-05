@@ -6,7 +6,8 @@ import csv
 
 # constants
 DIR_HOME = "/home/javaprog/Data/Broad/Translator/GeneticsPro"
-DIR_DATA = "{}/MultiCurie/Jason/".format(DIR_HOME)
+# DIR_DATA = "{}/MultiCurie/Jason/".format(DIR_HOME)
+DIR_DATA = "{}/MultiCurie/Jason/202406malanSyndrome/".format(DIR_HOME)
 FILE_DB = "{}/MultiCurie/Sqlite/mcq.db".format(DIR_HOME)
 
 # sql constants

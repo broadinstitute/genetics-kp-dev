@@ -56,6 +56,25 @@ update mcq_phenotype set query_ontology_id = 'HP:0031491' where name = 'eeg';
 -- update mcq_phenotype set ontology_id = '' where name = 'cerebellar_volume';
 
 
+-- 20240604 - load malan syndrome
+update mcq_phenotype set query_ontology_id = 'HP:0000720' where name = 'mood_swings';
+update mcq_phenotype set query_ontology_id = 'HP:0000737' where name = 'iiritability';
+update mcq_phenotype set query_ontology_id = 'HP:0012393' where name = 'allergies';
+update mcq_phenotype set query_ontology_id = 'HP:0000718' where name = 'aggresive_behavior';
+update mcq_phenotype set query_ontology_id = 'HP:0001337' where name = 'tremor';
+update mcq_phenotype set query_ontology_id = 'HP:0002019' where name = 'abnormal_stool_composition';
+update mcq_phenotype set query_ontology_id = 'HP:0002172' where name = 'postural_instability';
+update mcq_phenotype set query_ontology_id = 'HP:0000739' where name = 'anxiety';
+update mcq_phenotype set query_ontology_id = 'HP:0001649' where name = 'tachycardia';
+
+-- 22040604 change phenotype for better relay example results
+update mcq_phenotype set query_ontology_id = 'HP:0001288' where name = 'gait_disturbance';
+
+-- 20240605 - add in 2 extra malan syndrome phenotypes
+update mcq_phenotype set query_ontology_id = 'HP:0002616' where name = 'aortic_aneurysm';
+update mcq_phenotype set query_ontology_id = 'HP:0002019' where name = 'constipation';
+
+
 -- update mcq_phenotype set ontology_id = '' where name = '';
 
 
