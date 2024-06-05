@@ -255,13 +255,14 @@ def db_query_phenotype(conn, list_phenotypes, log=False):
     return list_result
 
 
-def sub_query_mcq(trapi_query: Query, log=False):
+def sub_query_mcq(trapi_query: Query, log=True):
     ''' 
     respond to a trapi query
     '''
     # initialize 
     start = time.time()
     list_logs = ["query is lookup", "query is MANY muti curie"]
+    logger.info(list_logs)
     trapi_response_message: ResponseMessage = tutils.build_response_message(query_graph=trapi_query.message.query_graph)
     trapi_response = Response(message=trapi_response_message, logs=list_logs, workflow=trapi_query.workflow, 
                             biolink_version=tutils.get_biolink_version(), schema_version=tutils.get_trapi_version())
