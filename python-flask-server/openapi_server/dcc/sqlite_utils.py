@@ -146,8 +146,11 @@ def sub_query_sqlite(sql_query, trapi_query: Query, list_params=[], list_trapi_l
     # list_trapi_logs.append("responding to tissue/gene query")
     list_trapi_logs.extend(list_sql_logs)
 
-    # add data version to logs
+    # add data and code version to logs
     str_message = "Database version: {}".format(tutils.get_database_version())
+    logger.info(str_message)
+    list_trapi_logs.append(str_message)
+    str_message = "Code version: {}".format(tutils.get_code_version())
     logger.info(str_message)
     list_trapi_logs.append(str_message)
 

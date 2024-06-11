@@ -18,7 +18,7 @@ from openapi_server.models.query import Query
 from openapi_server import util
 
 from openapi_server.dcc.creative_model import CreativeResult, CreativeEdge, CreativeNode
-from openapi_server.dcc.trapi_utils import build_results, build_results_creative14, get_biolink_version, get_trapi_version
+from openapi_server.dcc.trapi_utils import build_results, build_results_creative14, get_biolink_version, get_trapi_version, get_database_version, get_code_version
 from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger, build_pubmed_ids, get_normalize_curies
 from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
 import openapi_server.dcc.query_builder as qbuilder
@@ -465,6 +465,14 @@ def sub_query_lookup(body, query_graph, request_body, list_trapi_logs=[], log=Fa
 
     # build the response
     query_response: Response = build_results(results_list=genetics_results, query_graph=query_graph)
+
+    # add data and code version to logs
+    str_message = "Database version: {}".format(get_database_version())
+    logger.info(str_message)
+    list_trapi_logs.append(str_message)
+    str_message = "Code version: {}".format(get_code_version())
+    logger.info(str_message)
+    list_trapi_logs.append(str_message)
 
     # tag and print the time elapsed
     end = time.time()

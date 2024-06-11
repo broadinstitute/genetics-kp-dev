@@ -261,9 +261,9 @@ def sub_query_mcq(trapi_query: Query, log=False):
     '''
     # initialize 
     start = time.time()
-    list_logs = ["query is lookup", "query is MANY muti curie"]
+    list_trapi_logs = ["query is lookup", "query is MANY muti curie"]
     trapi_response_message: ResponseMessage = tutils.build_response_message(query_graph=trapi_query.message.query_graph)
-    trapi_response = Response(message=trapi_response_message, logs=list_logs, workflow=trapi_query.workflow, 
+    trapi_response = Response(message=trapi_response_message, logs=list_trapi_logs, workflow=trapi_query.workflow, 
                             biolink_version=tutils.get_biolink_version(), schema_version=tutils.get_trapi_version())
     list_mcq_nodes = []
     map_nodes = {}
@@ -289,49 +289,15 @@ def sub_query_mcq(trapi_query: Query, log=False):
                         list_mcq_nodes = subject_node.member_ids
                         if len(list_mcq_nodes) < 1:
                             log_msg = "Error: no curies provided for set interpretation: {}".format(subject_node.set_interpretation)
-                            list_logs.append(log_msg)
+                            list_trapi_logs.append(log_msg)
                         else:
                             # add acceptance log message
                             log_msg = "processing mcq query with set interpretation {} for nodes: {}".format(subject_node.set_interpretation, list_mcq_nodes)
-                            list_logs.append(log_msg)
+                            list_trapi_logs.append(log_msg)
                         
                 else:
                     log_msg = "Error: no curies provided for set interpretation: {}".format(subject_node.set_interpretation)
-                    list_logs.append(log_msg)
-
-
-    # get the inputs
-    # if trapi_query:
-    #     message: Message = trapi_query.message
-    #     Message.results = []
-    #     if message.query_graph:
-    #         query_graph: QueryGraph = message.query_graph
-    #         if query_graph.nodes and len(query_graph.nodes) > 0:
-    #             for node in query_graph.nodes.values():
-    #                 set_interpretation = node.set_interpretation
-    #                 # if set_interpretation in [trapi_constants.SET_INTERPRETATION_ALL, trapi_constants.SET_INTERPRETATION_MANY]:
-    #                 if set_interpretation in [trapi_constants.SET_INTERPRETATION_MANY]:
-    #                     input_set_interpretation = set_interpretation
-
-    #                     # ids are now the set name
-    #                     if node.ids and len(node.ids) > 0:
-    #                         set_name = node.ids[0]
-
-    #                         # inputs are now in the member_ids field
-    #                         # make sure at least 1 element
-    #                         list_mcq_nodes = node.ids
-    #                         if len(list_mcq_nodes) < 1:
-    #                             log_msg = "Error: no curies provided for set interpretation: {}".format(input_set_interpretation)
-    #                             list_logs.append(log_msg)
-    #                         else:
-    #                             # add acceptance log message
-    #                             log_msg = "processing mcq query with set interpretation {} for nodes: {}".format(input_set_interpretation, list_mcq_nodes)
-    #                             list_logs.append(log_msg)
-                                
-    #                     else:
-    #                         log_msg = "Error: no curies provided for set interpretation: {}".format(input_set_interpretation)
-    #                         list_logs.append(log_msg)
-
+                    list_trapi_logs.append(log_msg)
 
     # only process if inputs
     if list_mcq_nodes and len(list_mcq_nodes) > 0:
@@ -388,17 +354,20 @@ def sub_query_mcq(trapi_query: Query, log=False):
     # add data version to logs
     str_message = "Database version: {}".format(tutils.get_database_version())
     logger.info(str_message)
-    list_logs.append(str_message)
+    list_trapi_logs.append(str_message)
+    str_message = "Code version: {}".format(tutils.get_code_version())
+    logger.info(str_message)
+    list_trapi_logs.append(str_message)
 
     # add performance metrics
     end = time.time()
     time_elapsed = end - start
     str_message = "NEW LOOKUP MCQ web query with source: {} and target: {} return total edge: {} in time: {}s".format(1, 0, len(list_response_results), time_elapsed)
     logger.info(str_message)
-    list_logs.append(str_message)
+    list_trapi_logs.append(str_message)
 
     # return
-    trapi_response.logs = list_logs
+    trapi_response.logs = list_trapi_logs
     return trapi_response
 
 
