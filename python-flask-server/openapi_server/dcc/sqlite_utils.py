@@ -142,8 +142,14 @@ def sub_query_sqlite(sql_query, trapi_query: Query, list_params=[], list_trapi_l
     trapi_response_message.results = list_response_results
 
     # build the response
-    list_trapi_logs.append("responding to tissue/gene query")
+    # NOTE - not necessarily true as move all data to sqlite
+    # list_trapi_logs.append("responding to tissue/gene query")
     list_trapi_logs.extend(list_sql_logs)
+
+    # add data version to logs
+    str_message = "Database version: {}".format(tutils.get_database_version())
+    logger.info(str_message)
+    list_trapi_logs.append(str_message)
 
     # add performance metrics
     _, node = textract.get_querygraph_key_node(trapi_query=trapi_query, is_subject=True)
