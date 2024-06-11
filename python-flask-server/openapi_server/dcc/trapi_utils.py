@@ -604,16 +604,16 @@ def build_response_result(query: Query, edge_key, subject_id, object_id, scoring
     # build the node bindings
     subject_binding: NodeBinding = NodeBinding(id=subject_id, attributes=[]) 
     key_temp, _ = textract.get_querygraph_key_node(trapi_query=query, is_subject=True)
-    map_nodes[key_temp] = subject_binding
+    map_nodes[key_temp] = [subject_binding]
     object_binding: NodeBinding = NodeBinding(id=object_id, attributes=[]) 
     key_temp, _ = textract.get_querygraph_key_node(trapi_query=query, is_subject=False)
-    map_nodes[key_temp] = object_binding
+    map_nodes[key_temp] = [object_binding]
 
     # build the analysis
     analysis: Analysis = Analysis(resource_id=edge_resource, score=score, support_graphs=[], attributes=[], scoring_method=scoring_method, edge_bindings=map_edges)
 
     # build the result
-    result: Result = Result(analyses=analysis, node_bindings=map_nodes)
+    result: Result = Result(analyses=[analysis], node_bindings=map_nodes)
 
     # return
     return result
