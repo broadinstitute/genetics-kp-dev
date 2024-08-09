@@ -14,11 +14,13 @@ from openapi_server.models.result import Result
 from openapi_server.models.edge_binding import EdgeBinding
 from openapi_server.models.response import Response
 from openapi_server.models.query import Query
+from openapi_server.models.log_level import LogLevel
 
 from openapi_server import util
 
 from openapi_server.dcc.creative_model import CreativeResult, CreativeEdge, CreativeNode
-from openapi_server.dcc.trapi_utils import build_results, build_results_creative14, get_biolink_version, get_trapi_version
+# from openapi_server.dcc.trapi_utils import build_results, build_results_creative14, get_biolink_version, get_trapi_version
+from openapi_server.dcc.trapi_utils import build_results, build_results_creative14, build_log_entry_list, build_log_entry
 from openapi_server.dcc.utils import translate_type, get_curie_synonyms, get_logger, build_pubmed_ids, get_normalize_curies
 from openapi_server.dcc.genetics_model import GeneticsModel, NodeOuput, EdgeOuput
 import openapi_server.dcc.query_builder as qbuilder
@@ -254,7 +256,7 @@ def query(request_body):  # noqa: E501
         if trapi_query.workflow and len(trapi_query.workflow) > 0:
             str_log = "got workflow: {}".format(trapi_query.workflow)
             logger.info(str_log)
-            list_trapi_logs.append(str_log)
+            list_trapi_logs.append(build_log_entry(message=str_log))
             for item in trapi_query.workflow:
                 workflow_item = item.get('id')
                 if workflow_item != 'lookup':
@@ -262,7 +264,7 @@ def query(request_body):  # noqa: E501
         else:
             str_log = "no workflow specified"
             logger.info(str_log)
-            list_trapi_logs.append(str_log)
+            list_trapi_logs.append(build_log_entry(message=str_log))
 
 
         # copy the original query to return in the result
@@ -272,28 +274,28 @@ def query(request_body):  # noqa: E501
         if len(json_body.get('message').get('query_graph').get('edges')) > 1:
             str_log = "multi hop query requested, not supported"
             logger.error(str_log)
-            list_trapi_logs.append(str_log)
+            list_trapi_logs.append(build_log_entry(message=str_log, level=LogLevel.ERROR, code=LogLevel.ERROR))
             # switch to 400 error code for multi hop query
             # return ({"status": 501, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 501)
             return ({"status": 503, "title": "Not Implemented", "detail": "Multi-edges queries not implemented", "type": "about:blank" }, 503)
         else:
             str_log = "single hop query requested, supported"
-            list_trapi_logs.append(str_log)
             logger.info(str_log)
+            list_trapi_logs.append(build_log_entry(message=str_log))
 
         # NOTE - split here based on get creative query; need to do this before expanding IDs based on ontology
         is_creative_query = is_query_creative(json_body)
         if is_creative_query:
             str_log = "query is CREATIVE"
-            list_trapi_logs.append(str_log)
+            list_trapi_logs.append(build_log_entry(message=str_log))
             logger.info(str_log)
             # build the response
             query_response = sub_query_creative(json_body, query_graph, request_body)
 
         else:
             str_log = "query is LOOKUP"
-            list_trapi_logs.append(str_log)
             logger.info(str_log)
+            list_trapi_logs.append(build_log_entry(message=str_log))
             
             # find out of query is MCQ
             if is_query_multi_curie(query=trapi_query):
@@ -471,10 +473,14 @@ def sub_query_lookup(body, query_graph, request_body, list_trapi_logs=[], log=Fa
     time_elapsed = end - start
     str_message = "LOOKUP web query with source: {} and target: {} return total edge: {} in time: {}s".format(num_source, num_target, len(genetics_results), time_elapsed)
     logger.info(str_message)
-    list_trapi_logs.append(str_message)
+    # NOTE - log_error
+    # list_trapi_logs.append(str_message)
+    list_trapi_logs.append(build_log_entry(message=str_message))
 
     # add in the logs
-    query_response.logs = list_trapi_logs
+    # NOTE - log_error
+    # query_response.logs = list_trapi_logs
+    query_response.logs = build_log_entry_list(list_logs=list_trapi_logs)
 
     # return
     return query_response

@@ -83,7 +83,8 @@ def sub_query_sqlite(sql_query, trapi_query: Query, list_params=[], list_trapi_l
     start = time.time()
     list_result = []
     trapi_response_message: ResponseMessage = tutils.build_response_message(query_graph=trapi_query.message.query_graph)
-    trapi_response: Response = Response(message=trapi_response_message, logs=list_trapi_logs, workflow=trapi_query.workflow, 
+    trapi_response: Response = Response(message=trapi_response_message, logs=tutils.build_log_entry_list(list_logs=list_trapi_logs),
+                                        workflow=trapi_query.workflow, 
                             biolink_version=tutils.get_biolink_version(), schema_version=tutils.get_trapi_version())
     map_nodes = {}
     map_edges = {}
@@ -158,7 +159,7 @@ def sub_query_sqlite(sql_query, trapi_query: Query, list_params=[], list_trapi_l
     # str_message = "LOOKUP web query with source: {} and target: {} return total edge: {} in time: {}s".format(num_source, num_target, len(genetics_results), time_elapsed)
     str_message = "NEW LOOKUP web query with source: {} and target: {} return total edge: {} in time: {}s".format(num_subject, num_object, len(list_result), time_elapsed)
     logger.info(str_message)
-    list_trapi_logs.append(str_message)
+    list_trapi_logs.append(tutils.build_log_entry(message=str_message))
 
     # return
     return trapi_response

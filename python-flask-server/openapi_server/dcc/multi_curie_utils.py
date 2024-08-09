@@ -13,6 +13,7 @@ from openapi_server.models.response import Response
 from openapi_server.models.edge import Edge
 from openapi_server.models.node import Node
 from openapi_server.models.response_message import ResponseMessage
+from openapi_server.models.log_level import LogLevel
 
 import openapi_server.dcc.trapi_utils as tutils
 import openapi_server.dcc.trapi_extract as textract
@@ -261,10 +262,17 @@ def sub_query_mcq(trapi_query: Query, log=True):
     '''
     # initialize 
     start = time.time()
-    list_logs = ["query is lookup", "query is MANY muti curie"]
+    str_message = "query is lookup"
+    logger.info(str_message)
+    list_logs = [tutils.build_log_entry(message=str_message)]
+    str_message = "query is MANY muti curie"
+    logger.info(str_message)
+    list_logs.append(tutils.build_log_entry(message=str_message))
+    # list_logs = [tutils.build_log_entry(message="query is lookup"), tutils.build_log_entry(message="query is MANY muti curie")]
     logger.info(list_logs)
     trapi_response_message: ResponseMessage = tutils.build_response_message(query_graph=trapi_query.message.query_graph)
-    trapi_response = Response(message=trapi_response_message, logs=list_logs, workflow=trapi_query.workflow, 
+    trapi_response = Response(message=trapi_response_message, logs=tutils.build_log_entry_list(list_logs=list_logs),
+                              workflow=trapi_query.workflow, 
                             biolink_version=tutils.get_biolink_version(), schema_version=tutils.get_trapi_version())
     list_mcq_nodes = []
     map_nodes = {}
@@ -290,15 +298,17 @@ def sub_query_mcq(trapi_query: Query, log=True):
                         list_mcq_nodes = subject_node.member_ids
                         if len(list_mcq_nodes) < 1:
                             log_msg = "Error: no curies provided for set interpretation: {}".format(subject_node.set_interpretation)
-                            list_logs.append(log_msg)
+                            logger.error(log_msg)
+                            list_logs.append(tutils.build_log_entry(message=log_msg, level=LogLevel.ERROR, code=LogLevel.ERROR))
                         else:
                             # add acceptance log message
                             log_msg = "processing mcq query with set interpretation {} for nodes: {}".format(subject_node.set_interpretation, list_mcq_nodes)
-                            list_logs.append(log_msg)
+                            list_logs.append(tutils.build_log_entry(message=log_msg))
                         
                 else:
                     log_msg = "Error: no curies provided for set interpretation: {}".format(subject_node.set_interpretation)
-                    list_logs.append(log_msg)
+                    logger.error(log_msg)
+                    list_logs.append(tutils.build_log_entry(message=log_msg, level=LogLevel.ERROR, code=LogLevel.ERROR))
 
 
     # get the inputs
@@ -390,10 +400,10 @@ def sub_query_mcq(trapi_query: Query, log=True):
     time_elapsed = end - start
     str_message = "NEW LOOKUP MCQ web query with source: {} and target: {} return total edge: {} in time: {}s".format(1, 0, len(list_response_results), time_elapsed)
     logger.info(str_message)
-    list_logs.append(str_message)
+    list_logs.append(tutils.build_log_entry(message=str_message))
 
     # return
-    trapi_response.logs = list_logs
+    trapi_response.logs = tutils.build_log_entry_list(list_logs=list_logs)
     return trapi_response
 
 

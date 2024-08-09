@@ -1,4 +1,5 @@
 
+# DEPRECATED - verify and delete
 
 # imports
 import sqlite3

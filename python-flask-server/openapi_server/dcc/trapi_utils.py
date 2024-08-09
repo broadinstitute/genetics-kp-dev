@@ -6,6 +6,7 @@ import copy
 import os
 import time 
 import yaml 
+import datetime
 
 from openapi_server.models.message import Message
 from openapi_server.models.knowledge_graph import KnowledgeGraph
@@ -28,6 +29,8 @@ from openapi_server.models.auxiliary_graph import AuxiliaryGraph
 from openapi_server.models.response import Response
 from openapi_server.models.response_workflow import ResponseWorkflow
 from openapi_server.models.response_message import ResponseMessage
+from openapi_server.models.log_entry import LogEntry
+from openapi_server.models.log_level import LogLevel
 
 from openapi_server.models.message_query_graph import MessageQueryGraph
 from openapi_server.models.message_knowledge_graph import MessageKnowledgeGraph
@@ -610,5 +613,36 @@ def build_response_result(query: Query, edge_key, subject_id, object_id, scoring
 
     # return
     return result
+
+def build_log_entry_list(list_logs, log=False):
+    '''
+    will build the log entry list
+    '''
+    # initialize
+    list_result = []
+
+    # build the list from the messages given
+    for entry in list_logs:
+        is_class = type(entry) is LogEntry
+        # print("log entry of type: {} and check: {}, is: {}".format(type(entry), is_class, entry))
+        if is_class:
+            list_result.append(entry)
+        else:
+            list_result.append(build_log_entry(message=entry))
+
+    # return
+    return list_result
+
+
+def build_log_entry(message, level=LogLevel.INFO, code=LogLevel.INFO, log=False):
+    '''
+    build the log entry
+    '''
+    time_now = datetime.datetime.now()
+    log_entry = LogEntry(timestamp=time_now, message=message, level=level, code=code)
+
+    # return
+    return log_entry
+
 
 

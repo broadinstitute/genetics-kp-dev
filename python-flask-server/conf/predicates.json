@@ -1,5 +1,8 @@
 {
     "biolink:Disease": {
+        "biolink:Cell": [
+            "biolink:genetic_association"
+        ],
         "biolink:Gene": [
             "biolink:condition_associated_with_gene"
         ],
@@ -32,6 +35,9 @@
         ]
     },
     "biolink:PhenotypicFeature": {
+        "biolink:Cell": [
+            "biolink:genetic_association"
+        ],
         "biolink:Gene": [
             "biolink:condition_associated_with_gene"
         ],
