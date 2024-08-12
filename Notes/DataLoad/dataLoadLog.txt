@@ -1,6 +1,52 @@
 
 
+20240622 - discard huge scores from magma table 
+- huge scores to be replaced by pigean
+- rename agg_gene_phenotype to agg_gene_phenotype_magma
+- will add agg_gene_phenotype_pigean after 
+- now in bioindex 1300+ phenotypes, up from 700+
+    mysql> select count(id) from agg_aggregator_phenotype;
+    +-----------+
+    | count(id) |
+    +-----------+
+    |      1374 |
+    +-----------+
+    1 row in set (0.00 sec)
 
+
+20240621 - old 202303 schema, backup up in ran_upkeep 202306 backup dump file
+202303 - old tran upkeep schema
+mysql> show tables;
++------------------------------+
+| Tables_in_tran_upkeep        |
++------------------------------+
+| agg_aggregator_phenotype     |
+| agg_gene_phenotype           |
+| agg_pathway_phenotype        |
+| agg_pathway_phenotype2       |
+| agg_phenotype_phenotype      |
+| agg_tissue                   |
+| agg_tissue_phenotype         |
+| calc_pathway_similarity      |
+| calc_pathway_similarity_min  |
+| comb_edge_node_backup        |
+| comb_pathway_magma_data      |
+| data_600k_gene_phenotype     |
+| data_600k_phenotype_ontology |
+| data_genebass_gene_phenotype |
+| data_pathway                 |
+| data_pathway_genes           |
+| data_pathway_similarity      |
+| load_pathway                 |
+| load_pathway_similarity      |
+| molepro_drug_gene            |
+| molepro_drug_gene_affects    |
+| molepro_drug_gene_regulates  |
+| molepro_gene_status          |
+| temp_gene                    |
+| temp_load_tissue_phenotype   |
++------------------------------+
+25 rows in set (0.00 sec)
 
 
 

@@ -1,6 +1,6 @@
 
 
-
+-- count types of relationships
 select count(edge.id) as edge_count, source_type.type_name as source_type, target_type.type_name as target_type, edge_type.type_name as edge_type
 from comb_edge_node edge, comb_node_ontology source, comb_node_ontology target, comb_lookup_type edge_type,
     comb_lookup_type source_type, comb_lookup_type target_type

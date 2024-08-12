@@ -1,0 +1,15 @@
+PyMySQL==0.10.1
+gunicorn
+pathlib
+swagger_ui_bundle==0.0.9
+connexion==2.14.1
+flask==2.2.5
+six==1.15.0
+openapi-spec-validator==0.2.9
+
+opentelemetry-exporter-otlp-proto-http==1.16.0
+opentelemetry-sdk==1.16.0
+opentelemetry-instrumentation-flask==0.37b0
+opentelemetry-exporter-jaeger==1.16.0
+opentelemetry-instrumentation-requests==0.37b0
+opentelemetry-instrumentation-aiohttp-client==0.37b0

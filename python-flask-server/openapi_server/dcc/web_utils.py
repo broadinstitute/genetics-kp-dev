@@ -306,12 +306,18 @@ def query(request_body):  # noqa: E501
                 is_tissue = is_query_tissue_related(query=trapi_query)
 
                 if is_tissue:
+                    str_log = "using NEW database"
+                    logger.info(str_log)
+                    list_trapi_logs.append(build_log_entry(message=str_log))
                     # get the db query
                     # sql_query = query_builder_sqlite.get_basic_sqlite_query()
                     sql_query, list_params = query_builder_sqlite.get_sqlite_query(trapi_query=trapi_query)
                     query_response: Response = sqlite_utils.sub_query_sqlite(sql_query=sql_query, trapi_query=trapi_query, list_params=list_params, list_trapi_logs=list_trapi_logs, log=False)
 
                 else:
+                    str_log = "using LEGACY database"
+                    logger.info(str_log)
+                    list_trapi_logs.append(build_log_entry(message=str_log))
                     # build the BATCH response
                     query_response = sub_query_lookup(json_body, query_graph, request_body, list_trapi_logs=list_trapi_logs)
 

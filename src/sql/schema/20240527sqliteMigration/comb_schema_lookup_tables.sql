@@ -55,6 +55,7 @@ insert into comb_study_type (study_id, study_name) values(16, 'Online Mendelian 
 insert into comb_study_type (study_id, study_name) values(17, 'GeneBass');
 -- 20230208 - adding 600k ellinor study
 insert into comb_study_type (study_id, study_name) values(18, '600k Ellinor');
+insert into comb_study_type (study_id, study_name) values(19, 'Magma tissue');
 
 
 
