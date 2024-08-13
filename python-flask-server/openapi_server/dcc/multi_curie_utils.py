@@ -274,6 +274,12 @@ def sub_query_mcq(trapi_query: Query, log=True):
     trapi_response = Response(message=trapi_response_message, logs=tutils.build_log_entry_list(list_logs=list_logs),
                               workflow=trapi_query.workflow, 
                             biolink_version=tutils.get_biolink_version(), schema_version=tutils.get_trapi_version())
+
+    # list_trapi_logs = ["query is lookup", "query is MANY muti curie"]
+    # trapi_response_message: ResponseMessage = tutils.build_response_message(query_graph=trapi_query.message.query_graph)
+    # trapi_response = Response(message=trapi_response_message, logs=list_trapi_logs, workflow=trapi_query.workflow, 
+                            # biolink_version=tutils.get_biolink_version(), schema_version=tutils.get_trapi_version())
+
     list_mcq_nodes = []
     map_nodes = {}
     map_edges = {}
@@ -310,6 +316,16 @@ def sub_query_mcq(trapi_query: Query, log=True):
                     logger.error(log_msg)
                     list_logs.append(tutils.build_log_entry(message=log_msg, level=LogLevel.ERROR, code=LogLevel.ERROR))
 
+
+                #             list_trapi_logs.append(log_msg)
+                #         else:
+                #             # add acceptance log message
+                #             log_msg = "processing mcq query with set interpretation {} for nodes: {}".format(subject_node.set_interpretation, list_mcq_nodes)
+                #             list_trapi_logs.append(log_msg)
+                        
+                # else:
+                #     log_msg = "Error: no curies provided for set interpretation: {}".format(subject_node.set_interpretation)
+                #     list_trapi_logs.append(log_msg)
 
     # get the inputs
     # if trapi_query:
@@ -354,7 +370,7 @@ def sub_query_mcq(trapi_query: Query, log=True):
 
         # calculate the data
         # will get a gene -> score map
-        list_result = calculate_from_results(list_genes=list_genes)
+        list_result = calculate_from_results(list_genes=list_genes, num_results=5000)
         logger.info("got final sorted results: {}".format(json.dumps(list_result, indent=2)))
 
         # build the response
@@ -394,6 +410,15 @@ def sub_query_mcq(trapi_query: Query, log=True):
 
         # build the results
         trapi_response_message.results = list_response_results
+
+
+    # add data version to logs
+    str_message = "Database version: {}".format(tutils.get_database_version())
+    logger.info(str_message)
+    list_logs.append(tutils.build_log_entry(message=str_message))
+    str_message = "Code version: {}".format(tutils.get_code_version())
+    logger.info(str_message)
+    list_logs.append(tutils.build_log_entry(message=str_message))
 
     # add performance metrics
     end = time.time()

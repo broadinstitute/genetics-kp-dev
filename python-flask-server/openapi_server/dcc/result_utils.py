@@ -9,27 +9,27 @@ handler = logging.StreamHandler(sys.stdout)
 logger = logging.getLogger(__name__)
 
 
-def post_query_nodes_one_hop(url, list_source, list_target, list_source_categories, list_target_categories, list_predicates, knowledge_type=None, log=False):
-    ''' 
-    method to query a trapi url and get the resulting node list back 
-    '''
-    list_result = []
+# def post_query_nodes_one_hop(url, list_source, list_target, list_source_categories, list_target_categories, list_predicates, knowledge_type=None, log=False):
+#     ''' 
+#     method to query a trapi url and get the resulting node list back 
+#     '''
+#     list_result = []
 
-    # query
-    json_response = query_one_hop(url, list_source, list_target, list_source_categories, list_target_categories, list_predicates, knowledge_type=knowledge_type, log=log)
+#     # query
+#     json_response = query_one_hop(url, list_source, list_target, list_source_categories, list_target_categories, list_predicates, knowledge_type=knowledge_type, log=log)
 
-    # loop and build the list
-    list_nodes = json_response.get("message").get("knowledge_graph").get("nodes")
-    if list_nodes and len(list_nodes) > 1:
-        for key, value in list_nodes.items():
-            list_result.append((key, value.get("name")))
+#     # loop and build the list
+#     list_nodes = json_response.get("message").get("knowledge_graph").get("nodes")
+#     if list_nodes and len(list_nodes) > 1:
+#         for key, value in list_nodes.items():
+#             list_result.append((key, value.get("name")))
 
-    # log
-    if log:
-        logger.info("got {} resulting nodes: {}".format(len(list_result), list_result))
+#     # log
+#     if log:
+#         logger.info("got {} resulting nodes: {}".format(len(list_result), list_result))
 
-    # return
-    return list_result
+#     # return
+#     return list_result
 
 def post_query_nodes_one_hop(url, list_source, list_target, list_source_categories, list_target_categories, list_predicates, knowledge_type=None, log=False):
     ''' 

@@ -51,6 +51,8 @@ logger = get_logger("trapi_utils")
 # read trapi and biolink versions
 VERSION_BIOLINK = 0.1
 VERSION_TRAPI = 1.0
+KP_DB_TRAPI = "20240605-MCQa"
+KP_CODE_TRAPI = "20240611-MCQa"
 with open("./openapi_server/openapi/openapi.yaml", "r") as stream:
     try:
         map_openapi = yaml.safe_load(stream)
@@ -144,6 +146,18 @@ def get_trapi_version(log=False):
     returns the trapi version
     '''
     return VERSION_TRAPI
+
+def get_database_version(log=False):
+    ''' 
+    returns the database version
+    '''
+    return KP_DB_TRAPI
+
+def get_code_version(log=False):
+    ''' 
+    returns the database version
+    '''
+    return KP_CODE_TRAPI
 
 def build_attribute(value, value_type, name_original=None, id_source=None, log=False):
     '''
@@ -600,16 +614,16 @@ def build_response_result(query: Query, edge_key, subject_id, object_id, scoring
     # build the node bindings
     subject_binding: NodeBinding = NodeBinding(id=subject_id, attributes=[]) 
     key_temp, _ = textract.get_querygraph_key_node(trapi_query=query, is_subject=True)
-    map_nodes[key_temp] = subject_binding
+    map_nodes[key_temp] = [subject_binding]
     object_binding: NodeBinding = NodeBinding(id=object_id, attributes=[]) 
     key_temp, _ = textract.get_querygraph_key_node(trapi_query=query, is_subject=False)
-    map_nodes[key_temp] = object_binding
+    map_nodes[key_temp] = [object_binding]
 
     # build the analysis
     analysis: Analysis = Analysis(resource_id=edge_resource, score=score, support_graphs=[], attributes=[], scoring_method=scoring_method, edge_bindings=map_edges)
 
     # build the result
-    result: Result = Result(analyses=analysis, node_bindings=map_nodes)
+    result: Result = Result(analyses=[analysis], node_bindings=map_nodes)
 
     # return
     return result

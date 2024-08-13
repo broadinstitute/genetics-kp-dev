@@ -38,6 +38,9 @@ externalDocs:
   description: Documentation for the NCATS Biomedical Translator Reasoners web services
   url: https://github.com/NCATSTranslator/ReasonerAPI
 servers:
+- description: TRAPI ITRB Production service for the Translator Genetics Data Provider
+  url: https://genetics-kp.transltr.io/genetics_provider/trapi/v1.5
+  x-maturity: production
 - description: TRAPI ITRB Test service for the Translator Genetics Data Provider
   url: https://genetics-kp.test.transltr.io/genetics_provider/trapi/v1.5
   x-maturity: testing
