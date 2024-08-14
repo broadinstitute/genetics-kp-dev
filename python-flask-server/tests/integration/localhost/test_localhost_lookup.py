@@ -124,6 +124,122 @@ def test_query_api_phenotype_gene():
     assert (time_end - time_start) < time_elapsed_seconds
 
 
+def test_query_api_phenotype_pathway():
+    ''' method to test the post query ncats itrb cloud deployment of the genetics kp '''
+
+    # get the url
+    url = url_trapi_service.format("query")
+
+    # call the query service and get the nodes
+    time_start = time.time()
+    map_nodes = rutils.post_query_nodes_one_hop(url=url, list_source=None, list_target=["GO:0045444"], 
+                                                list_source_categories=["biolink:PhenotypicFeature"], list_target_categories=["biolink:Pathway"],
+                                                list_predicates=None, knowledge_type=None, log=False)
+    time_end = time.time()
+
+    # test
+    assert len(map_nodes) > 0
+    assert (time_end - time_start) < time_elapsed_seconds
+
+    # as disease
+    time_start = time.time()
+    map_nodes = rutils.post_query_nodes_one_hop(url=url, list_source=None, list_target=["GO:0045444"], 
+                                                list_source_categories=["biolink:DiseaseOrPhenotypicFeature"], list_target_categories=["biolink:Pathway"],
+                                                list_predicates=None, knowledge_type=None, log=False)
+    time_end = time.time()
+
+    # test
+    assert len(map_nodes) > 0
+    assert (time_end - time_start) < time_elapsed_seconds
+
+
+def test_query_api_pathway_phenotype():
+    ''' method to test the post query ncats itrb cloud deployment of the genetics kp '''
+
+    # get the url
+    url = url_trapi_service.format("query")
+
+    # call the query service and get the nodes
+    time_start = time.time()
+    map_nodes = rutils.post_query_nodes_one_hop(url=url, list_source=["GO:0045444"], list_target=None, 
+                                                list_source_categories=["biolink:Pathway"], list_target_categories=["biolink:PhenotypicFeature"],
+                                                list_predicates=None, knowledge_type=None, log=False)
+    time_end = time.time()
+
+    # test
+    assert len(map_nodes) > 0
+    assert (time_end - time_start) < time_elapsed_seconds
+
+    # as disease
+    time_start = time.time()
+    map_nodes = rutils.post_query_nodes_one_hop(url=url, list_source=["GO:0045444"], list_target=None, 
+                                                list_source_categories=["biolink:Pathway"], list_target_categories=["biolink:DiseaseOrPhenotypicFeature"],
+                                                list_predicates=None, knowledge_type=None, log=False)
+    time_end = time.time()
+
+    # test
+    assert len(map_nodes) > 0
+    assert (time_end - time_start) < time_elapsed_seconds
+
+
+def test_query_api_disease_pathway():
+    ''' method to test the post query ncats itrb cloud deployment of the genetics kp '''
+
+    # get the url
+    url = url_trapi_service.format("query")
+
+    # call the query service and get the nodes
+    time_start = time.time()
+    map_nodes = rutils.post_query_nodes_one_hop(url=url, list_source=None, list_target=["GO:0045444"], 
+                                                list_source_categories=["biolink:Disease"], list_target_categories=["biolink:Pathway"],
+                                                list_predicates=None, knowledge_type=None, log=False)
+    time_end = time.time()
+
+    # test
+    assert len(map_nodes) > 0
+    assert (time_end - time_start) < time_elapsed_seconds
+
+    # as disease
+    time_start = time.time()
+    map_nodes = rutils.post_query_nodes_one_hop(url=url, list_source=None, list_target=["GO:0045444"], 
+                                                list_source_categories=["biolink:DiseaseOrPhenotypicFeature"], list_target_categories=["biolink:Pathway"],
+                                                list_predicates=None, knowledge_type=None, log=False)
+    time_end = time.time()
+
+    # test
+    assert len(map_nodes) > 0
+    assert (time_end - time_start) < time_elapsed_seconds
+
+
+def test_query_api_pathway_disease():
+    ''' method to test the post query ncats itrb cloud deployment of the genetics kp '''
+
+    # get the url
+    url = url_trapi_service.format("query")
+
+    # call the query service and get the nodes
+    time_start = time.time()
+    map_nodes = rutils.post_query_nodes_one_hop(url=url, list_source=["GO:0045444"], list_target=None, 
+                                                list_source_categories=["biolink:Pathway"], list_target_categories=["biolink:Disease"],
+                                                list_predicates=None, knowledge_type=None, log=False)
+    time_end = time.time()
+
+    # test
+    assert len(map_nodes) > 0
+    assert (time_end - time_start) < time_elapsed_seconds
+
+    # as disease
+    time_start = time.time()
+    map_nodes = rutils.post_query_nodes_one_hop(url=url, list_source=["GO:0045444"], list_target=None, 
+                                                list_source_categories=["biolink:Pathway"], list_target_categories=["biolink:DiseaseOrPhenotypicFeature"],
+                                                list_predicates=None, knowledge_type=None, log=False)
+    time_end = time.time()
+
+    # test
+    assert len(map_nodes) > 0
+    assert (time_end - time_start) < time_elapsed_seconds
+
+
 def test_query_api_disease_cell():
     ''' method to test the post query ncats itrb cloud deployment of the genetics kp '''
 
