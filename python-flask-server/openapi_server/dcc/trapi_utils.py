@@ -609,7 +609,7 @@ def build_response_result(query: Query, edge_key, subject_id, object_id, scoring
     # build the edge binding
     edge_binding: EdgeBinding = EdgeBinding(id=edge_key, attributes=[])
     key_temp, _ = textract.get_queryedge_key_edge(trapi_query=query)
-    map_edges[key_temp] = edge_binding
+    map_edges[key_temp] = [edge_binding]
 
     # build the node bindings
     subject_binding: NodeBinding = NodeBinding(id=subject_id, attributes=[]) 

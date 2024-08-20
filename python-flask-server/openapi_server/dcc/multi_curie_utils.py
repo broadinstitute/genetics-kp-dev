@@ -371,7 +371,10 @@ def sub_query_mcq(trapi_query: Query, log=True):
         # calculate the data
         # will get a gene -> score map
         list_result = calculate_from_results(list_genes=list_genes, num_results=5000)
-        logger.info("got final sorted results: {}".format(json.dumps(list_result, indent=2)))
+        logger.info("got final sorted results of size: {}".format(len(list_result)))
+        if len(list_result) > 0:
+            logger.info("got \nbest: \n{} \nand worst: \n{}".format(json.dumps(list_result[0], indent=2), json.dumps(list_result[-1], indent=2)))
+        # logger.info("got final sorted results of data: \n{}".format(json.dumps(list_result, indent=2)))
 
         # build the response
         # build object set node
