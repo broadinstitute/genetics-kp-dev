@@ -52,7 +52,7 @@ logger = get_logger("trapi_utils")
 VERSION_BIOLINK = 0.1
 VERSION_TRAPI = 1.0
 KP_DB_TRAPI = "20240605-MCQa"
-KP_CODE_TRAPI = "20240811-MCQb"
+KP_CODE_TRAPI = "20240820-MCQc"
 with open("./openapi_server/openapi/openapi.yaml", "r") as stream:
     try:
         map_openapi = yaml.safe_load(stream)
