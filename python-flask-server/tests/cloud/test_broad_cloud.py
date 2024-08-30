@@ -348,3 +348,94 @@ def test_primary_knowledge_sources_for_edge():
                 has_primary = True
                 break
         assert has_primary
+
+
+def test_query_logs():
+    ''' method to test the post query logs result of the genetics kp '''
+
+    # get the url
+    url = url_trapi_service.format("query")
+
+    # call the query service and get the nodes
+    time_start = time.time()
+    list_logs = rutils.post_query_logs_one_hop(url=url, list_source=None, list_target=["GO:0045444"], 
+                                                list_source_categories=["biolink:Disease"], list_target_categories=["biolink:Pathway"],
+                                                list_predicates=None, knowledge_type=None, log=False)
+    time_end = time.time()
+
+    # test
+    assert list_logs is not None
+    assert len(list_logs) > 0
+    assert (time_end - time_start) < time_elapsed_seconds
+    for row_log in list_logs:
+        assert type(row_log) == dict
+        assert row_log.get('code') is not None
+        assert row_log.get('level') is not None
+        assert row_log.get('message') is not None
+        assert row_log.get('timestamp') is not None
+
+
+def test_query_edge_bindings_mapping_old():
+    ''' 
+    method to test the post query edge binding map to make sure value is a list of edge bindings
+    '''
+
+    # get the url
+    url = url_trapi_service.format("query")
+
+    # call the query service and get the nodes
+    time_start = time.time()
+    list_results = rutils.post_query_results_one_hop(url=url, list_source=None, list_target=["GO:0045444"], 
+                                                list_source_categories=["biolink:Disease"], list_target_categories=["biolink:Pathway"],
+                                                list_predicates=None, knowledge_type=None, log=False)
+    time_end = time.time()
+
+    # test
+    assert list_results is not None
+    assert len(list_results) > 0
+    assert (time_end - time_start) < time_elapsed_seconds
+    for row_result in list_results:
+        list_analyses = row_result.get("analyses")
+        assert list_analyses is not None
+        assert len(list_analyses) > 0
+        for row_analysis in list_analyses:
+            map_edge_bindings = row_analysis.get('edge_bindings')
+            assert map_edge_bindings is not None
+            assert len(map_edge_bindings) > 0
+            for key, value in map_edge_bindings.items():
+                assert type(value) == list
+
+
+def test_query_edge_bindings_mapping_new():
+    ''' 
+    method to test the post query edge binding map to make sure value is a list of edge bindings
+    '''
+
+    # get the url
+    url = url_trapi_service.format("query")
+
+    # call the query service and get the nodes
+    time_start = time.time()
+    # list_results = rutils.post_query_results_one_hop(url=url, list_source=None, list_target=["GO:0045444"], 
+    #                                             list_source_categories=["biolink:Disease"], list_target_categories=["biolink:Pathway"],
+    #                                             list_predicates=None, knowledge_type=None, log=False)
+    list_results = rutils.post_query_results_one_hop(url=url, list_source=None, list_target=None, 
+                                                list_source_categories=["biolink:PhenotypicFeature"], list_target_categories=["biolink:Cell"],
+                                                list_predicates=None, knowledge_type=None, log=False)
+    time_end = time.time()
+
+    # test
+    assert list_results is not None
+    assert len(list_results) > 0
+    assert (time_end - time_start) < time_elapsed_seconds
+    for row_result in list_results:
+        list_analyses = row_result.get("analyses")
+        assert list_analyses is not None
+        assert len(list_analyses) > 0
+        for row_analysis in list_analyses:
+            map_edge_bindings = row_analysis.get('edge_bindings')
+            assert map_edge_bindings is not None
+            assert len(map_edge_bindings) > 0
+            for key, value in map_edge_bindings.items():
+                assert type(value) == list
+

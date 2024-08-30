@@ -160,3 +160,63 @@ def build_trapi_query_node(list_source, list_source_categories, log=False):
 
     # return
     return node
+
+
+def build_trapi_query_multi_curie_node(list_source, list_source_categories, log=False):
+    ''' 
+    method to build a trapi query node 
+    '''
+    node = {}
+
+    # log
+    # if log:
+    #     logger.info("got id: {} and categories: {}".format(list_source, list_source_categories))
+
+    # build the node
+    if list_source and len(list_source) > 0:
+        node['ids'] = list_source
+    if list_source_categories and len(list_source_categories) > 0:
+        node['categories'] = list_source_categories
+
+    # return
+    return node
+
+
+def post_query_logs_one_hop(url, list_source, list_target, list_source_categories, list_target_categories, list_predicates, knowledge_type=None, set_interpretation="BATCH", log=False):
+    ''' 
+    method to query a trapi url and get the resulting logs list back 
+    '''
+    list_result = []
+
+    # query
+    json_response = query_one_hop(url, list_source, list_target, list_source_categories, list_target_categories, list_predicates, knowledge_type=knowledge_type, log=log)
+
+    # loop and build the list
+    list_result = json_response.get("logs")
+
+    # log
+    if log:
+        logger.info("got {} resulting logs: {}".format(len(list_result), list_result))
+
+    # return
+    return list_result
+
+
+def post_query_results_one_hop(url, list_source, list_target, list_source_categories, list_target_categories, list_predicates, knowledge_type=None, set_interpretation="BATCH", log=False):
+    ''' 
+    method to query a trapi url and get the resulting logs list back 
+    '''
+    list_result = []
+
+    # query
+    json_response = query_one_hop(url, list_source, list_target, list_source_categories, list_target_categories, list_predicates, knowledge_type=knowledge_type, log=log)
+
+    # loop and build the list
+    list_result = json_response.get("message").get("results")
+
+    # log
+    if log:
+        logger.info("got {} resulting results: {}".format(len(list_result), list_result))
+
+    # return
+    return list_result
