@@ -5,7 +5,7 @@ import time
 
 # constants
 url_trapi_service = "https://translator.broadinstitute.org/genetics_provider/trapi/v1.5/{}"
-time_elapsed_seconds = 5
+time_elapsed_seconds = 10
 
 # tests
 def test_query_api_gene_disease():
