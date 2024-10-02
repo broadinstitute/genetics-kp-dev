@@ -45,7 +45,7 @@ def meta_knowledge_graph_get():  # noqa: E501
     # build the edges
     list_edge = create_predicate_triple_list()
     for item in list_edge:
-        edges.append(MetaEdge(subject=item[0], predicate=item[1], object=item[2], knowledge_types=[], attributes=[], qualifiers=[]))
+        edges.append(MetaEdge(subject=item[0], predicate=item[1], object=item[2], knowledge_types=["lookup"], attributes=[], qualifiers=[]))
 
     # build the knoelwdge map and return
     return MetaKnowledgeGraph(nodes=nodes, edges=edges)
