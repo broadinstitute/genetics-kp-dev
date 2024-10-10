@@ -354,6 +354,11 @@ def get_node_edge_score(web_query_object, score_type=dcc_utils.attribute_pvalue,
     # else:
     #     return None
 
+    # BUG https://github.com/marcduby/MachineLearningPython/issues/52
+    # filter out Ellinor 600k data
+    if len(sql_string) > 0:
+        sql_string = sql_string + " and ed.study_id != 18 "
+
     # make sure if edge predicate provided, that it is accepted one
     if web_query_object.get_edge_type() is not None:
         if web_query_object.get_edge_type() not in dcc_utils.accepted_edge_types:
