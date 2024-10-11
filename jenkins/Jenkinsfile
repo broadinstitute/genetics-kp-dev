@@ -17,6 +17,7 @@ pipeline {
     }
     environment {
         KUBERNETES_CLUSTER_NAME = "translator-eks-ci-blue-cluster"
+        NAMESPACE='geneticsprovider'
     }
     stages {
         stage('Clean') {
@@ -92,6 +93,7 @@ pipeline {
                 ]){
                     script {
                         sh '''#!/bin/bash
+                        kubectl delete deployment geneticsprovider -n ${NAMESPACE}
                         aws --region ${AWS_REGION} eks update-kubeconfig --name ${KUBERNETES_CLUSTER_NAME}
                         source prepare.sh
                         mv values-ncats.yaml translator-ops/ops/geneticskp/values-ncats.yaml
