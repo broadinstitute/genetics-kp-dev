@@ -21,6 +21,7 @@ BIOLINK_PREDICATE_GENETIC_ASSOCIATION = 'biolink:genetic_association'
 
 # constants
 BIOLINK_SCORE = 'biolink:score'
+BIOLINK_SCORE_NOT_NORMALIZED = 'biolink:score_not_normalized'
 BIOLINK_BETA = 'biolink:beta'
 BIOLINK_PVALUE = 'biolink:p-value'
 BIOLINK_STANDARD_ERROR = 'biolink:standard_error'

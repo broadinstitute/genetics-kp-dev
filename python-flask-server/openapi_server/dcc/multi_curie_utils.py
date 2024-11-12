@@ -45,6 +45,13 @@ URI_PATIENT_COUNT = "metadata/patientCount?dataset_id=1"
 
 
 # methods
+def sigmoid(x, log=False):
+    '''
+    imlements the sigmoid function
+    '''
+    return 1 / (1+math.exp(-x))
+
+
 def get_omop_for_list(list_curies, log=False):
     '''
     will query the cohd server for omop curies based on curies given
@@ -383,11 +390,13 @@ def sub_query_mcq(trapi_query: Query, log=True):
         for row in list_result:
             # get the row data
             name_gene = list(row.values())[0].get('gene_name')
-            score = list(row.values())[0].get('score')
             id_gene = list(row.keys())[0]
+            score_not_normalized = list(row.values())[0].get('score')
+            score = sigmoid(score_not_normalized)
 
             # build the score attribute and attributes list
             list_attributes = [tutils.build_attribute(value=score, value_type=trapi_constants.BIOLINK_SCORE, id_source=trapi_constants.DB_STUDY_ID_GENETICS)]
+            # list_attributes.append(tutils.build_attribute(value=score_not_normalized, value_type=trapi_constants.BIOLINK_SCORE_NOT_NORMALIZED, id_source=trapi_constants.DB_STUDY_ID_GENETICS))
             list_attributes.append(tutils.build_attribute(name_original=trapi_constants.NAME_AGENT_TYPE, value=trapi_constants.AGENT_PIPELINE, value_type=trapi_constants.BIOLINK_AGENT_TYPE, id_source=trapi_constants.DB_STUDY_ID_GENETICS))
             list_attributes.append(tutils.build_attribute(name_original=trapi_constants.NAME_KNOWLEDGE_LEVEL, value=trapi_constants.KNOWLEDGE_STATS, value_type=trapi_constants.BIOLINK_KNOWLEDGE_LEVEL, id_source=trapi_constants.DB_STUDY_ID_GENETICS))
 
