@@ -1,0 +1,15 @@
+{
+    "static_external": {
+        "infores:genetics-data-provider": [
+            "infores:clinvar",
+            "infores:clingen",
+            "infores:gencc",
+            "infores:genebass"
+        ]
+    },
+    "computed": {
+        "infores:genetics-data-provider": [
+            "infores:genetics-data-provider"
+        ]
+    }
+}
