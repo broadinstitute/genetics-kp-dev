@@ -57,3 +57,18 @@ limit 50;
 , parameters: ['biolink:condition_associated_with_gene', 'biolink:PhenotypicFeature', 'biolink:Gene', 'MONDO:0021140']
 
 
+
+-- get node information (genes, diseases)
+select no.id, no.ontology_id, no.node_name, type.type_name
+from comb_node_ontology no, comb_lookup_type type
+where no.node_type_id = type.type_id
+and type.type_id in (1, 2);
+
+select ed.edge_id,
+    so.ontology_id, ta.ontology_id, 
+    so.node_name, ta.node_name, ted.type_name
+from comb_edge_node ed, comb_node_ontology so, comb_node_ontology ta, comb_lookup_type ted
+where ed.edge_type_id = ted.type_id 
+  and ed.source_node_id = so.id and ed.target_node_id = ta.id
+  and so.node_type_id = 2 and ta.node_type_id = 1 and ed.study_id = 4
+order by ed.score_translator desc;

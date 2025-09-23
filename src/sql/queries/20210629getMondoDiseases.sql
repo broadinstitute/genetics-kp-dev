@@ -38,6 +38,11 @@ order by snode.node_code;
 
 
 
+
+
+
+
+
 -- scratch 
 select snode.ontology_id, snode.node_code, snode.node_name, tnode.ontology_id 
 from comb_node_ontology snode, comb_edge_node edge, comb_node_ontology tnode
