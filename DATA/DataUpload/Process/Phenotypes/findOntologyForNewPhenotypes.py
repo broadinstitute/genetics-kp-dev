@@ -1,21 +1,22 @@
 
 # imports 
-import pandas as pd 
+# import pandas as pd 
 import requests 
 import time
 import os 
 import sys
 import logging
 import pymysql as mdb
-
+import json
+import time
 
 # dynamic lib
 handler = logging.StreamHandler(sys.stdout)
 logger = logging.getLogger(__name__)
 dir_code = "/home/javaprog/Code/PythonWorkspace/"
 dir_data = "/home/javaprog/Data/Broad/"
-sys.path.insert(0, dir_code + 'MachineLearningPython/DccKP/Translator/TranslatorLibraries')
-import translator_libs as tl
+# sys.path.insert(0, dir_code + 'MachineLearningPython/DccKP/Translator/TranslatorLibraries')
+# import translator_libs as tl
 
 # constants 
 file_rare_disease = '/home/javaprog/Data/Broad/Translator/RareDisease/DCC_GARD_RareDiseases.csv'
@@ -24,7 +25,20 @@ file_test_rare_disease = '/home/javaprog/Data/Broad/Translator/RareDisease/Test_
 url_name_search = 'https://name-lookup.transltr.io/lookup?limit=100&string={}'
 DB_PASSWD = os.environ.get('DB_PASSWD')
 DB_SCHEMA = 'tran_upkeep'
-list_ontology = ['MONDO', 'EFO', 'UMLS', 'NCIT', 'HP']
+LISY_ONTOLOGY = ['MONDO', 'EFO', 'UMLS', 'NCIT', 'HP']
+URL_NAME_RESOLVER ="https://name-lookup.transltr.io/lookup?limit={}&string={}"
+
+SQL_SELECT_WITH_ONTOLOGY = """
+    select id, phenotype_name, phenotype_id, ontology_id from tran_upkeep.agg_aggregator_phenotype 
+    where ontology_id is not null 
+    order by phenotype_name
+"""
+
+SQL_SELECT_WITHOUT_ONTOLOGY = """
+    select id, phenotype_name, phenotype_id from tran_upkeep.agg_aggregator_phenotype 
+    where ontology_id is null 
+    order by len(phenotype_name)
+"""
 
 # methods 
 # def find_ontology(disease):
@@ -50,6 +64,43 @@ list_ontology = ['MONDO', 'EFO', 'UMLS', 'NCIT', 'HP']
 
 #     # return
 #     return ontology_id
+def get_curies(entity_name, list_ontologies, limit=20, log=False):
+    '''
+    gets the ontology ids for an input
+    '''
+    list_result = []
+    url = URL_NAME_RESOLVER.format(limit, entity_name)
+
+    # do the call
+    try:
+        response = requests.post(url, json={}, timeout=10)
+        response.raise_for_status()  # Raises an HTTPError for bad responses (4xx or 5xx)
+
+        map_json = response.json()
+
+        if log:
+            print("got json result: {}".format(json.dumps(map_json, indent=2)))
+
+        list_result = [s.get('curie', "") for s in map_json if any(sub in s.get('curie', "") for sub in list_ontologies)]
+
+        # return response.json()       # Returns the parsed JSON content
+
+    except requests.exceptions.HTTPError as http_err:
+        print(f"HTTP error occurred: {http_err} - Status Code: {response.status_code}")
+    except requests.exceptions.ConnectionError as conn_err:
+        print(f"Connection error occurred: {conn_err}")
+    except requests.exceptions.Timeout as timeout_err:
+        print(f"Timeout error occurred: {timeout_err}")
+    except requests.exceptions.RequestException as req_err:
+        print(f"An unexpected error occurred: {req_err}")
+
+    # log
+    if log:
+        print("return curie list: {}".format(list_result))
+
+    # return
+    return list_result
+
 
 def get_connection():
     ''' 
@@ -60,17 +111,14 @@ def get_connection():
     # return
     return conn 
 
-def get_new_phenotype_list(conn):
+
+def get_list_phenotype_with_ontology(conn):
     '''
-    get the list of new phenotypes in the aggregator but not yet in translator
+    get the list of upkeep db phenotypes that have an ontology
     returns list of tuples (name, id)
     '''
     # initialize
-    sql_select = """
-    select id, phenotype_name, phenotype_id from tran_upkeep.agg_aggregator_phenotype 
-    where in_translator = 'false' and ontology_id is null 
-    order by phenotype_name
-    """
+    sql_select = SQL_SELECT_WITH_ONTOLOGY
 
     # query the db
     cursor = conn.cursor()
@@ -79,14 +127,54 @@ def get_new_phenotype_list(conn):
     
     # get the data
     if db_results:
-        result = [(item[0], item[1], item[2]) for item in db_results]
+        result = [{'id': item[0], 'name': item[1], 'bioindex_id': item[2], 'ontology_id': item[3]} for item in db_results]
 
     # return
     return result
 
-def add_phenotype_ontology_id(conn, row_id, ontology_id):
+
+def get_map_phenotypes_with_ontology(conn):
     '''
-    add in found ontology_id for the new disease
+    get the map of existing phenotypes by curie as key
+    '''
+    # initialize
+    map_pheno = {}
+
+    # get the db results
+    db_result = get_list_phenotype_with_ontology(conn=conn)
+        
+    # populate the map
+    for phenotype in db_result:
+        map_pheno[phenotype.get('ontology_id')] = phenotype
+
+    # return
+    return map_pheno
+
+
+def get_list_phenotype_without_ontology(conn):
+    '''
+    get the list of upkeep db phenotypes that do not have an ontology
+    returns list of tuples (name, id)
+    '''
+    # initialize
+    sql_select = SQL_SELECT_WITH_ONTOLOGY
+
+    # query the db
+    cursor = conn.cursor()
+    cursor.execute(sql_select)
+    db_results = cursor.fetchall()
+    
+    # get the data
+    if db_results:
+        result = [{'id': item[0], 'name': item[1], 'bioindex_id': item[2]} for item in db_results]
+
+    # return
+    return result
+
+
+def add_db_phenotype_ontology_id(conn, row_id, ontology_id):
+    '''
+    add in found ontology_id for the given phenotype
     '''
     # initialize
     sql_update = "update tran_upkeep.agg_aggregator_phenotype set ontology_id = %s where id = %s"
@@ -96,6 +184,7 @@ def add_phenotype_ontology_id(conn, row_id, ontology_id):
     cursor.execute(sql_update, (ontology_id, row_id))
     conn.commit()
 
+
 if __name__ == "__main__":
     # initialize
     list_phenotypes = []
@@ -104,31 +193,70 @@ if __name__ == "__main__":
     # get the connection
     db_connection = get_connection()
 
-    # get the list of phenotypes that are not in the 
-    list_phenotypes = get_new_phenotype_list(db_connection)
-    num_total = len(list_phenotypes)
-    print("got {} new phenotypes to add to translator".format(num_total))
+    # load the phenotypes with ontology id; make map with curie as key
+    # want to avoid two phenotypes with the same code
+    map_phenotype = get_map_phenotypes_with_ontology(conn=db_connection)
+    print(json.dumps(map_phenotype, indent=2))
 
-    # loop
-    for (row_id, name, phenotype_id) in list_phenotypes:
-        count = count + 1
-        if count > 5000:
-            break
+
+    # load the phenotypes with no ontology 
+    list_phenotypes = get_list_phenotype_without_ontology(conn=db_connection)
+
+    # search for ontology id for those phenotypes
+    for phenotype in list_phenotypes:
+        # get the onlogy_id for the phenotype
+        list_curies = get_curies(entity_name=phenotype.get('name'), list_ontologies=LISY_ONTOLOGY, limit=5)
+
+        # if there is an ontology id
+        if len(list_curies) > 0 and list_curies[0]:
+            # sleep for API
+            time.sleep(5)
+
+            # get the curies
+            potential_curie_id = list_curies[0]
+            
+            # skip if phenotype in map
+            if not map_phenotype.get(potential_curie_id):
+                # if not, insert ontology for phenotype
+                # add_db_phenotype_ontology_id(conn=db_connection, row_id=phenotype.get('id'), ontology_id=potential_curie_id)
+
+                # add to map
+                map_phenotype[potential_curie_id] = phenotype
+
+                # log
+                print("DB added curie: {} for phentype: {}".format(potential_curie_id, phenotype))
+
+
+
+
+
+
+
+    # # get the list of phenotypes that are not in the 
+    # list_phenotypes = get_new_phenotype_list(db_connection)
+    # num_total = len(list_phenotypes)
+    # print("got {} new phenotypes to add to translator".format(num_total))
+
+    # # loop
+    # for (row_id, name, phenotype_id) in list_phenotypes:
+    #     count = count + 1
+    #     if count > 5000:
+    #         break
     
-        # pause for rest service
-        time.sleep(0.5)
+    #     # pause for rest service
+    #     time.sleep(0.5)
         
-        # search for an ontology id
-        ontology_id = tl.find_ontology(name, list_ontology)
-        print("{} - {} found for {} - '{}'".format(count, ontology_id, phenotype_id, name))
+    #     # search for an ontology id
+    #     ontology_id = tl.find_ontology(name, list_ontology)
+    #     print("{} - {} found for {} - '{}'".format(count, ontology_id, phenotype_id, name))
 
-        # add in to table if not null
-        if ontology_id:
-            add_phenotype_ontology_id(db_connection, row_id, ontology_id)
-            print("row {}/{} - {} added for {} - {}".format(row_id, num_total, ontology_id, phenotype_id, name))
+    #     # add in to table if not null
+    #     if ontology_id:
+    #         add_phenotype_ontology_id(db_connection, row_id, ontology_id)
+    #         print("row {}/{} - {} added for {} - {}".format(row_id, num_total, ontology_id, phenotype_id, name))
 
-    # commit
-    db_connection.commit()
+    # # commit
+    # db_connection.commit()
 
 # # get the phenotypes from 
 # # read the file

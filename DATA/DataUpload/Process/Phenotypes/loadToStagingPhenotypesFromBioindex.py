@@ -21,6 +21,7 @@ def query_service_phenotypes():
     # return
     return response
 
+
 def get_phenotype_values(input_json):
     ''' 
     will parse the graphql output and generate phenotype information tuples list 

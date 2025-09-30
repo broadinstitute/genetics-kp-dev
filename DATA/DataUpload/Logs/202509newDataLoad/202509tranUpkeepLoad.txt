@@ -1,0 +1,24 @@
+
+-- pre phenotype load
+mysql> select count(id) from agg_aggregator_phenotype;
++-----------+
+| count(id) |
++-----------+
+|      1374 |
++-----------+
+1 row in set (0.01 sec)
+
+-- post phenotype load
+mysql> select count(id) from agg_aggregator_phenotype;
++-----------+
+| count(id) |
++-----------+
+|      1661 |
++-----------+
+1 row in set (0.00 sec)
+
+mysql> 
+mysql> 
+
+
+
