@@ -1,6 +1,10 @@
 
+# process:
+# load all phenotypes from upkeep DB
+# load phenotypes from file (usually updated with ontology ids)
+# save phenotyps with new ontology ids
+
 # imports 
-# import pandas as pd 
 import requests 
 import time
 import os 
@@ -25,8 +29,9 @@ file_test_rare_disease = '/home/javaprog/Data/Broad/Translator/RareDisease/Test_
 url_name_search = 'https://name-lookup.transltr.io/lookup?limit=100&string={}'
 DB_PASSWD = os.environ.get('DB_PASSWD')
 DB_SCHEMA = 'tran_upkeep'
-LISY_ONTOLOGY = ['MONDO', 'EFO', 'UMLS', 'NCIT', 'HP']
+LIST_ONTOLOGY = ['MONDO', 'EFO', 'UMLS', 'NCIT', 'HP']
 URL_NAME_RESOLVER ="https://name-lookup.transltr.io/lookup?limit={}&string={}"
+FILE_JSON = "phenotypes_bioindex.json"
 
 SQL_SELECT_WITH_ONTOLOGY = """
     select id, phenotype_name, phenotype_id, ontology_id from tran_upkeep.agg_aggregator_phenotype 
@@ -40,66 +45,66 @@ SQL_SELECT_WITHOUT_ONTOLOGY = """
     order by len(phenotype_name)
 """
 
+SQL_SELECT_ALL_PHENOTYPES = """
+    select id, phenotype_name, phenotype_id, ontology_id from tran_upkeep.agg_aggregator_phenotype 
+"""
+
+# keys
+KEY_ONTOLOGY_ID = "ontology_id"
+KEY_BIOINDEX_ID = "bioindex_id"
+
 # methods 
-# def find_ontology(disease):
-#     '''
-#     will call REST api and will return ontology id if name exact match 
-#     '''
-#     # initialize
-#     ontology_id = None
-
-#     # call the url
-#     response = requests.post(url_name_search.format(disease.replace("-", " ")))
-#     output_json = response.json()
-
-#     # loop through results, find first exact result
-#     for key, values in output_json.items():
-#         # print("key: {}".format(key))
-#         # print("value: {}\n".format(values))
-#         # do MONDO search first since easiest comparison
-#         if 'MONDO' in key:
-#             if disease.lower() in map(str.lower, values):
-#                 ontology_id = key
-#                 break
-
-#     # return
-#     return ontology_id
-def get_curies(entity_name, list_ontologies, limit=20, log=False):
+def load_phenotypes_map_from_file(file_name=FILE_JSON):
     '''
-    gets the ontology ids for an input
+    load all phenotypes from the file where ontology ids have been added
     '''
-    list_result = []
-    url = URL_NAME_RESOLVER.format(limit, entity_name)
+    map_phenotypes = {}
 
-    # do the call
-    try:
-        response = requests.post(url, json={}, timeout=10)
-        response.raise_for_status()  # Raises an HTTPError for bad responses (4xx or 5xx)
-
-        map_json = response.json()
-
-        if log:
-            print("got json result: {}".format(json.dumps(map_json, indent=2)))
-
-        list_result = [s.get('curie', "") for s in map_json if any(sub in s.get('curie', "") for sub in list_ontologies)]
-
-        # return response.json()       # Returns the parsed JSON content
-
-    except requests.exceptions.HTTPError as http_err:
-        print(f"HTTP error occurred: {http_err} - Status Code: {response.status_code}")
-    except requests.exceptions.ConnectionError as conn_err:
-        print(f"Connection error occurred: {conn_err}")
-    except requests.exceptions.Timeout as timeout_err:
-        print(f"Timeout error occurred: {timeout_err}")
-    except requests.exceptions.RequestException as req_err:
-        print(f"An unexpected error occurred: {req_err}")
-
-    # log
-    if log:
-        print("return curie list: {}".format(list_result))
+    # load the file
+    with open(file_name, "r") as f:
+        json_data = f.read()  # read the file contents into a string
+        map_data = json.loads(json_data)
 
     # return
-    return list_result
+    return map_data
+
+
+# def get_curies(entity_name, list_ontologies, limit=20, log=False):
+#     '''
+#     gets the ontology ids for an input
+#     '''
+#     list_result = []
+#     url = URL_NAME_RESOLVER.format(limit, entity_name)
+
+#     # do the call
+#     try:
+#         response = requests.post(url, json={}, timeout=10)
+#         response.raise_for_status()  # Raises an HTTPError for bad responses (4xx or 5xx)
+
+#         map_json = response.json()
+
+#         if log:
+#             print("got json result: {}".format(json.dumps(map_json, indent=2)))
+
+#         list_result = [s.get('curie', "") for s in map_json if any(sub in s.get('curie', "") for sub in list_ontologies)]
+
+#         # return response.json()       # Returns the parsed JSON content
+
+#     except requests.exceptions.HTTPError as http_err:
+#         print(f"HTTP error occurred: {http_err} - Status Code: {response.status_code}")
+#     except requests.exceptions.ConnectionError as conn_err:
+#         print(f"Connection error occurred: {conn_err}")
+#     except requests.exceptions.Timeout as timeout_err:
+#         print(f"Timeout error occurred: {timeout_err}")
+#     except requests.exceptions.RequestException as req_err:
+#         print(f"An unexpected error occurred: {req_err}")
+
+#     # log
+#     if log:
+#         print("return curie list: {}".format(list_result))
+
+#     # return
+#     return list_result
 
 
 def get_connection():
@@ -112,13 +117,14 @@ def get_connection():
     return conn 
 
 
-def get_list_phenotype_with_ontology(conn):
+def get_db_phenotypes_map(conn):
     '''
-    get the list of upkeep db phenotypes that have an ontology
-    returns list of tuples (name, id)
+    get the map of upkeep db phenotypes
+    returns map by bioindex id as key
     '''
     # initialize
-    sql_select = SQL_SELECT_WITH_ONTOLOGY
+    sql_select = SQL_SELECT_ALL_PHENOTYPES
+    map_phenotype = {}
 
     # query the db
     cursor = conn.cursor()
@@ -127,49 +133,71 @@ def get_list_phenotype_with_ontology(conn):
     
     # get the data
     if db_results:
-        result = [{'id': item[0], 'name': item[1], 'bioindex_id': item[2], 'ontology_id': item[3]} for item in db_results]
+        for item in db_results:
+            map_phenotype[item[2].strip()] = {'id': item[0], 'name': item[1], KEY_BIOINDEX_ID: item[2], KEY_ONTOLOGY_ID: item[3]}
 
     # return
-    return result
+    return map_phenotype
 
 
-def get_map_phenotypes_with_ontology(conn):
-    '''
-    get the map of existing phenotypes by curie as key
-    '''
-    # initialize
-    map_pheno = {}
+# def get_list_phenotype_with_ontology(conn):
+#     '''
+#     get the list of upkeep db phenotypes that have an ontology
+#     returns list of tuples (name, id)
+#     '''
+#     # initialize
+#     sql_select = SQL_SELECT_WITH_ONTOLOGY
 
-    # get the db results
-    db_result = get_list_phenotype_with_ontology(conn=conn)
+#     # query the db
+#     cursor = conn.cursor()
+#     cursor.execute(sql_select)
+#     db_results = cursor.fetchall()
+    
+#     # get the data
+#     if db_results:
+#         result = [{'id': item[0], 'name': item[1], 'bioindex_id': item[2], 'ontology_id': item[3]} for item in db_results]
+
+#     # return
+#     return result
+
+
+# def get_map_phenotypes_with_ontology(conn):
+#     '''
+#     get the map of existing phenotypes by curie as key
+#     '''
+#     # initialize
+#     map_pheno = {}
+
+#     # get the db results
+#     db_result = get_list_phenotype_with_ontology(conn=conn)
         
-    # populate the map
-    for phenotype in db_result:
-        map_pheno[phenotype.get('ontology_id')] = phenotype
+#     # populate the map
+#     for phenotype in db_result:
+#         map_pheno[phenotype.get('ontology_id')] = phenotype
 
-    # return
-    return map_pheno
+#     # return
+#     return map_pheno
 
 
-def get_list_phenotype_without_ontology(conn):
-    '''
-    get the list of upkeep db phenotypes that do not have an ontology
-    returns list of tuples (name, id)
-    '''
-    # initialize
-    sql_select = SQL_SELECT_WITH_ONTOLOGY
+# def get_list_phenotype_without_ontology(conn):
+#     '''
+#     get the list of upkeep db phenotypes that do not have an ontology
+#     returns list of tuples (name, id)
+#     '''
+#     # initialize
+#     sql_select = SQL_SELECT_WITH_ONTOLOGY
 
-    # query the db
-    cursor = conn.cursor()
-    cursor.execute(sql_select)
-    db_results = cursor.fetchall()
+#     # query the db
+#     cursor = conn.cursor()
+#     cursor.execute(sql_select)
+#     db_results = cursor.fetchall()
     
-    # get the data
-    if db_results:
-        result = [{'id': item[0], 'name': item[1], 'bioindex_id': item[2]} for item in db_results]
+#     # get the data
+#     if db_results:
+#         result = [{'id': item[0], 'name': item[1], 'bioindex_id': item[2]} for item in db_results]
 
-    # return
-    return result
+#     # return
+#     return result
 
 
 def add_db_phenotype_ontology_id(conn, row_id, ontology_id):
@@ -193,38 +221,70 @@ if __name__ == "__main__":
     # get the connection
     db_connection = get_connection()
 
-    # load the phenotypes with ontology id; make map with curie as key
-    # want to avoid two phenotypes with the same code
-    map_phenotype = get_map_phenotypes_with_ontology(conn=db_connection)
-    print(json.dumps(map_phenotype, indent=2))
+    # load the phenotypes in the db
+    map_db_phenotype = get_db_phenotypes_map(conn=db_connection)
+    print(json.dumps(map_db_phenotype, indent=2))
+
+    # load the phenotypes from the updated file
+    map_file_phenotype = load_phenotypes_map_from_file()
+
+    # print(json.dumps(list(map_file_phenotype.keys()), indent=2))
+
+    # loop through the db phenotypes and see if any have ontology ids to update
+    for db_key, db_value in map_db_phenotype.items():
+        file_phenotype = map_file_phenotype.get(db_key.strip())
+        # print(db_key)
+        # print(db_value)
+        # print(file_phenotype)
+        if file_phenotype is not None:
+            if file_phenotype.get(KEY_ONTOLOGY_ID) is not None:
+                if not db_value.get(KEY_ONTOLOGY_ID) or (db_value.get(KEY_ONTOLOGY_ID) != file_phenotype.get(KEY_ONTOLOGY_ID)):
+                    # replace phenotype ontology id
+                    add_db_phenotype_ontology_id(conn=db_connection, row_id=db_value.get('id'), ontology_id=file_phenotype.get(KEY_ONTOLOGY_ID))
+
+                    # log
+                    print("replaced ontology: {} with: {} for phenotype: {}".format(db_value.get(KEY_ONTOLOGY_ID), file_phenotype.get(KEY_ONTOLOGY_ID), db_value))
 
 
-    # load the phenotypes with no ontology 
-    list_phenotypes = get_list_phenotype_without_ontology(conn=db_connection)
 
-    # search for ontology id for those phenotypes
-    for phenotype in list_phenotypes:
-        # get the onlogy_id for the phenotype
-        list_curies = get_curies(entity_name=phenotype.get('name'), list_ontologies=LISY_ONTOLOGY, limit=5)
 
-        # if there is an ontology id
-        if len(list_curies) > 0 and list_curies[0]:
-            # sleep for API
-            time.sleep(5)
 
-            # get the curies
-            potential_curie_id = list_curies[0]
+
+
+
+
+
+
+
+
+
+
+
+
+
+    # # search for ontology id for those phenotypes
+    # for phenotype in list_phenotypes:
+    #     # get the onlogy_id for the phenotype
+    #     list_curies = get_curies(entity_name=phenotype.get('name'), list_ontologies=LIST_ONTOLOGY, limit=5)
+
+    #     # if there is an ontology id
+    #     if len(list_curies) > 0 and list_curies[0]:
+    #         # sleep for API
+    #         time.sleep(5)
+
+    #         # get the curies
+    #         potential_curie_id = list_curies[0]
             
-            # skip if phenotype in map
-            if not map_phenotype.get(potential_curie_id):
-                # if not, insert ontology for phenotype
-                # add_db_phenotype_ontology_id(conn=db_connection, row_id=phenotype.get('id'), ontology_id=potential_curie_id)
+    #         # skip if phenotype in map
+    #         if not map_phenotype.get(potential_curie_id):
+    #             # if not, insert ontology for phenotype
+    #             # add_db_phenotype_ontology_id(conn=db_connection, row_id=phenotype.get('id'), ontology_id=potential_curie_id)
 
-                # add to map
-                map_phenotype[potential_curie_id] = phenotype
+    #             # add to map
+    #             map_phenotype[potential_curie_id] = phenotype
 
-                # log
-                print("DB added curie: {} for phentype: {}".format(potential_curie_id, phenotype))
+    #             # log
+    #             print("DB added curie: {} for phentype: {}".format(potential_curie_id, phenotype))
 
 
 

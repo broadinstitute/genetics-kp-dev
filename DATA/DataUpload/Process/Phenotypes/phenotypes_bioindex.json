@@ -87,79 +87,79 @@
     "id": 2082,
     "name": "Abnormal aortic morphology",
     "bioindex_id": "HP-0001679",
-    "ontology_id": null
+    "ontology_id": "HP:0001679"
   },
   "HP-0025354": {
     "id": 1823,
     "name": "Abnormal cellular phenotype",
     "bioindex_id": "HP-0025354",
-    "ontology_id": null
+    "ontology_id": "HP:0025354"
   },
   "HP-0001877": {
     "id": 2084,
     "name": "Abnormal erythrocyte morphology",
     "bioindex_id": "HP-0001877",
-    "ontology_id": null
+    "ontology_id": "HP:0001877"
   },
   "HP-0040069": {
     "id": 2105,
     "name": "Abnormal lower limb bone morphology",
     "bioindex_id": "HP-0040069",
-    "ontology_id": null
+    "ontology_id": "HP:0040069"
   },
   "HP-0002088": {
     "id": 1984,
     "name": "Abnormal lung morphology",
     "bioindex_id": "HP-0002088",
-    "ontology_id": null
+    "ontology_id": "HP:0002088"
   },
   "HP-0012639": {
     "id": 2102,
     "name": "Abnormal nervous system morphology",
     "bioindex_id": "HP-0012639",
-    "ontology_id": null
+    "ontology_id": "HP:0012639"
   },
   "HP-0002533": {
     "id": 2091,
     "name": "Abnormal posturing",
     "bioindex_id": "HP-0002533",
-    "ontology_id": null
+    "ontology_id": "HP:0002533"
   },
   "HP-0031263": {
     "id": 2104,
     "name": "Abnormal renal corpuscle morphology",
     "bioindex_id": "HP-0031263",
-    "ontology_id": null
+    "ontology_id": "HP:0031263"
   },
   "HP-0011035": {
     "id": 2101,
     "name": "Abnormal renal cortex morphology",
     "bioindex_id": "HP-0011035",
-    "ontology_id": null
+    "ontology_id": "HP:0011035"
   },
   "HP-0000095": {
     "id": 2069,
     "name": "Abnormal renal glomerulus morphology",
     "bioindex_id": "HP-0000095",
-    "ontology_id": null
+    "ontology_id": "HP:0000095"
   },
   "HP-0001871": {
     "id": 1816,
     "name": "Abnormality of blood and blood-forming tissues",
     "bioindex_id": "HP-0001871",
-    "ontology_id": null
+    "ontology_id": "HP:0001871"
   },
   "HP-0000152": {
     "id": 1805,
     "name": "Abnormality of head or neck",
     "bioindex_id": "HP-0000152",
-    "ontology_id": null
+    "ontology_id": "HP:0000152"
   },
   "HP-0040064": {
     "id": 1825,
     "name": "Abnormality of limbs",
     "bioindex_id": "HP-0040064",
-    "ontology_id": null
+    "ontology_id": "HP:0040064"
   },
   "HP-0001939": {
     "id": 1817,
@@ -171,115 +171,115 @@
     "id": 1811,
     "name": "Abnormality of prenatal development or birth",
     "bioindex_id": "HP-0001197",
-    "ontology_id": null
+    "ontology_id": "HP:0001197"
   },
   "HP-0000769": {
     "id": 1809,
     "name": "Abnormality of the breast",
     "bioindex_id": "HP-0000769",
-    "ontology_id": null
+    "ontology_id": "HP:0000769"
   },
   "HP-0001626": {
     "id": 1815,
     "name": "Abnormality of the cardiovascular system",
     "bioindex_id": "HP-0001626",
-    "ontology_id": null
+    "ontology_id": "HP:0001626"
   },
   "HP-0025031": {
     "id": 1821,
     "name": "Abnormality of the digestive system",
     "bioindex_id": "HP-0025031",
-    "ontology_id": null
+    "ontology_id": "HP:0025031"
   },
   "HP-0000598": {
     "id": 1807,
     "name": "Abnormality of the ear",
     "bioindex_id": "HP-0000598",
-    "ontology_id": null
+    "ontology_id": "HP:0000598"
   },
   "HP-0000818": {
     "id": 1810,
     "name": "Abnormality of the endocrine system",
     "bioindex_id": "HP-0000818",
-    "ontology_id": null
+    "ontology_id": "HP:0000818"
   },
   "HP-0000478": {
     "id": 1806,
     "name": "Abnormality of the eye",
     "bioindex_id": "HP-0000478",
-    "ontology_id": null
+    "ontology_id": "HP:0000478"
   },
   "HP-0000119": {
     "id": 1804,
     "name": "Abnormality of the genitourinary system",
     "bioindex_id": "HP-0000119",
-    "ontology_id": null
+    "ontology_id": "HP:0000119"
   },
   "HP-0002715": {
     "id": 1820,
     "name": "Abnormality of the immune system",
     "bioindex_id": "HP-0002715",
-    "ontology_id": null
+    "ontology_id": "HP:0002715"
   },
   "HP-0000359": {
     "id": 2071,
     "name": "Abnormality of the inner ear",
     "bioindex_id": "HP-0000359",
-    "ontology_id": null
+    "ontology_id": "HP:0000359"
   },
   "HP-0001574": {
     "id": 1813,
     "name": "Abnormality of the integument",
     "bioindex_id": "HP-0001574",
-    "ontology_id": null
+    "ontology_id": "HP:0001574"
   },
   "HP-0003011": {
     "id": 2094,
     "name": "Abnormality of the musculature",
     "bioindex_id": "HP-0003011",
-    "ontology_id": null
+    "ontology_id": "HP:0003011"
   },
   "HP-0033127": {
     "id": 1824,
     "name": "Abnormality of the musculoskeletal system",
     "bioindex_id": "HP-0033127",
-    "ontology_id": null
+    "ontology_id": "HP:0033127"
   },
   "HP-0000707": {
     "id": 1808,
     "name": "Abnormality of the nervous system",
     "bioindex_id": "HP-0000707",
-    "ontology_id": null
+    "ontology_id": "HP:0000707"
   },
   "HP-0002086": {
     "id": 1818,
     "name": "Abnormality of the respiratory system",
     "bioindex_id": "HP-0002086",
-    "ontology_id": null
+    "ontology_id": "HP:0002086"
   },
   "HP-0045027": {
     "id": 1826,
     "name": "Abnormality of the thoracic cavity",
     "bioindex_id": "HP-0045027",
-    "ontology_id": null
+    "ontology_id": "HP:0045027"
   },
   "HP-0000795": {
     "id": 2078,
     "name": "Abnormality of the urethra",
     "bioindex_id": "HP-0000795",
-    "ontology_id": null
+    "ontology_id": "HP:0000795"
   },
   "HP-0000079": {
     "id": 2068,
     "name": "Abnormality of the urinary system",
     "bioindex_id": "HP-0000079",
-    "ontology_id": null
+    "ontology_id": "HP:0000079"
   },
   "HP-0001608": {
     "id": 1814,
     "name": "Abnormality of the voice",
     "bioindex_id": "HP-0001608",
-    "ontology_id": null
+    "ontology_id": "HP:0001608"
   },
   "SP_ACC_Diurnal_inactivity_duration": {
     "id": 2448,
@@ -909,7 +909,7 @@
     "id": 2085,
     "name": "Anemia",
     "bioindex_id": "HP-0001903",
-    "ontology_id": null
+    "ontology_id": "HP:0001903"
   },
   "SAH": {
     "id": 1581,
@@ -1125,7 +1125,7 @@
     "id": 2089,
     "name": "Apraxia",
     "bioindex_id": "HP-0002186",
-    "ontology_id": null
+    "ontology_id": "HP:0002186"
   },
   "C20_0": {
     "id": 2328,
@@ -1311,7 +1311,7 @@
     "id": 1986,
     "name": "Attention deficit hyperactivity disorder",
     "bioindex_id": "HP-0007018",
-    "ontology_id": null
+    "ontology_id": "HP:0007018"
   },
   "ADHD": {
     "id": 2136,
@@ -1329,7 +1329,7 @@
     "id": 2074,
     "name": "Autism",
     "bioindex_id": "HP-0000717",
-    "ontology_id": null
+    "ontology_id": "HP:0000717"
   },
   "Autism": {
     "id": 2905,
@@ -1347,7 +1347,7 @@
     "id": 2096,
     "name": "Autonomic bladder dysfunction",
     "bioindex_id": "HP-0005341",
-    "ontology_id": null
+    "ontology_id": "HP:0005341"
   },
   "AvgDesaturation": {
     "id": 1763,
@@ -1551,7 +1551,7 @@
     "id": 2093,
     "name": "Bladder exstrophy",
     "bioindex_id": "HP-0002836",
-    "ontology_id": null
+    "ontology_id": "HP:0002836"
   },
   "DeepVeinThrombosis": {
     "id": 2795,
@@ -1671,13 +1671,13 @@
     "id": 2103,
     "name": "Bone fracture",
     "bioindex_id": "HP-0020110",
-    "ontology_id": null
+    "ontology_id": "HP:0020110"
   },
   "HP-0005528": {
     "id": 2097,
     "name": "Bone marrow hypocellularity",
     "bioindex_id": "HP-0005528",
-    "ontology_id": null
+    "ontology_id": "HP:0005528"
   },
   "AsthmaCOPD": {
     "id": 1937,
@@ -1773,7 +1773,7 @@
     "id": 2088,
     "name": "Bronchiectasis",
     "bioindex_id": "HP-0002110",
-    "ontology_id": null
+    "ontology_id": "HP:0002110"
   },
   "iaorta_area": {
     "id": 2312,
@@ -1953,7 +1953,7 @@
     "id": 1987,
     "name": "Cerebral palsy",
     "bioindex_id": "HP-0100021",
-    "ontology_id": null
+    "ontology_id": "HP:0100021"
   },
   "WMH": {
     "id": 1451,
@@ -2025,7 +2025,7 @@
     "id": 2086,
     "name": "Chronic diarrhea",
     "bioindex_id": "HP-0002028",
-    "ontology_id": null
+    "ontology_id": "HP:0002028"
   },
   "ChronicHeadache": {
     "id": 2892,
@@ -2397,7 +2397,7 @@
     "id": 1822,
     "name": "Constitutional symptom",
     "bioindex_id": "HP-0025142",
-    "ontology_id": null
+    "ontology_id": "HP:0025142"
   },
   "SP_CONT_Chronotype": {
     "id": 2453,
@@ -2535,7 +2535,7 @@
     "id": 2106,
     "name": "Crohn\u2019s disease",
     "bioindex_id": "HP-0100280",
-    "ontology_id": null
+    "ontology_id": "HP:0100280"
   },
   "CSI": {
     "id": 1774,
@@ -2721,7 +2721,7 @@
     "id": 1982,
     "name": "Depressivity",
     "bioindex_id": "HP-0000716",
-    "ontology_id": null
+    "ontology_id": "HP:0000716"
   },
   "Dermatophytosis": {
     "id": 1262,
@@ -3435,7 +3435,7 @@
     "id": 2107,
     "name": "Epileptic encephalopathy",
     "bioindex_id": "HP-0200134",
-    "ontology_id": null
+    "ontology_id": "HP:0200134"
   },
   "ESR": {
     "id": 2672,
@@ -3447,7 +3447,7 @@
     "id": 2087,
     "name": "Esophageal atresia",
     "bioindex_id": "HP-0002032",
-    "ontology_id": null
+    "ontology_id": "HP:0002032"
   },
   "EsoStomachCancer": {
     "id": 2229,
@@ -3771,7 +3771,7 @@
     "id": 1983,
     "name": "Fever",
     "bioindex_id": "HP-0001945",
-    "ontology_id": null
+    "ontology_id": "HP:0001945"
   },
   "Fbg": {
     "id": 1465,
@@ -3951,7 +3951,7 @@
     "id": 1981,
     "name": "Functional abnormality of the bladder",
     "bioindex_id": "HP-0000009",
-    "ontology_id": null
+    "ontology_id": "HP:0000009"
   },
   "FRC": {
     "id": 2560,
@@ -3993,13 +3993,13 @@
     "id": 2092,
     "name": "Gastrointestinal atresia",
     "bioindex_id": "HP-0002589",
-    "ontology_id": null
+    "ontology_id": "HP:0002589"
   },
   "HP-0004386": {
     "id": 2095,
     "name": "Gastrointestinal inflammation",
     "bioindex_id": "HP-0004386",
-    "ontology_id": null
+    "ontology_id": "HP:0004386"
   },
   "GCC": {
     "id": 1766,
@@ -4023,7 +4023,7 @@
     "id": 2090,
     "name": "Generalized-onset seizure",
     "bioindex_id": "HP-0002197",
-    "ontology_id": null
+    "ontology_id": "HP:0002197"
   },
   "GA": {
     "id": 1378,
@@ -4077,7 +4077,7 @@
     "id": 1988,
     "name": "Glomerulopathy",
     "bioindex_id": "HP-0100820",
-    "ontology_id": null
+    "ontology_id": "HP:0100820"
   },
   "GluCorticoidDef": {
     "id": 2688,
@@ -4197,13 +4197,13 @@
     "id": 1812,
     "name": "Growth abnormality",
     "bioindex_id": "HP-0001507",
-    "ontology_id": null
+    "ontology_id": "HP:0001507"
   },
   "HP-0000738": {
     "id": 2076,
     "name": "Hallucinations",
     "bioindex_id": "HP-0000738",
-    "ontology_id": null
+    "ontology_id": "HP:0000738"
   },
   "HandOA": {
     "id": 1761,
@@ -5283,7 +5283,7 @@
     "id": 2080,
     "name": "Joint laxity",
     "bioindex_id": "HP-0001388",
-    "ontology_id": null
+    "ontology_id": "HP:0001388"
   },
   "JointPain": {
     "id": 2900,
@@ -5709,7 +5709,7 @@
     "id": 2100,
     "name": "Limb undergrowth",
     "bioindex_id": "HP-0009826",
-    "ontology_id": null
+    "ontology_id": "HP:0009826"
   },
   "n6FA182": {
     "id": 1411,
@@ -6831,7 +6831,7 @@
     "id": 1819,
     "name": "Neoplasm",
     "bioindex_id": "HP-0002664",
-    "ontology_id": null
+    "ontology_id": "HP:0002664"
   },
   "ND": {
     "id": 1412,
@@ -6843,7 +6843,7 @@
     "id": 2077,
     "name": "Nephrolithiasis",
     "bioindex_id": "HP-0000787",
-    "ontology_id": null
+    "ontology_id": "HP:0000787"
   },
   "netLVSV": {
     "id": 2314,
@@ -7605,7 +7605,7 @@
     "id": 2070,
     "name": "Phenotypic abnormality",
     "bioindex_id": "HP-0000118",
-    "ontology_id": null
+    "ontology_id": "HP:0000118"
   },
   "Phe": {
     "id": 1516,
@@ -7833,7 +7833,7 @@
     "id": 2079,
     "name": "Precocious puberty",
     "bioindex_id": "HP-0000826",
-    "ontology_id": null
+    "ontology_id": "HP:0000826"
   },
   "PredC19vPredNoC19": {
     "id": 1594,
@@ -7851,7 +7851,7 @@
     "id": 2081,
     "name": "Premature birth",
     "bioindex_id": "HP-0001622",
-    "ontology_id": null
+    "ontology_id": "HP:0001622"
   },
   "PACG": {
     "id": 1414,
@@ -8007,13 +8007,13 @@
     "id": 2073,
     "name": "Psychosis",
     "bioindex_id": "HP-0000709",
-    "ontology_id": null
+    "ontology_id": "HP:0000709"
   },
   "HP-0000725": {
     "id": 2075,
     "name": "Psychotic episodes",
     "bioindex_id": "HP-0000725",
-    "ontology_id": null
+    "ontology_id": "HP:0000725"
   },
   "PTINR": {
     "id": 2853,
@@ -8031,7 +8031,7 @@
     "id": 2098,
     "name": "Puberty and gonadal disorders",
     "bioindex_id": "HP-0008373",
-    "ontology_id": null
+    "ontology_id": "HP:0008373"
   },
   "PAH": {
     "id": 2131,
@@ -8445,7 +8445,7 @@
     "id": 2108,
     "name": "Sensorineural hearing impairment",
     "bioindex_id": "HP-0000407",
-    "ontology_id": null
+    "ontology_id": "HP:0000407"
   },
   "SeropositiveRhA": {
     "id": 2012,
@@ -8547,7 +8547,7 @@
     "id": 1985,
     "name": "Short stature",
     "bioindex_id": "HP-0004322",
-    "ontology_id": null
+    "ontology_id": "HP:0004322"
   },
   "DPAcm": {
     "id": 1859,
@@ -8853,7 +8853,7 @@
     "id": 2099,
     "name": "Spinal deformities",
     "bioindex_id": "HP-0008443",
-    "ontology_id": null
+    "ontology_id": "HP:0008443"
   },
   "SpineOA": {
     "id": 1758,
@@ -8925,7 +8925,7 @@
     "id": 2072,
     "name": "Strabismus",
     "bioindex_id": "HP-0000486",
-    "ontology_id": null
+    "ontology_id": "HP:0000486"
   },
   "StrokeinT2D": {
     "id": 1324,
@@ -8973,7 +8973,7 @@
     "id": 2083,
     "name": "Sudden death",
     "bioindex_id": "HP-0001699",
-    "ontology_id": null
+    "ontology_id": "HP:0001699"
   },
   "SupraventricularPremaBeats": {
     "id": 2813,
@@ -9609,7 +9609,7 @@
     "id": 2067,
     "name": "Urinary incontinence",
     "bioindex_id": "HP-0000020",
-    "ontology_id": null
+    "ontology_id": "HP:0000020"
   },
   "KExcretion": {
     "id": 1597,

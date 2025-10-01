@@ -79,5 +79,10 @@ if __name__ == "__main__":
     for phenotype in list_phenotypes:
         map_phenotypes[phenotype.get('bioindex_id')] = phenotype
 
+        # check if bioindex id is HP code
+        if "HP-" in phenotype.get('bioindex_id', ' '):
+            new_ontology_id = "HP:" + phenotype.get('bioindex_id').strip().split("-")[1]
+            phenotype['ontology_id'] = new_ontology_id 
+
     # save json file
     save_json_phentypes(map_phenotypes=map_phenotypes)
