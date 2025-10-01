@@ -9,8 +9,8 @@
     "id": 2260,
     "name": " All diabetic kidney disease (DKD) in type 2 diabetes",
     "bioindex_id": "allDKD_T2D",
-    "ontology_id": null
-  },
+    "ontology_id": "MONDO:0005016"
+    },
   "AllDKDvControl_DM": {
     "id": 2263,
     "name": " All diabetic kidney disease vs. controls in diabetes",
@@ -63,8 +63,8 @@
     "id": 2319,
     "name": "Abdominal aortic aneurysm",
     "bioindex_id": "AbAA",
-    "ontology_id": null
-  },
+    "ontology_id": "MONDO:0005350"
+    },
   "AAC": {
     "id": 2134,
     "name": "Abdominal aortic calcification",
@@ -555,8 +555,8 @@
     "id": 1344,
     "name": "Age-related macular degeneration (AMD)",
     "bioindex_id": "AMD",
-    "ontology_id": null
-  },
+   "ontology_id": "MONDO:0005150"
+    },
   "AMD_dom": {
     "id": 1697,
     "name": "Age-related macular degeneration (dominant model)",
@@ -867,8 +867,8 @@
     "id": 1331,
     "name": "Alzheimer's disease",
     "bioindex_id": "AD",
-    "ontology_id": null
-  },
+    "ontology_id": "MONDO:0004975"
+    },
   "AD_or_AD_history": {
     "id": 2143,
     "name": "Alzheimer's disease or family history of Alzheimer's disease",
@@ -1221,8 +1221,8 @@
     "id": 1260,
     "name": "Asthma",
     "bioindex_id": "Asthma",
-    "ontology_id": null
-  },
+   "ontology_id": "MONDO:0004979"
+    },
   "Asthma_add": {
     "id": 1734,
     "name": "Asthma (additive model)",
@@ -1515,8 +1515,8 @@
     "id": 1349,
     "name": "Bipolar disorder",
     "bioindex_id": "BIP",
-    "ontology_id": null
-  },
+    "ontology_id": "MONDO:0004985"
+    },
   "BIP_Psychosis": {
     "id": 2396,
     "name": "Bipolar disorder with psychosis",
@@ -5229,8 +5229,8 @@
     "id": 1266,
     "name": "Irritable bowel syndrome",
     "bioindex_id": "IBS",
-    "ontology_id": null
-  },
+    "ontology_id": "MONDO:0005052"
+    },
   "IBS_dom": {
     "id": 1693,
     "name": "Irritable bowel syndrome (dominant model)",
