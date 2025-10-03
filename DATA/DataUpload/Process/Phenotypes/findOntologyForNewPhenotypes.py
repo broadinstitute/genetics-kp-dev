@@ -240,7 +240,7 @@ if __name__ == "__main__":
             if file_phenotype.get(KEY_ONTOLOGY_ID) is not None:
                 if not db_value.get(KEY_ONTOLOGY_ID) or (db_value.get(KEY_ONTOLOGY_ID) != file_phenotype.get(KEY_ONTOLOGY_ID)):
                     # replace phenotype ontology id
-                    add_db_phenotype_ontology_id(conn=db_connection, row_id=db_value.get('id'), ontology_id=file_phenotype.get(KEY_ONTOLOGY_ID))
+                    # add_db_phenotype_ontology_id(conn=db_connection, row_id=db_value.get('id'), ontology_id=file_phenotype.get(KEY_ONTOLOGY_ID))
 
                     # log
                     print("replaced ontology: {} with: {} for phenotype: {}".format(db_value.get(KEY_ONTOLOGY_ID), file_phenotype.get(KEY_ONTOLOGY_ID), db_value))

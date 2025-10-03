@@ -975,8 +975,8 @@
     "id": 1261,
     "name": "Any cancer",
     "bioindex_id": "Cancer",
-    "ontology_id": null
-  },
+    "ontology_id": "MONDO:0004992"
+    },
   "Cancer_dom": {
     "id": 1649,
     "name": "Any cancer (dominant model)",
@@ -1275,8 +1275,8 @@
     "id": 1877,
     "name": "Atopic dermatitis",
     "bioindex_id": "Eczema",
-    "ontology_id": null
-  },
+    "ontology_id": "MONDO:0004980"
+    },
   "AF": {
     "id": 1332,
     "name": "Atrial fibrillation",
@@ -1923,8 +1923,8 @@
     "id": 1836,
     "name": "Celiac disease",
     "bioindex_id": "Celiac",
-    "ontology_id": null
-  },
+   "ontology_id": "MONDO:0005130"
+    },
   "CCthickness": {
     "id": 2130,
     "name": "Central corneal thickness",
@@ -2043,8 +2043,8 @@
     "id": 1357,
     "name": "Chronic kidney disease (CKD)",
     "bioindex_id": "CKD",
-    "ontology_id": null
-  },
+    "ontology_id": "MONDO:0005300"
+    },
   "CKDadjHbA1cBMI": {
     "id": 1358,
     "name": "Chronic kidney disease (CKD) adj HbA1c-BMI",
@@ -2127,8 +2127,8 @@
     "id": 1491,
     "name": "Chronic obstructive pulmonary disease (COPD)",
     "bioindex_id": "COPD",
-    "ontology_id": null
-  },
+    "ontology_id": "MONDO:0005002"
+    },
   "ChronicPulmoHeartDisease": {
     "id": 2793,
     "name": "Chronic pulmonary heart disease (PheCode 415.2)",
@@ -2445,8 +2445,8 @@
     "id": 1351,
     "name": "Coronary artery disease (CAD)",
     "bioindex_id": "CAD",
-    "ontology_id": null
-  },
+    "ontology_id": "MONDO:0005010"
+    },
   "CADinNonT2D": {
     "id": 1558,
     "name": "Coronary artery disease (CAD) in subjects without diabetes",
@@ -2529,8 +2529,8 @@
     "id": 1352,
     "name": "Crohn's disease",
     "bioindex_id": "CD",
-    "ontology_id": null
-  },
+    "ontology_id": "MONDO:0005011"
+    },
   "HP-0100280": {
     "id": 2106,
     "name": "Crohn\u2019s disease",
@@ -3429,8 +3429,8 @@
     "id": 2802,
     "name": "Epilepsy (PheCode 345.1)",
     "bioindex_id": "Epilepsy",
-    "ontology_id": null
-  },
+    "ontology_id": "MONDO:0005027"
+    },
   "HP-0200134": {
     "id": 2107,
     "name": "Epileptic encephalopathy",
@@ -4191,8 +4191,8 @@
     "id": 1878,
     "name": "Graves' disease",
     "bioindex_id": "Graves",
-    "ontology_id": null
-  },
+    "ontology_id": "MONDO:0005364"
+    },
   "HP-0001507": {
     "id": 1812,
     "name": "Growth abnormality",
@@ -4281,8 +4281,8 @@
     "id": 1383,
     "name": "Heart failure",
     "bioindex_id": "HF",
-    "ontology_id": null
-  },
+    "ontology_id": "MONDO:0005252"
+    },
   "DiastolicHeartFail": {
     "id": 2798,
     "name": "Heart failure with preserved EF [Diastolic heart failure] (PheCode 428.4)",
@@ -4671,8 +4671,8 @@
     "id": 1306,
     "name": "Hypertension",
     "bioindex_id": "HYPERTENSION",
-    "ontology_id": null
-  },
+    "ontology_id": "MONDO:0005044"
+    },
   "HYPERTENSION_add": {
     "id": 1743,
     "name": "Hypertension (additive model)",
@@ -4935,7 +4935,7 @@
     "id": 1389,
     "name": "Inflammatory bowel disease (IBD)",
     "bioindex_id": "IBD",
-    "ontology_id": null
+  "ontology_id": "MONDO:0005265"
   },
   "INL": {
     "id": 1770,
