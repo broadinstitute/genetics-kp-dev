@@ -1,8 +1,6 @@
-#!/usr/bin/env python3
 
 """
 Export MySQL comb_edge_node data to KGX TSV (TRAPI 1.4 / Biolink-conformant).
-
 
 This will write:
   magma_alz_nodes.tsv
@@ -21,11 +19,14 @@ from pymysql.cursors import DictCursor
 # constants
 DB_PASSWD = os.environ.get('DB_PASSWD')
 DB_SCHEMA = 'tran_test_202303'
-# DB_TABLE = "data_600k_phenotype_ontology"
 DIR_KGX = "/Users/mduby/Data/Broad/Translator/GeneticsPro/KGX"
 
 DB_STUDY_ID = 1
 INFORES_GENETICS = "infores:genetics-data-provider"
+
+# These defaults reflect MAGMA-style statistical associations
+DEFAULT_KNOWLEDGE_LEVEL = "statistical_association"
+DEFAULT_AGENT_TYPE = "data_analysis_pipeline"
 
 
 # ---------------------------------------------------------------------
@@ -70,12 +71,11 @@ def fetch_edges(conn, study_id: int, limit: int = None) -> List[Dict[str, Any]]:
         JOIN comb_lookup_type tta ON ta.node_type_id   = tta.type_id
         JOIN comb_lookup_type sco_type ON ed.score_type_id = sco_type.type_id
         WHERE ed.study_id = %s
-        limit 10
+        LIMIT 10
     """
     if limit is not None and limit > 0:
         query += " LIMIT %s"
 
-    # DictCursor is already set at connection level
     cursor = conn.cursor()
     try:
         if limit is not None and limit > 0:
@@ -119,7 +119,7 @@ def parse_publication_ids(pub_ids) -> List[str]:
 
 def list_to_pipe(values: List[str]) -> str:
     """
-    KGX TSV typically uses '|' for multivalued columns.
+    KGX TSV uses '|' for multivalued columns.
     """
     return "|".join(str(v) for v in values) if values else ""
 
@@ -156,7 +156,7 @@ def build_kgx(
         predicate = row["predicate"]        # e.g. "biolink:gene_associated_with_condition"
 
         score = row["score"]
-        score_type = row["score_type"]      # e.g. "biolink:p_value"
+        score_type = row["score_type"]      # e.g. "p_value"
         score_translator = row["score_translator"]
         study_id = row["study_id"]
         internal_id = row["internal_id"]
@@ -165,17 +165,18 @@ def build_kgx(
 
         # ------------------------
         # Nodes (KGX node records)
-        # Required: id, category. Common: name, provided_by
+        # Required: id, category
+        # Example TSV header: id  category  name  provided_by
         # ------------------------
 
         if subj_id not in nodes:
             nodes[subj_id] = {
                 "id": subj_id,
                 "name": subj_name or "",
-                # category is multivalued in KGX; here it's a single label
+                # category is multivalued in KGX; here it's a single label or pipe-delimited string
                 "category": subj_cat if subj_cat else "",
+                # 'provided_by' is node-only provenance in KGX spec
                 "provided_by": kp_infores,
-                # add description/xref/synonym if you have them in your schema
             }
 
         if obj_id not in nodes:
@@ -188,9 +189,16 @@ def build_kgx(
 
         # ------------------------
         # Edge (KGX edge record)
-        # Default KGX edge columns (from KGX TsvSink):
-        #   id, subject, predicate, object, relation, category, provided_by
-        # We'll also add score-related columns, publications, study_id, internal_id.
+        #
+        # Required properties (per spec):
+        #   subject, predicate, object, knowledge_level, agent_type
+        #
+        # TSV example header:
+        #   id  subject  predicate  object  relation  primary_knowledge_source  category  publications
+        #
+        # NOTE:
+        # - 'relation' is deprecated but still allowed; we leave it blank.
+        # - 'provided_by' is node-only; for edges we use knowledge_source properties.
         # ------------------------
 
         edge_rec: Dict[str, Any] = {
@@ -198,19 +206,22 @@ def build_kgx(
             "subject": subj_id,
             "predicate": predicate,
             "object": obj_id,
-            # Biolink "relation" (often a lower-level CURIE); if you don't have one,
-            # you can leave empty or map predicate here.
+            # Biolink "relation" (often a lower-level RO term); optional & deprecated
             "relation": "",
-            # For category, many KGs use "biolink:Association" or a more specific
-            # association class; here we keep it simple.
+            # Association category; could be made more specific if desired
             "category": "biolink:Association",
-            "provided_by": kp_infores,
+            # KGX / Biolink edge provenance
+            "primary_knowledge_source": kp_infores,
+            # leave aggregator blank unless you have one
+            "aggregator_knowledge_source": "",
+            # Required KGX/Biolink edge metadata
+            "knowledge_level": DEFAULT_KNOWLEDGE_LEVEL,
+            "agent_type": DEFAULT_AGENT_TYPE,
         }
 
         # Score as extra edge properties
         if score is not None:
             edge_rec["score"] = float(score)
-            # keep the type around as well
             edge_rec["score_type"] = score_type or ""
 
         if score_translator is not None:
@@ -240,7 +251,7 @@ def write_nodes_tsv(path: str, nodes: List[Dict[str, Any]]):
     Write nodes in KGX TSV format.
 
     We'll include common columns:
-      id, name, category, description, provided_by
+      id, category, name, provided_by
     plus any extra keys seen in the nodes.
     """
     # Collect all keys
@@ -248,7 +259,7 @@ def write_nodes_tsv(path: str, nodes: List[Dict[str, Any]]):
     for n in nodes:
         all_keys.update(n.keys())
 
-    # Default core node columns (ordered like KGX)
+    # Default core node columns (ordered like KGX TSV example)
     core = ["id", "category", "name", "description", "xref", "provided_by", "synonym"]
 
     # Build header in KGX-like order
@@ -272,15 +283,30 @@ def write_edges_tsv(path: str, edges: List[Dict[str, Any]]):
     """
     Write edges in KGX TSV format.
 
-    Core edge columns per KGX:
-      id, subject, predicate, object, relation, category, provided_by
-    plus any extra keys seen in the edges.
+    Core edge columns (per spec + example):
+      id, subject, predicate, object, relation,
+      primary_knowledge_source, aggregator_knowledge_source,
+      category, publications, knowledge_level, agent_type
+
+    Additional keys (score, study_id, etc.) are appended afterward.
     """
     all_keys: Set[str] = set()
     for e in edges:
         all_keys.update(e.keys())
 
-    core = ["id", "subject", "predicate", "object", "category", "relation", "provided_by"]
+    core = [
+        "id",
+        "subject",
+        "predicate",
+        "object",
+        "relation",
+        "primary_knowledge_source",
+        "aggregator_knowledge_source",
+        "category",
+        "publications",
+        "knowledge_level",
+        "agent_type",
+    ]
 
     header: List[str] = []
     for c in core:
@@ -302,17 +328,7 @@ def write_edges_tsv(path: str, edges: List[Dict[str, Any]]):
 # ---------------------------------------------------------------------
 
 def main():
-
     try:
-        # version using CLI args:
-        # conn = get_connection(
-        #     host=args.host,
-        #     user=args.user,
-        #     password=args.password,
-        #     database=args.database,
-        # )
-
-        # version using env/password constants:
         conn = get_connection(
             host='localhost',
             user='root',
@@ -330,11 +346,8 @@ def main():
 
         node_records, edge_records = build_kgx(rows, kp_infores=INFORES_GENETICS)
 
-        # nodes_path = f"{args.base_path}_nodes.tsv"
-        # edges_path = f"{args.base_path}_edges.tsv"
-
-        nodes_path = "{}/geneticsKP_magma_nodes.tsv".format(DIR_KGX)
-        edges_path = "{}/geneticsKP_magma_edges.tsv".format(DIR_KGX)
+        nodes_path = f"{DIR_KGX}/nodes_geneticsKP_magma.json"
+        edges_path = f"{DIR_KGX}/edges_geneticsKP_magma.json"
 
         write_nodes_tsv(nodes_path, node_records)
         write_edges_tsv(edges_path, edge_records)
