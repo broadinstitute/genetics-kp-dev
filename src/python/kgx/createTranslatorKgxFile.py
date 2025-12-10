@@ -214,7 +214,7 @@ def build_kgx(
             # KGX / Biolink edge provenance
             "primary_knowledge_source": kp_infores,
             # leave aggregator blank unless you have one
-            "aggregator_knowledge_source": "",
+            "aggregator_knowledge_source": kp_infores,
             # Required KGX/Biolink edge metadata
             "knowledge_level": DEFAULT_KNOWLEDGE_LEVEL,
             "agent_type": DEFAULT_AGENT_TYPE,
