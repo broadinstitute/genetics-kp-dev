@@ -12,6 +12,7 @@ import sys
 import csv
 from typing import Dict, Any, List, Tuple, Set
 import os
+import json 
 
 import pymysql
 from pymysql.cursors import DictCursor
@@ -323,11 +324,72 @@ def write_edges_tsv(path: str, edges: List[Dict[str, Any]]):
             writer.writerow({k: e.get(k, "") for k in header})
 
 
+
+# ---------------------------------------------------------------------
+# File writing (JSON Lines / .jsonl)
+# ---------------------------------------------------------------------
+
+def write_nodes_jsonl(path: str, nodes: List[Dict[str, Any]]):
+    """
+    Write nodes in KGX JSON Lines format:
+    One JSON object per line with all node properties.
+    """
+    with open(path, "w", encoding="utf-8") as f:
+        for node in nodes:
+            f.write(json.dumps(node, ensure_ascii=False) + "\n")
+
+
+def write_edges_jsonl(path: str, edges: List[Dict[str, Any]]):
+    """
+    Write edges in KGX JSON Lines format:
+    One JSON object per line with all edge properties.
+    """
+    with open(path, "w", encoding="utf-8") as f:
+        for edge in edges:
+            f.write(json.dumps(edge, ensure_ascii=False) + "\n")
+
+
 # ---------------------------------------------------------------------
 # Main
 # ---------------------------------------------------------------------
 
 def main():
+    try:
+        conn = get_connection(
+            host='localhost',
+            user='root',
+            password=DB_PASSWD,
+            database=DB_SCHEMA,
+        )
+
+    except pymysql.MySQLError as e:
+        print(f"Error connecting to MySQL: {e}", file=sys.stderr)
+        sys.exit(1)
+
+    try:
+        rows = fetch_edges(conn, study_id=DB_STUDY_ID)
+        print(f"Fetched {len(rows)} rows for study_id={DB_STUDY_ID}", file=sys.stderr)
+
+        node_records, edge_records = build_kgx(rows, kp_infores=INFORES_GENETICS)
+
+        nodes_path = f"{DIR_KGX}/nodes_geneticsKP_magma.jsonl"
+        edges_path = f"{DIR_KGX}/edges_geneticsKP_magma.jsonl"
+
+        write_nodes_jsonl(nodes_path, node_records)
+        write_edges_jsonl(edges_path, edge_records)
+
+        print(f"Wrote KGX JSON Lines nodes to {nodes_path}", file=sys.stderr)
+        print(f"Wrote KGX JSON Lines edges to {edges_path}", file=sys.stderr)
+
+    finally:
+        conn.close()
+# ---------------------------------------------------------------------
+# Main
+# ---------------------------------------------------------------------
+
+
+
+def main_tsv():
     try:
         conn = get_connection(
             host='localhost',
