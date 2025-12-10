@@ -1,10 +1,4 @@
-
-
-'''
-comented out from openai generated
 #!/usr/bin/env python3
-'''
-
 
 """
 Export MySQL comb_edge_node data to KGX TSV (TRAPI 1.4 / Biolink-conformant).
@@ -30,11 +24,10 @@ import argparse
 import sys
 import csv
 from typing import Dict, Any, List, Tuple, Set
-import os 
+import os
 
-import mysql.connector
-from mysql.connector import Error
-
+import pymysql
+from pymysql.cursors import DictCursor
 
 # constants
 DB_PASSWD = os.environ.get('DB_PASSWD')
@@ -48,11 +41,12 @@ DIR_KGX = "/Users/mduby/Data/Broad/Translator/GeneticsPro/KGX"
 # ---------------------------------------------------------------------
 
 def get_connection(host: str, user: str, password: str, database: str):
-    return mysql.connector.connect(
+    return pymysql.connect(
         host=host,
         user=user,
         password=password,
         database=database,
+        cursorclass=DictCursor,
     )
 
 
@@ -89,7 +83,8 @@ def fetch_edges(conn, study_id: int, limit: int = None) -> List[Dict[str, Any]]:
     if limit is not None and limit > 0:
         query += " LIMIT %s"
 
-    cursor = conn.cursor(dictionary=True)
+    # DictCursor is already set at connection level
+    cursor = conn.cursor()
     try:
         if limit is not None and limit > 0:
             cursor.execute(query, (study_id, limit))
@@ -343,6 +338,7 @@ def main():
     args = parser.parse_args()
 
     try:
+        # version using CLI args:
         # conn = get_connection(
         #     host=args.host,
         #     user=args.user,
@@ -350,14 +346,15 @@ def main():
         #     database=args.database,
         # )
 
+        # version using env/password constants:
         conn = get_connection(
-            host = 'localhost',
-            user = ' root',
-            password = DB_PASSWD,
-            database = DB_SCHEMA,
+            host='localhost',
+            user='root',
+            password=DB_PASSWD,
+            database=DB_SCHEMA,
         )
 
-    except Error as e:
+    except pymysql.MySQLError as e:
         print(f"Error connecting to MySQL: {e}", file=sys.stderr)
         sys.exit(1)
 
@@ -385,6 +382,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
-
-
