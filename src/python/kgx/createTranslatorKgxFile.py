@@ -3,16 +3,6 @@
 """
 Export MySQL comb_edge_node data to KGX TSV (TRAPI 1.4 / Biolink-conformant).
 
-Usage example:
-
-    python export_to_kgx.py \
-        --host localhost \
-        --user myuser \
-        --password mypass \
-        --database mydb \
-        --study-id 1 \
-        --limit 1000 \
-        --base-path magma_alz
 
 This will write:
   magma_alz_nodes.tsv
@@ -20,7 +10,6 @@ This will write:
 """
 
 # imports
-import argparse
 import sys
 import csv
 from typing import Dict, Any, List, Tuple, Set
@@ -31,9 +20,12 @@ from pymysql.cursors import DictCursor
 
 # constants
 DB_PASSWD = os.environ.get('DB_PASSWD')
-DB_SCHEMA = 'tran_202303'
+DB_SCHEMA = 'tran_test_202303'
 # DB_TABLE = "data_600k_phenotype_ontology"
 DIR_KGX = "/Users/mduby/Data/Broad/Translator/GeneticsPro/KGX"
+
+DB_STUDY_ID = 1
+INFORES_GENETICS = "infores:genetics-data-provider"
 
 
 # ---------------------------------------------------------------------
@@ -310,32 +302,6 @@ def write_edges_tsv(path: str, edges: List[Dict[str, Any]]):
 # ---------------------------------------------------------------------
 
 def main():
-    parser = argparse.ArgumentParser(
-        description="Export comb_edge_node edges to KGX TSV (TRAPI 1.4/Biolink)."
-    )
-    parser.add_argument("--host", default="localhost")
-    parser.add_argument("--user", required=True)
-    parser.add_argument("--password", required=True)
-    parser.add_argument("--database", required=True)
-    parser.add_argument("--study-id", type=int, required=True)
-    parser.add_argument(
-        "--limit",
-        type=int,
-        default=None,
-        help="Optional LIMIT on number of edges (default: no limit)",
-    )
-    parser.add_argument(
-        "--base-path",
-        required=True,
-        help="Base path for KGX output (e.g. /tmp/magma_alz -> magma_alz_nodes.tsv, magma_alz_edges.tsv)",
-    )
-    parser.add_argument(
-        "--kp-infores",
-        default="infores:your-kp-id",
-        help="infores identifier for provided_by (default: infores:your-kp-id)",
-    )
-
-    args = parser.parse_args()
 
     try:
         # version using CLI args:
@@ -359,16 +325,16 @@ def main():
         sys.exit(1)
 
     try:
-        rows = fetch_edges(conn, study_id=args.study_id, limit=args.limit)
-        print(f"Fetched {len(rows)} rows for study_id={args.study_id}", file=sys.stderr)
+        rows = fetch_edges(conn, study_id=DB_STUDY_ID)
+        print(f"Fetched {len(rows)} rows for study_id={DB_STUDY_ID}", file=sys.stderr)
 
-        node_records, edge_records = build_kgx(rows, kp_infores=args.kp_infores)
+        node_records, edge_records = build_kgx(rows, kp_infores=INFORES_GENETICS)
 
         # nodes_path = f"{args.base_path}_nodes.tsv"
         # edges_path = f"{args.base_path}_edges.tsv"
 
         nodes_path = "{}/geneticsKP_magma_nodes.tsv".format(DIR_KGX)
-        edges_path = "{}geneticsKP_magma_edges.tsv".format(DIR_KGX)
+        edges_path = "{}/geneticsKP_magma_edges.tsv".format(DIR_KGX)
 
         write_nodes_tsv(nodes_path, node_records)
         write_edges_tsv(edges_path, edge_records)
