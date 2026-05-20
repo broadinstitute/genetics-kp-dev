@@ -72,7 +72,6 @@ def fetch_edges(conn, study_id: int, limit: int = None) -> List[Dict[str, Any]]:
         JOIN comb_lookup_type tta ON ta.node_type_id   = tta.type_id
         JOIN comb_lookup_type sco_type ON ed.score_type_id = sco_type.type_id
         WHERE ed.study_id = %s
-        LIMIT 10
     """
     if limit is not None and limit > 0:
         query += " LIMIT %s"

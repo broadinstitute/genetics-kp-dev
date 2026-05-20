@@ -19,6 +19,7 @@ import argparse
 import json
 import sys
 from typing import Dict, Any, List
+import os
 
 import mysql.connector
 from mysql.connector import Error
@@ -26,6 +27,11 @@ from mysql.connector import Error
 
 
 # constants
+DB_PASSWD = os.environ.get('DB_PASSWD')
+DB_SCHEMA = 'tran_test_202303'
+DB_STUDY_ID = 1 # Magma for now
+DIR_FILES = "/Users/mduby/Data/Broad/Translator/GeneticsPro/DGX/"
+
 
 # methods
 def get_connection(host: str, user: str, password: str, database: str):
