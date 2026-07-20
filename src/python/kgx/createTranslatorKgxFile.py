@@ -70,8 +70,10 @@ def fetch_edges(conn, study_id: int, limit: int = None) -> List[Dict[str, Any]]:
         JOIN comb_lookup_type ted ON ed.edge_type_id   = ted.type_id
         JOIN comb_lookup_type tso ON so.node_type_id   = tso.type_id
         JOIN comb_lookup_type tta ON ta.node_type_id   = tta.type_id
+        JOIN comb_ontology_type oso ON so.ontology_type_id   = oso.ontology_id
+        JOIN comb_ontology_type ota ON ta.ontology_type_id   = ota.ontology_id
         JOIN comb_lookup_type sco_type ON ed.score_type_id = sco_type.type_id
-        WHERE ed.study_id = %s
+        WHERE oso.ontology_id not in (5, 7) and ota.ontology_id not in (5, 7) and ed.study_id = %s
     """
     if limit is not None and limit > 0:
         query += " LIMIT %s"
