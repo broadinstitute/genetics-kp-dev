@@ -7,7 +7,10 @@ create table tran_upkeep.agg_gene_phenotype_pigean (
   gene_code                    varchar(250) not null,
   phenotype_code               varchar(250) not null,
   score_huge                   double,
-  prob_combined                double,
+  combined                   double,
+  log_bf                     double,
+  prior                      double,
+  n                          integer(9),
   date_created                 datetime DEFAULT CURRENT_TIMESTAMP
 );
 

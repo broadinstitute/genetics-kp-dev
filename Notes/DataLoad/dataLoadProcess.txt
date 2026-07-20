@@ -4,7 +4,8 @@
   - look at bioindex list phenotypes api
 
 - new phenotypes
-  - get xlsx document
+  - pull the phenotype data from the bioindex
+    - GET https://bioindex-dev.hugeamp.org/api/portal/phenotypes
   - load into load schema 
   - pull in ontology id from the production schema 
   - for any without ontology id (so not in system), run script to find best curie
